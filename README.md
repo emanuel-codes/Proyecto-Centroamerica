@@ -11,6 +11,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.3): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon y el maestro. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo de la versión nueva: reglas, fases, controles, carpetas y recetas de descarga. |
 | [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md) | Qué se descarga de Amazon, Retail Link y el ERP, cada cuánto y en qué carpeta. |
+| [`GUIA_VALIDACION.md`](GUIA_VALIDACION.md) | Cómo comprobar por tu cuenta cada cifra del reporte contra los archivos descargados, y la rutina diaria antes de enviar. |
 | `Nueva versión/` | Carpeta de datos de la versión nueva: descargas por fuente y `Maestros/Maestro_Wellpro.xlsx` (borrador del maestro). |
 | [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) | Propuesta de definición de cada indicador, para aprobar con el jefe. |
 | [`DIAGNOSTICO_REPORTE_ACTUAL.md`](DIAGNOSTICO_REPORTE_ACTUAL.md) | Cómo funciona el reporte actual, qué pasos manuales exige y qué errores tiene, con cifras. |

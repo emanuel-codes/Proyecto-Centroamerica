@@ -38,6 +38,8 @@ Todavía **no** incluye el sell in ni el inventario del ERP (faltan sus muestras
 
 Si aparece un error, copia el mensaje completo, o toma una captura, y mándamelo.
 
+Para comprobar cada cifra por tu cuenta contra los archivos descargados, sigue [`GUIA_VALIDACION.md`](../GUIA_VALIDACION.md).
+
 ## Cómo se usan las páginas
 
 - **Filtro Mes (página Sell out):** el reporte abre en **«Mes actual»**, que es el último mes con sell out. No hay que cambiarlo cada día: cuando llegan datos de un mes nuevo, «Mes actual» pasa a ser ese mes. Para ver otro mes, elígelo en el filtro; con Ctrl puedes elegir varios.
@@ -54,6 +56,7 @@ Si aparece un error, copia el mensaje completo, o toma una captura, y mándamelo
 | Control | Días sin sell out Walmart · Filas sin homologar | 0 · 0 |
 | Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $147,182 (Walmart $87,070 del 22 al 29/09 + Amazon $60,112 del 1 al 28/09) |
 | Sell out («Mes actual») | Sell out (piezas) | 1,055 (Walmart 363 + Amazon 692) |
+| Sell out («Mes actual») | Tiendas de Walmart con venta | 260 |
 | Sell out | Monto y piezas vs año anterior | «Sin año anterior» hasta que se descargue el historial |
 | Sell out, eligiendo «Ago 2026» | Sell out | Amazon: 564 piezas · $60,543 |
 | Inventario | Inventario (piezas) | 30,479 (Walmart 27,281 al 29/09 + Amazon 3,198 al 28/09) |
