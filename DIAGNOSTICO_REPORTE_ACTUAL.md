@@ -28,7 +28,7 @@ El reporte funciona, pero sus cifras principales tienen errores medibles. Casi t
 
 | # | Qué pasa | Impacto medido |
 |---|---|---|
-| 1 | El Termómetro Osito aparece dos veces en los catálogos. El cruce por nombre duplica sus ventas y sus metas. | Sell in inflado en **1.17 M MXN** (**+9 %** en 2026). Metas infladas en **2.72 M MXN**. |
+| 1 | El Termómetro Osito aparece dos veces en los catálogos. El cruce por nombre duplica sus ventas y sus metas. | En el respaldo del 21/09: sell in inflado en **1.17 M MXN** (**+9 %** en 2026) y metas infladas en **2.72 M MXN**. En la versión publicada al 30/09 ya está corregido (ver A1). |
 | 2 | Las metas están fechadas el último día de cada mes, y el filtro de fechas es "últimos 9 meses contados por día". | El % de cumplimiento cambia según el día en que se abre el reporte, aunque no entren datos nuevos: **46.4 %** el 21/09, **52.2 %** el 30/09 y **45.0 %** el 15/10. |
 | 3 | El crecimiento compara el año en curso, incompleto, contra el año anterior completo. Además arrastra el duplicado del punto 1. | El 30/09 el reporte muestra **+42.7 %**. Comparando los mismos días y sin el duplicado, el crecimiento es **+40.0 %**. |
 | 4 | En el Excel consolidado de sell out Walmart hay días pegados dos veces y días que nunca se pegaron. | **201,516 MXN** duplicados (del 1 al 10 de noviembre de 2025 y el 27 de agosto de 2026). **14 días de 2026** sin datos, unos 140–180 mil MXN faltantes. |
@@ -124,6 +124,7 @@ Cada paso es una oportunidad de error. Varios de los errores de la sección 5 so
 - Prueba: el Excel tiene 7,204 filas de venta y el modelo 8,385. La diferencia, 1,181 filas, son todas del Osito. En metas, el Excel tiene 1,319 filas y el modelo 1,425: hay 106 duplicadas.
 - Impacto en el sell in: **+1,169,551 MXN** (121 mil en 2024, 272 mil en 2025 y 776 mil en 2026). En 2026 el reporte muestra 9.18 M, cuando el dato correcto es 8.40 M.
 - Impacto en las metas: **+2,721,454 MXN**.
+- **Actualización del 30/09:** en las capturas del reporte publicado, la meta (17,036,534) y el año anterior (6,290,482) coinciden exactamente con las cifras corregidas de este análisis. El duplicado ya se quitó en la versión actual, pero la causa, el cruce por nombre, sigue en el diseño.
 - **Corrección:** homologar por código, no por nombre, y dejar una sola fila por producto en el catálogo.
 
 **A2. El cumplimiento de meta cambia según el día en que se abre el reporte.**
@@ -174,6 +175,7 @@ Otros problemas de la misma tabla:
 - Retail Link reporta el UPC sin dígito verificador y con un 0 adelante. Cuatro consultas (`Sell_Out_WM`, `Inventario en Tienda WM`, `Recship WM` y `Fill_rate`) traducen el código de **4 productos** a mano, uno por uno.
 - En `Inventario en Tienda WM` la regla es "si no es uno de estos 4, poner 0". Por eso el Osito, que Walmart empezó a manejar a fines de agosto de 2026, tiene su inventario (**466 piezas en 214 tiendas**) asignado al código «0», que no corresponde a ningún producto.
 - En `Recship WM`, el Osito se traduce a `743100920748`, un código de 12 dígitos que no existe. Probablemente por eso se agregó al catálogo la segunda fila del Osito, que es la causa del duplicado del punto A1. El código correcto es `7431009207481`.
+- **Walmart ya trae el código del ERP.** La columna `Vendor Stk Nbr` de Retail Link es el código de producto del ERP en 4 de los 5 artículos: 14660, 13471, 13595 y 13594. La homologación puede hacerse directo por ese código, y usar la regla del UPC solo cuando venga vacío, como pasa con el Osito.
 - **La regla es fija y se puede automatizar.** Se quita el 0 inicial y se agrega el dígito verificador. Por ejemplo, `0743400255002` → `743400255002` → `7434002550028` (Nebulizador Familiar). Se comprobó con los 5 artículos que maneja Walmart.
 
 **A8. Tarjetas aromatizantes individuales asignadas al Pack.**
@@ -194,8 +196,9 @@ Otros problemas de la misma tabla:
 - **Corrección:** una tabla de tipo de cambio por mes y una sola medida de conversión.
 
 **A11. La página Inventario mezcla tablas que no están relacionadas.**
-- Las tarjetas y los gráficos salen de la tabla manual `Tbl`, pero el «Top 10 Articulos» sale del kardex del ERP. La leyenda del gráfico de tendencia también usa los artículos del kardex.
-- No hay relación entre las dos tablas. Por eso el filtro «Filtro por Artículo» no cambia el Top 10 y la leyenda no filtra la tabla manual.
+- Las tarjetas y los gráficos salen de la tabla manual `Tbl`, pero el «Top 10 Articulos» sale del kardex del ERP.
+- No hay relación entre las dos tablas. Por eso el filtro «Filtro por Artículo» no cambia el Top 10: en la captura del 30/09, con la báscula antideslizante filtrada, el Top 10 sigue mostrando todos los artículos.
+- Los botones «Monto» y «Piezas» de esta página no cambian nada, porque ninguna medida de la página los usa. En la captura, con «Monto» seleccionado, las cifras siguen en piezas.
 - Además, el «Punto de Reorden» es el promedio de salidas × 7, un número fijo, aunque el catálogo ya tiene el tiempo de entrega y el stock de seguridad de cada producto.
 
 ### B. Riesgos que hacen fallar la actualización o que dependen de pasos manuales
