@@ -13,3 +13,4 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix` | Reporte actual, tal como lo entregó el cliente. |
 | `Sell in/BD Sell In.xlsx` | Base de sell in y catálogos: productos, clientes y metas. |
 | `Inventario/Inventarios.xlsx` | Tabla de inventario que se llena a mano cada mes. |
+| `Ventas Amazon/` | Archivos mensuales de ventas de Amazon Vendor Central que lee el reporte actual (feb-2024 a sep-2026). |

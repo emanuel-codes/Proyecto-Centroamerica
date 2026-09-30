@@ -6,8 +6,9 @@
 - `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix`, con datos hasta el 18–20/09/2026.
 - `Sell in/BD Sell In.xlsx`.
 - `Inventario/Inventarios.xlsx`.
+- `Ventas Amazon/`: los 32 archivos mensuales de ventas de Amazon (feb-2024 a sep-2026).
 
-**Pendiente de revisar:** las descargas originales de Amazon y Walmart, que están en la carpeta `Sell out WM Y AMZ`.
+**Pendiente de revisar:** las descargas de inventario y fill rate de Amazon, y las de Walmart.
 
 > **Cómo se hizo.** Del `.pbix` se extrajo todo el código y los datos que trae cargados:
 > - 25 consultas de Power Query que cargan tablas y 34 auxiliares;
@@ -75,7 +76,7 @@ Por eso el reporte **solo se puede actualizar desde esa computadora**. La actual
 | Recship Walmart | Carpeta `Walmart\Recship WM` (1 archivo) | `Recship WM` | Nombrar el archivo con una fecha. |
 | Fill rate Walmart | `Walmart\Fill rate.xlsx`, hoja «Fill_rate» | `Fill_rate` | Sobrescribir el archivo. |
 | Tiendas Walmart | `Documentos\Reporterias WM\...\SellOut Walmart.xlsx` | `Catalogo de Tiendas` y su copia `TIENDAS` | No se usa en ningún gráfico. |
-| Ventas Amazon (mensual) | Carpeta `Amazon\Ventas Amazon`, un archivo por mes (32 meses) | `Ventas Amazon` | Tabla llamada `Ventas_Amazon` y el nombre `... dd-mm-aaaa.xlsx`. |
+| Ventas Amazon (mensual) | Carpeta `Amazon\Ventas Amazon`, un archivo por mes (32 meses) | `Ventas Amazon` | Tabla llamada `Ventas_Amazon` y el nombre `... dd-mm-aaaa.xlsx`. Son exportaciones de **Amazon Vendor Central** (vista Fabricación, en MXN). Desde noviembre de 2025 el archivo del mes se arma a mano con las descargas diarias (ver B8). |
 | Ventas Amazon (diario, mes en curso) | Carpeta `Documentos\Escritorio\temp\Enero 2026\Septiembre 2026`, un archivo por día | `Ventas Amazon mes actual` | No se usa en ningún gráfico. Su total coincide exactamente con el archivo mensual de septiembre (472 unidades, 40,777 MXN, 19 días), así que el mensual se arma con los diarios. La carpeta cambia cada mes. |
 | Inventario Amazon | Carpeta `Amazon\Inventarios Amazon\2025`, un archivo por día (382 días) | `Inventario Amazon` | Tabla llamada `Inventario_Amazon` y la fecha en el nombre del archivo. |
 | Fill rate Amazon | `Amazon\Fillrate AMAZON\POItemExport_2026-06-24.xls` | `Fillrate Amazon New` | El nombre del archivo está fijo: hay que sobrescribirlo conservando ese nombre. |
@@ -224,6 +225,19 @@ Otros problemas de la misma tabla:
     - el 12/12/2025 está cargado dos veces, lo que duplica ese día;
     - el 02/11/2025 trae 2,391 unidades sin ASIN;
     - faltan el 12/11/2025 y el 31/03/2026.
+- **B8. Desde noviembre de 2025, los archivos mensuales de Amazon se arman a mano.**
+  - Los 32 archivos coinciden exactamente con lo que muestra el reporte: Power BI los lee bien.
+  - Cada archivo trae en la primera fila el rango de fechas que Amazon usó al generarlo.
+  - **Hasta octubre de 2025**, el rango es el mes completo (por ejemplo, `01/03/24 - 31/03/24`). Es decir, cada archivo era **una sola descarga del mes**.
+  - **Desde noviembre de 2025**, el rango ya no corresponde a los datos:
+    - nov-2025, dic-2025, ene-2026 y sep-2026 dicen un solo día (el 1 del mes);
+    - de feb-2026 a may-2026 dicen `01/01/26 - 01/01/26`;
+    - de jun-2026 a ago-2026 dicen `01/06/25 - 30/06/25`, un mes de otro año.
+
+    Todo indica que se usa un archivo viejo como plantilla y se pegan encima los totales del mes, sumados a partir de las descargas diarias.
+  - El archivo de dic-2025 lo muestra: tiene 6 hojas, con los datos diarios del 1 al 27 de diciembre, una tabla dinámica que los suma y dos versiones anteriores con cifras distintas.
+  - El archivo de ene-2025 también trae un rango que no le corresponde: `01/02/25 - 28/02/25`, que es febrero.
+  - **Conclusión:** la cuenta de Amazon sí permite bajar el mes completo en un archivo, porque así se hizo hasta octubre de 2025. Volver a eso pasa de unas 30 descargas al mes a una.
 
 ### C. Catálogo de productos con códigos inválidos
 
@@ -282,7 +296,7 @@ El catálogo es la base de toda la homologación. Tiene estos problemas:
    - Power Query toma la fecha del contenido o de un nombre con formato fijo.
    - No hay tablas con nombre ni pasos que haya que editar cada mes.
 4. **Sin consolidados manuales.** El sell out de Walmart se lee de la carpeta y los duplicados se eliminan por llave.
-5. **Amazon: menos descargas.** Si la cuenta lo permite, bajar el mes o un rango de fechas en un solo archivo en vez de 30 diarios. Hay que confirmarlo en la cuenta del cliente.
+5. **Amazon: menos descargas.** Bajar el mes, o el mes hasta la fecha, en un solo archivo en vez de 30 diarios. La cuenta lo permite: así se hizo hasta octubre de 2025 (ver B8).
 6. **Inventario desde el ERP**, usando el kardex o el inventario auxiliar, en lugar de la tabla manual.
 7. **Metas por mes completo.** El mes en curso se muestra con la meta prorrateada.
 8. **Tipo de cambio mensual** en una tabla.
@@ -302,7 +316,7 @@ El catálogo es la base de toda la homologación. Tiene estos problemas:
 
 ## 8. Preguntas para el cliente
 
-- **Amazon:** ¿el sell out y el inventario se descargan de Vendor Central o de Seller Central? ¿Se pueden bajar por mes o por rango de fechas?
+- **Amazon:** las ventas salen de Vendor Central. ¿Por qué desde noviembre de 2025 se descargan día por día, si antes se bajaba el mes completo? ¿Se necesita el dato diario para algo?
 - **Walmart:** ¿qué consulta de Retail Link se usa? ¿Se puede guardar y programar?
 - **Tipo de cambio:** ¿cuál se debe usar? Por ejemplo, el mensual real o uno fijo de presupuesto.
 - **Reglas de clientes:** ¿son correctas? Sobre todo ISSSTE → Mercado Libre, Claudia Lemoine → Mercado Libre, Pharma Plus → Farmacia San Pablo y Público en general → Market Place.
