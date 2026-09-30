@@ -9,6 +9,8 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | Archivo o carpeta | Qué es |
 |---|---|
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo de la versión nueva: reglas, fases, controles, carpetas y recetas de descarga. |
+| [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) | Propuesta de definición de cada indicador, para aprobar con el jefe. |
+| [`maestros/Maestro_Wellpro_borrador.xlsx`](maestros/) | Borrador del archivo maestro: productos, equivalencias de códigos, clientes, metas y tipo de cambio. |
 | [`DIAGNOSTICO_REPORTE_ACTUAL.md`](DIAGNOSTICO_REPORTE_ACTUAL.md) | Cómo funciona el reporte actual, qué pasos manuales exige y qué errores tiene, con cifras. |
 | [`analisis/reporte_actual/`](analisis/reporte_actual/) | Código extraído del `.pbix` actual: consultas de Power Query, medidas DAX, relaciones y páginas. |
 | `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix` | Reporte actual, tal como lo entregó el cliente. |

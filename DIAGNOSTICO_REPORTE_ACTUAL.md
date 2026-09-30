@@ -201,6 +201,10 @@ Otros problemas de la misma tabla:
 - Los botones «Monto» y «Piezas» de esta página no cambian nada, porque ninguna medida de la página los usa. En la captura, con «Monto» seleccionado, las cifras siguen en piezas.
 - Además, el «Punto de Reorden» es el promedio de salidas × 7, un número fijo, aunque el catálogo ya tiene el tiempo de entrega y el stock de seguridad de cada producto.
 
+**A12. Metas con el cliente mal escrito.**
+- En la hoja de metas, 60 filas de 2025 tienen el cliente «Walmar Marketplace», sin la t.
+- Ese nombre no existe en el catálogo de clientes. Por eso, al filtrar por cliente, esas metas (361,696 MXN) no aparecen en ningún cliente.
+
 ### B. Riesgos que hacen fallar la actualización o que dependen de pasos manuales
 
 - **B1. Rutas personales.** Son 18 rutas en la computadora del analista anterior, incluidas las carpetas `Imágenes` y `Escritorio\temp`. En otra computadora, ninguna consulta encuentra sus archivos.

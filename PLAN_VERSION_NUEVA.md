@@ -29,9 +29,9 @@ El reporte actual no es complejo por lo que muestra. Los errores vienen del proc
 
 | Fase | Qué se hace | Quién | Resultado |
 |---|---|---|---|
-| **1. Acuerdos** | Reunir los errores que el jefe suele marcar y definir cada indicador: fórmula, fechas, moneda y umbrales. Decidir la frecuencia de actualización y dónde se publica. | Manuel con el cliente. Claude prepara la propuesta de definiciones. | `docs/definiciones.md` aprobado |
+| **1. Acuerdos** | Reunir los errores que el jefe suele marcar y definir cada indicador: fórmula, fechas, moneda y umbrales. Decidir la frecuencia de actualización y dónde se publica. | Manuel con el cliente. Claude prepara la propuesta de definiciones. | [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) aprobado |
 | **2. Descargas** | Fijar la "receta" de cada descarga (sección 6) y hacer una descarga de prueba de cada fuente con tus usuarios. | Manuel descarga; Claude revisa las columnas. | `docs/guia_descargas.md` y un ejemplo de cada fuente |
-| **3. Maestros** | Armar el archivo maestro con los códigos del ERP, EAN válidos, ASIN reales y artículos de Walmart. Sacar la lista de lo que falta validar. | Claude arma el borrador; el cliente valida. | `Maestro_Wellpro.xlsx` |
+| **3. Maestros** | Armar el archivo maestro con los códigos del ERP, EAN válidos, ASIN reales y artículos de Walmart. Sacar la lista de lo que falta validar. | Claude arma el borrador; el cliente valida. | [`maestros/Maestro_Wellpro_borrador.xlsx`](maestros/) validado |
 | **4. Modelo** | Construir las consultas de Power Query, las tablas y las medidas en el proyecto `.pbip`. | Claude construye; Manuel abre y actualiza en Power BI Desktop. | Modelo que se actualiza sin pasos manuales |
 | **5. Páginas** | Rehacer Sell In, Sell Out e Inventario con la lógica corregida, y agregar la página de control. | Claude y Manuel | Reporte completo |
 | **6. Paralelo** | Correr el reporte viejo y el nuevo con los mismos datos durante 1 o 2 semanas. Explicar cada diferencia. | Manuel, con apoyo de Claude | Diferencias explicadas y aceptadas por el jefe |
