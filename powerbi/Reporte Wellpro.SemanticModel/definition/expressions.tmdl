@@ -1,5 +1,5 @@
 /// Carpeta donde están los datos (Amazon, Walmart, ERP y Maestros). Debe terminar en \.
-expression RutaDatos = "C:\Proyecto-Centroamerica\Nueva versión\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+expression RutaDatos = "C:\Users\mpalacios\OneDrive - VISION MEDICA S.A\Documentos\Proyecto-Centroamerica-claude-confident-dijkstra-apgh2d\Nueva versión\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
 
 	annotation PBI_ResultType = Text
 

@@ -18,14 +18,15 @@ Todavía **no** incluye el sell in ni el inventario del ERP (faltan sus muestras
 
 ## Cómo abrirlo
 
-1. **Baja el repositorio a tu computadora** (solo la primera vez). En PowerShell, dentro de la carpeta donde lo quieras guardar:
-   ```powershell
-   git clone -b claude/confident-dijkstra-apgh2d https://github.com/emanuel-codes/Proyecto-Centroamerica.git
-   ```
-   Para traer cambios nuevos más adelante, entra a la carpeta `Proyecto-Centroamerica` y ejecuta `git pull`.
-2. **Abre** `Proyecto-Centroamerica\powerbi\Reporte Wellpro.pbip` con Power BI Desktop.
-3. **Indica dónde están los datos.** Ve a **Inicio → Transformar datos → Editar parámetros** y en **RutaDatos** escribe la ruta completa de la carpeta `Nueva versión`, terminada en `\`. Por ejemplo:
-   `C:\Users\TuUsuario\Documents\Proyecto-Centroamerica\Nueva versión\`
+1. **Descarga el proyecto como ZIP** (con tu sesión de GitHub abierta):
+   https://github.com/emanuel-codes/Proyecto-Centroamerica/archive/refs/heads/claude/confident-dijkstra-apgh2d.zip
+
+   Extráelo siempre en `Documentos` (clic derecho → **Extraer todo**) y, si ya existía, acepta reemplazar los archivos. Así la ruta de los datos no cambia.
+2. **Abre** `powerbi\Reporte Wellpro.pbip` con Power BI Desktop.
+3. **Ruta de los datos.** El parámetro **RutaDatos** ya viene con la ruta de Manuel:
+   `C:\Users\mpalacios\OneDrive - VISION MEDICA S.A\Documentos\Proyecto-Centroamerica-claude-confident-dijkstra-apgh2d\Nueva versión\`
+
+   Si extraes el ZIP en otro lugar, cámbiala en **Inicio → Transformar datos → Editar parámetros**. Tiene que terminar en `\`.
 4. **Actualiza** con Inicio → Actualizar.
 5. **Revisa la página Control** y compara con las cifras de abajo.
 
