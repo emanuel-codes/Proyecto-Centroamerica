@@ -41,6 +41,24 @@ table Calendario
 		summarizeBy: none
 		sourceColumn: Trimestre
 
+	column 'Mes_año'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Mes_año
+		sortByColumn: Inicio_mes
+
+	/// Meses entre este mes y el último mes con sell out: 0 = mes actual, 1 = mes anterior; negativo = meses futuros.
+	column Meses_atras = DATEDIFF ( Calendario[Inicio_mes], DATE ( YEAR ( MAX ( fSellOut[Datos_hasta] ) ), MONTH ( MAX ( fSellOut[Datos_hasta] ) ), 1 ), MONTH )
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+
+	/// Mes para los filtros: el último mes con sell out se llama "Mes actual", así el filtro guardado no se desactualiza.
+	column Periodo = IF ( Calendario[Meses_atras] = 0, "Mes actual", Calendario[Mes_año] )
+		dataType: string
+		summarizeBy: none
+		sortByColumn: Inicio_mes
+
 	partition Calendario = m
 		mode: import
 		source =
@@ -54,8 +72,12 @@ table Calendario
 				    Mes = Table.AddColumn(NumMes, "Mes", each Text.Proper(Date.MonthName([Fecha], "es-MX")), type text),
 				    AnioMes = Table.AddColumn(Mes, "Año_mes", each Date.ToText([Fecha], "yyyy-MM"), type text),
 				    InicioMes = Table.AddColumn(AnioMes, "Inicio_mes", each Date.StartOfMonth([Fecha]), type date),
-				    Trimestre = Table.AddColumn(InicioMes, "Trimestre", each "T" & Text.From(Date.QuarterOfYear([Fecha])), type text)
+				    Trimestre = Table.AddColumn(InicioMes, "Trimestre", each "T" & Text.From(Date.QuarterOfYear([Fecha])), type text),
+				    // Etiqueta corta para los ejes, por ejemplo "Sep 2026"
+				    MesAnio = Table.AddColumn(Trimestre, "Mes_año", each
+				        {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"}{Date.Month([Fecha]) - 1}
+				        & " " & Text.From(Date.Year([Fecha])), type text)
 				in
-				    Trimestre
+				    MesAnio
 
 	annotation PBI_ResultType = Table

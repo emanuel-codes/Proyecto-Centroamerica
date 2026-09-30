@@ -1,0 +1,21 @@
+/// Selector de la página Sell out: ver los gráficos en monto o en piezas. No se relaciona con otras tablas.
+table sMetrica
+
+	column Metrica
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Metrica
+		sortByColumn: Orden
+
+	column Orden
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Orden
+
+	partition sMetrica = m
+		mode: import
+		source =
+				#table(type table [Metrica = text, Orden = Int64.Type], {{"Monto", 1}, {"Piezas", 2}})
+
+	annotation PBI_ResultType = Table

@@ -16,40 +16,101 @@ table _Medidas
 		formatString: dd/mm/yyyy
 		displayFolder: 1. Sell out
 
-	/// Piezas de los mismos días del año anterior, hasta el mismo día del último dato.
+	/// Piezas de los mismos días del año anterior, hasta el último día con datos de cada cadena. Amazon (mensual): el mes en curso se compara en proporción a los días cubiertos.
 	measure 'Sell out piezas año anterior' =
-			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ) )
-			RETURN
-			    IF ( ISBLANK ( _ultimo ), BLANK (), CALCULATE (
-			        [Sell out piezas],
-			        SAMEPERIODLASTYEAR ( Calendario[Fecha] ),
-			        Calendario[Fecha] <= EDATE ( _ultimo, -12 )
-			    ) )
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
+			    VAR _aa = CALCULATE ( [Sell out piezas], SAMEPERIODLASTYEAR ( Calendario[Fecha] ), Calendario[Fecha] <= EDATE ( _ultimo, -12 ) )
+			    VAR _mesParcial = CALCULATE ( [Sell out piezas], SAMEPERIODLASTYEAR ( Calendario[Fecha] ), Calendario[Fecha] = DATE ( YEAR ( _ultimo ) - 1, MONTH ( _ultimo ), 1 ) )
+			    VAR _proporcion = DIVIDE ( DAY ( _ultimo ), DAY ( EOMONTH ( _ultimo, 0 ) ) )
+			    RETURN
+			        IF (
+			            ISBLANK ( _ultimo ), BLANK (),
+			            IF ( dimCadena[Cadena] = "Amazon", _aa - _mesParcial * ( 1 - _proporcion ), _aa )
+			        )
+			)
 		formatString: #,0
 		displayFolder: 1. Sell out
 
-	/// Monto de los mismos días del año anterior, hasta el mismo día del último dato.
+	/// Monto de los mismos días del año anterior, hasta el último día con datos de cada cadena. Amazon (mensual): el mes en curso se compara en proporción a los días cubiertos.
 	measure 'Sell out monto año anterior' =
-			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ) )
-			RETURN
-			    IF ( ISBLANK ( _ultimo ), BLANK (), CALCULATE (
-			        [Sell out monto],
-			        SAMEPERIODLASTYEAR ( Calendario[Fecha] ),
-			        Calendario[Fecha] <= EDATE ( _ultimo, -12 )
-			    ) )
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
+			    VAR _aa = CALCULATE ( [Sell out monto], SAMEPERIODLASTYEAR ( Calendario[Fecha] ), Calendario[Fecha] <= EDATE ( _ultimo, -12 ) )
+			    VAR _mesParcial = CALCULATE ( [Sell out monto], SAMEPERIODLASTYEAR ( Calendario[Fecha] ), Calendario[Fecha] = DATE ( YEAR ( _ultimo ) - 1, MONTH ( _ultimo ), 1 ) )
+			    VAR _proporcion = DIVIDE ( DAY ( _ultimo ), DAY ( EOMONTH ( _ultimo, 0 ) ) )
+			    RETURN
+			        IF (
+			            ISBLANK ( _ultimo ), BLANK (),
+			            IF ( dimCadena[Cadena] = "Amazon", _aa - _mesParcial * ( 1 - _proporcion ), _aa )
+			        )
+			)
 		formatString: "$"#,0
 		displayFolder: 1. Sell out
 
 	/// Crecimiento en piezas contra los mismos días del año anterior.
 	measure 'Crecimiento sell out piezas' = DIVIDE ( [Sell out piezas] - [Sell out piezas año anterior], [Sell out piezas año anterior] )
+		formatString: "▲ "0.0%;"▼ "0.0%;0.0%
+		displayFolder: 1. Sell out
+
+	/// Crecimiento en monto contra los mismos días del año anterior.
+	measure 'Crecimiento sell out monto' = DIVIDE ( [Sell out monto] - [Sell out monto año anterior], [Sell out monto año anterior] )
+		formatString: "▲ "0.0%;"▼ "0.0%;0.0%
+		displayFolder: 1. Sell out
+
+	/// Parte del monto de sell out que aporta cada producto, dentro de lo filtrado.
+	measure 'Participación sell out monto' = DIVIDE ( [Sell out monto], CALCULATE ( [Sell out monto], ALLSELECTED ( dimProducto ) ) )
 		formatString: 0.0%
 		displayFolder: 1. Sell out
 
-	/// Piezas disponibles en la última foto de cada cadena (Walmart: en tienda; Amazon: aptas para la venta).
+	/// Tarjeta: crecimiento en monto contra los mismos días del año anterior, con flecha. "Sin año anterior" si no hay datos para comparar.
+	measure 'Texto vs año anterior monto' =
+			VAR _aa = [Sell out monto año anterior]
+			VAR _crec = DIVIDE ( [Sell out monto] - _aa, _aa )
+			RETURN
+			    IF ( ISBLANK ( _aa ) || _aa = 0, "Sin año anterior", IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" ) )
+		displayFolder: 1. Sell out
+
+	/// Tarjeta: crecimiento en piezas contra los mismos días del año anterior, con flecha. "Sin año anterior" si no hay datos para comparar.
+	measure 'Texto vs año anterior piezas' =
+			VAR _aa = [Sell out piezas año anterior]
+			VAR _crec = DIVIDE ( [Sell out piezas] - _aa, _aa )
+			RETURN
+			    IF ( ISBLANK ( _aa ) || _aa = 0, "Sin año anterior", IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" ) )
+		displayFolder: 1. Sell out
+
+	/// Tiendas de Walmart que vendieron al menos una pieza en el periodo.
+	measure 'Tiendas con venta' = CALCULATE ( DISTINCTCOUNT ( fSellOut[Tienda_Nbr] ), fSellOut[Cadena] = "Walmart", fSellOut[Piezas] > 0 ) + 0
+		formatString: #,0
+		displayFolder: 1. Sell out
+
+	/// Sell out en monto o en piezas, según el selector "Ver gráficos en" de la página Sell out (por omisión, monto).
+	measure 'Sell out' = IF ( SELECTEDVALUE ( sMetrica[Metrica], "Monto" ) = "Piezas", [Sell out piezas], [Sell out monto] )
+		displayFolder: 1. Sell out
+
+		formatStringDefinition = IF ( SELECTEDVALUE ( sMetrica[Metrica], "Monto" ) = "Piezas", "#,0", "$#,0" )
+
+	/// Sell out del año anterior en monto o en piezas, según el selector "Ver gráficos en".
+	measure 'Sell out año anterior' = IF ( SELECTEDVALUE ( sMetrica[Metrica], "Monto" ) = "Piezas", [Sell out piezas año anterior], [Sell out monto año anterior] )
+		displayFolder: 1. Sell out
+
+		formatStringDefinition = IF ( SELECTEDVALUE ( sMetrica[Metrica], "Monto" ) = "Piezas", "#,0", "$#,0" )
+
+	/// Piezas vendidas en Walmart en los últimos 28 días con datos.
+	measure 'Venta 28 días Walmart' =
+			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ), fSellOut[Cadena] = "Walmart" )
+			RETURN
+			    CALCULATE ( [Sell out piezas], DATESBETWEEN ( Calendario[Fecha], _ultimo - 27, _ultimo ), fSellOut[Cadena] = "Walmart" )
+		formatString: #,0
+		displayFolder: 1. Sell out
+
+	/// Piezas disponibles en la última foto de cada cadena (Walmart: en tienda; Amazon: aptas para la venta). La fecha de la foto es la última de la cadena, aunque un producto o una tienda ya no aparezca en ella.
 	measure 'Inventario piezas' =
 			SUMX (
 			    VALUES ( dimCadena[Cadena] ),
-			    VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ) )
+			    VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
 			    RETURN
 			        CALCULATE ( SUM ( fInventarioCadena[Piezas_disponibles] ), fInventarioCadena[Fecha] = _f )
 			)
@@ -63,7 +124,7 @@ table _Medidas
 
 	/// Tiendas de Walmart con más de 0 piezas en la última foto.
 	measure 'Tiendas con inventario' =
-			VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), dimCadena[Cadena] = "Walmart" )
+			VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), dimCadena[Cadena] = "Walmart", REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
 			RETURN
 			    CALCULATE (
 			        DISTINCTCOUNT ( fInventarioCadena[Tienda_Nbr] ),
@@ -74,11 +135,11 @@ table _Medidas
 		formatString: #,0
 		displayFolder: 2. Inventario en cadenas
 
-	/// Promedio de piezas vendidas en los últimos 3 meses cerrados (propuesta; ver DEFINICIONES_INDICADORES.md).
+	/// Promedio de piezas vendidas en los últimos 3 meses cerrados de cada cadena (propuesta; ver DEFINICIONES_INDICADORES.md).
 	measure 'Venta promedio mensual piezas' =
 			SUMX (
 			    VALUES ( dimCadena[Cadena] ),
-			    VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ) )
+			    VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
 			    VAR _fin = IF ( _ultimo = EOMONTH ( _ultimo, 0 ), _ultimo, EOMONTH ( _ultimo, -1 ) )
 			    VAR _ini = EOMONTH ( _fin, -3 ) + 1
 			    RETURN
@@ -109,6 +170,44 @@ table _Medidas
 			    )
 		displayFolder: 2. Inventario en cadenas
 
+	/// Productos con menos de 1 mes de cobertura. Se cuenta cada producto en cada cadena: si le pasa en Walmart y en Amazon, cuenta 2.
+	measure 'Productos en riesgo de quiebre' =
+			COUNTROWS (
+			    FILTER (
+			        CROSSJOIN ( VALUES ( dimProducto[Codigo_ERP] ), VALUES ( dimCadena[Cadena] ) ),
+			        [Clasificación cobertura] = "🔴 Riesgo de quiebre"
+			    )
+			) + 0
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Productos con venta en los últimos 3 meses y 0 piezas en la última foto. Se cuenta cada producto en cada cadena: si le pasa en Walmart y en Amazon, cuenta 2.
+	measure 'Productos sin inventario' =
+			COUNTROWS (
+			    FILTER (
+			        CROSSJOIN ( VALUES ( dimProducto[Codigo_ERP] ), VALUES ( dimCadena[Cadena] ) ),
+			        [Clasificación cobertura] = "⚫ Sin inventario"
+			    )
+			) + 0
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Productos con más de 3 meses de cobertura. Se cuenta cada producto en cada cadena: si le pasa en Walmart y en Amazon, cuenta 2.
+	measure 'Productos con sobre stock' =
+			COUNTROWS (
+			    FILTER (
+			        CROSSJOIN ( VALUES ( dimProducto[Codigo_ERP] ), VALUES ( dimCadena[Cadena] ) ),
+			        [Clasificación cobertura] = "🟡 Sobre stock"
+			    )
+			) + 0
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Vale 1 cuando una tienda de Walmart vendió el producto en los últimos 28 días y hoy tiene 0 piezas. Filtra la tabla de tiendas sin inventario.
+	measure 'Alerta tienda sin inventario' = IF ( [Venta 28 días Walmart] > 0 && [Inventario piezas] + 0 <= 0, 1 )
+		formatString: 0
+		displayFolder: 2. Inventario en cadenas
+
 	/// Piezas pedidas por Walmart en sus órdenes de compra.
 	measure 'Piezas ordenadas' = SUM ( fFillRate[Piezas_ordenadas] )
 		formatString: #,0
@@ -122,6 +221,11 @@ table _Medidas
 	/// Piezas recibidas / piezas ordenadas, por mes de la fecha de la orden (propuesta).
 	measure 'Fill rate' = DIVIDE ( [Piezas recibidas], [Piezas ordenadas] )
 		formatString: 0.0%
+		displayFolder: 3. Fill rate
+
+	/// Piezas ordenadas que Walmart no recibió.
+	measure 'Piezas no surtidas' = [Piezas ordenadas] - [Piezas recibidas]
+		formatString: #,0
 		displayFolder: 3. Fill rate
 
 	/// Piezas que Walmart planea pedir (Recship más reciente).
@@ -210,6 +314,23 @@ table _Medidas
 			VAR _lista = CONCATENATEX ( DISTINCT ( _t ), [Codigo], ", " )
 			RETURN
 			    IF ( _lista = "", "Ninguno", _lista )
+		displayFolder: 9. Control
+
+	/// Encabezado de la página Sell out: último día con datos de cada cadena.
+	measure 'Texto datos sell out' = "Sell out · Walmart al " & IF ( ISBLANK ( [Datos al - sell out Walmart] ), "sin datos", FORMAT ( [Datos al - sell out Walmart], "dd/mm/yyyy" ) ) & "  ·  Amazon al " & IF ( ISBLANK ( [Datos al - sell out Amazon] ), "sin datos", FORMAT ( [Datos al - sell out Amazon], "dd/mm/yyyy" ) )
+		displayFolder: 9. Control
+
+	/// Encabezado de la página Inventario: fecha de la última foto de cada cadena.
+	measure 'Texto datos inventario' = "Inventario · Walmart al " & IF ( ISBLANK ( [Datos al - inventario Walmart] ), "sin datos", FORMAT ( [Datos al - inventario Walmart], "dd/mm/yyyy" ) ) & "  ·  Amazon al " & IF ( ISBLANK ( [Datos al - inventario Amazon] ), "sin datos", FORMAT ( [Datos al - inventario Amazon], "dd/mm/yyyy" ) )
+		displayFolder: 9. Control
+
+	/// Fecha en que Walmart generó el Recship más reciente.
+	measure 'Fecha del Recship' = CALCULATE ( MAX ( fRecship[Fecha_creacion] ), REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Encabezado de la página Abasto: orden más reciente del fill rate y fecha del Recship.
+	measure 'Texto datos abasto' = "Walmart · órdenes hasta el " & IF ( ISBLANK ( [Datos al - fill rate Walmart] ), "sin datos", FORMAT ( [Datos al - fill rate Walmart], "dd/mm/yyyy" ) ) & "  ·  Recship del " & IF ( ISBLANK ( [Fecha del Recship] ), "sin datos", FORMAT ( [Fecha del Recship], "dd/mm/yyyy" ) )
 		displayFolder: 9. Control
 
 	/// Semáforo general: rojo si faltan días de sell out o hay códigos sin homologar; amarillo si el sell out de Walmart tiene más de 3 días.

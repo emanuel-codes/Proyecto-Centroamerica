@@ -8,7 +8,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 
 | Archivo o carpeta | Qué es |
 |---|---|
-| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.2, probado en Power BI Desktop: Walmart, Amazon, maestro y página de control). Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
+| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.3): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon y el maestro. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo de la versión nueva: reglas, fases, controles, carpetas y recetas de descarga. |
 | [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md) | Qué se descarga de Amazon, Retail Link y el ERP, cada cuánto y en qué carpeta. |
 | `Nueva versión/` | Carpeta de datos de la versión nueva: descargas por fuente y `Maestros/Maestro_Wellpro.xlsx` (borrador del maestro). |

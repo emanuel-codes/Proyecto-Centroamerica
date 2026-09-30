@@ -5,6 +5,7 @@ table dimCadena
 		dataType: string
 		summarizeBy: none
 		sourceColumn: Cadena
+		sortByColumn: Orden
 
 	column Orden
 		dataType: int64

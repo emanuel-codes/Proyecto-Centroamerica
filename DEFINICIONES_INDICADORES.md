@@ -19,7 +19,7 @@ Cada indicador trae tres cosas: la **definición propuesta**, **cómo lo calcula
 | Tema | Propuesta |
 |---|---|
 | **Fecha de corte** | Cada página muestra «Datos al dd/mm/aaaa» por fuente. El periodo termina en el último día con datos, no en la fecha de hoy. |
-| **Periodo** | Se analiza por **meses completos**. El mes en curso se muestra aparte como «mes a la fecha». |
+| **Periodo** | Se analiza por **meses completos**. El reporte abre en el **«Mes actual»**, que es el último mes con sell out (mes a la fecha). Los meses anteriores se eligen en el filtro Mes. |
 | **Comparación con el año anterior** | Siempre los mismos días: si hay datos del 1 al 18 de septiembre de 2026, se compara con el 1 al 18 de septiembre de 2025. |
 | **Moneda** | Pesos (MXN) por defecto. Los dólares (USD) se calculan con el tipo de cambio **del mes** de cada venta, de la hoja TipoCambio del maestro. |
 | **Montos** | Sin IVA. |
@@ -80,7 +80,16 @@ Cada indicador trae tres cosas: la **definición propuesta**, **cómo lo calcula
 - **Por decidir:** ¿se mide lo **pedido** por los clientes o lo **enviado**? Amazon trae las dos cosas; hoy se usa lo pedido.
 
 ### Sell out del año anterior
-- **Propuesta:** los mismos días del año anterior, igual que en Sell In.
+- **Propuesta:** los mismos días del año anterior, igual que en Sell In. El corte es el último día con datos **de cada cadena**: si Walmart llega al 29/09 y Amazon al 28/09, Walmart se compara hasta el 29/09 del año anterior y Amazon hasta el 28/09.
+- **Amazon viene por mes.** Si el mes en curso está incompleto (por ejemplo, del 1 al 28 de septiembre), el mismo mes del año anterior se toma **en proporción a los días**: 28 de 30. Así no se compara un mes parcial contra uno completo, que haría ver una caída que no existe.
+- **Por decidir:** si se acepta la proporción para Amazon, o si el mes en curso de Amazon no se compara hasta que cierre.
+
+### Tiendas con venta (Walmart)
+- **Propuesta:** tiendas que vendieron al menos una pieza en el periodo elegido.
+
+### Tiendas sin inventario que sí venden (Walmart)
+- **Propuesta:** tienda y producto con venta en los **últimos 28 días** y **0 piezas** en la última foto de inventario. Es la lista de venta que se está perdiendo.
+- **Por decidir:** ¿28 días está bien, o se prefiere otra ventana?
 
 ---
 
@@ -94,6 +103,8 @@ Cada indicador trae tres cosas: la **definición propuesta**, **cómo lo calcula
 ### Inventario Amazon
 - **Propuesta:** *Unidades aptas para la venta disponibles* en la última foto disponible.
 - **Hoy:** igual.
+
+**Qué es «la última foto»:** la fecha más reciente de cada cadena, la misma para todos sus productos y tiendas. Si un producto ya no aparece en la foto más reciente, cuenta con 0 piezas, no con lo que tenía en una foto anterior.
 
 ### Tiendas con inventario (Walmart)
 - **Propuesta:** tiendas con más de 0 piezas **en la última foto**.
@@ -123,6 +134,8 @@ Propuesta de umbrales, a confirmar:
 **Hoy:** Amazon usa 1 mes como riesgo, de 2 a 6 como saludable y más de 6 como sobre stock. Walmart usa otra escala, en piezas por tienda.
 
 **Por decidir:** los umbrales, y si son iguales para las dos cadenas.
+
+**Conteos de la página Inventario** (productos en riesgo, sin inventario y con sobre stock): se cuenta cada producto **en cada cadena**. Un producto en riesgo en Walmart y en Amazon cuenta 2, igual que en la tabla, donde aparece una vez por cadena.
 
 ---
 
