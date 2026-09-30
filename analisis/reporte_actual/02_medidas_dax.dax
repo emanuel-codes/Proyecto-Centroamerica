@@ -1,0 +1,1467 @@
+// Medidas DAX del reporte actual (107), agrupadas por la tabla donde viven.
+// Código tal como está en el reporte; no se ha modificado.
+
+// ################################################################################
+// Tabla: Medidas Sell In (12 medidas)
+// ################################################################################
+
+[tipo_de_cambio] =
+SUM('Tipo de cambio'[Tipo_de_cambio])
+
+[Real] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoVenta[Tipo], "Monto")
+
+VAR MonedaSeleccionada =
+    SELECTEDVALUE(Moneda[Tipo], "MXN")
+
+VAR MontoSinIVA =
+    SUM(Ventas_Wellpro[TOTAL VENTA SIN IVA])
+
+VAR TipoCambio =
+    MAX('Tipo de cambio'[Tipo_de_cambio])
+
+VAR Monto =
+    SWITCH(
+        MonedaSeleccionada,
+        "USD", DIVIDE(MontoSinIVA, TipoCambio),
+        "MXN", MontoSinIVA,
+        MontoSinIVA
+    )
+
+VAR PiezasWellpro =
+    SUM(Ventas_Wellpro[Cantidad Vendida])
+
+VAR PiezasWM =
+    SUM(Sell_Out_WM[POS Qty])
+
+RETURN
+    SWITCH(
+        TRUE(),
+        Seleccion = "Monto", Monto,
+        Seleccion = "Piezas", PiezasWellpro,
+        PiezasWM
+    )
+
+[Real anterior] =
+CALCULATE([Real],SAMEPERIODLASTYEAR(Calendario[Date]))
+
+[Objetivo] =
+sum(Metas[Total de Venta])
+
+[%CUMPLIMIENTO] =
+DIVIDE([Real],[Objetivo],0)
+
+[% Crecimiento] =
+IF(DIVIDE([Real],[Real anterior],0)-1=-1,BLANK(),DIVIDE([Real],[Real anterior],0)-1)
+
+[Objetivo Piezas] =
+SUM(Metas[Cantidad Vendida])
+
+[ObjetivoV2] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoVenta[Tipo], "Monto")
+
+VAR MonedaSeleccionada =
+    SELECTEDVALUE(Moneda[Tipo], "MXN")
+
+VAR TipoCambio =
+    MAX('Tipo de cambio'[Tipo_de_cambio])
+
+VAR ObjetivoMonto =
+    SWITCH(
+        MonedaSeleccionada,
+        "USD", DIVIDE([Objetivo], TipoCambio),
+        "MXN", [Objetivo],
+        [Objetivo]
+    )
+
+RETURN
+    SWITCH(
+        Seleccion,
+        "Monto", ObjetivoMonto,
+        "Piezas", [Objetivo Piezas],
+        ObjetivoMonto
+    )
+
+[Tarjeta KPI] =
+VAR Venta = [Real]
+VAR VentaFmt = FORMAT(Venta," #,##0")
+
+VAR TipoSel = SELECTEDVALUE(TipoVenta[Tipo], "Monto")
+
+VAR Objetivo = [ObjetivoV2]
+VAR ObjetivoFmt =
+IF(
+    TipoSel = "Piezas",
+    FORMAT(Objetivo,"#,##0"),
+    FORMAT(Objetivo,"$ #,##0")
+)
+
+VAR VentaAnterior = [Real anterior]
+VAR Crecimiento = DIVIDE(Venta - VentaAnterior, VentaAnterior)
+VAR CrecimientoFmt = FORMAT(Crecimiento,"0.0%")
+
+VAR Cumplimiento = DIVIDE(Venta, Objetivo)
+VAR CumplimientoPct = FORMAT(Cumplimiento,"0%")
+
+VAR ColorCrecimiento = "#E91818"
+VAR ColorObjetivo = "#414FB1"
+
+VAR IconoCrec =
+IF(Crecimiento >= 0,"▲","▼")
+
+VAR ColorSemaforo =
+SWITCH(
+    TRUE(),
+    Cumplimiento >= 1, "#00E676",
+    Cumplimiento >= 0.9, "#FFD600",
+    "#FF5252"
+)
+
+RETURN
+"
+<div style='font-family:Segoe UI;
+background:#FFFFFF;
+border-radius:14px;
+padding:34px;
+min-height:340px;
+color:#0F172A;
+box-shadow:0 15px 35px rgba(15,23,42,0.12);
+position:relative;
+overflow:hidden;
+border:1px solid #E2E8F0;'>
+
+
+<!-- REAL AÑO ANTERIOR -->
+<div style='margin-top:6px; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:#000000;'>
+Real año anterior
+</div>
+
+<div style='font-size:48px; font-weight:700; margin-top:4px; color:#0F172A;'>
+" & FORMAT(VentaAnterior," #,##0") & "
+</div>
+
+<!-- REAL ACTUAL -->
+<div style='margin-top:12px; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:#000000;'>
+Real
+</div>
+
+<div style='font-size:48px; font-weight:700; margin-top:4px; color:#0F172A;'>
+" & VentaFmt & "
+</div>
+
+<!-- CRECIMIENTO -->
+<div style='margin-top:16px; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:#000000;'>
+Crecimiento vs año anterior
+</div>
+
+<div style='font-size:30px; font-weight:700; color:" & ColorCrecimiento & "; margin-top:4px;' >
+" & IconoCrec & " " & CrecimientoFmt & "
+</div>
+
+<div style='width:100%; height:18px; background:#E2E8F0; border-radius:20px; margin-top:6px; overflow:hidden;'>
+    <div style='width:" & FORMAT(MIN(ABS(Crecimiento),1),"0%") & ";
+    height:18px; background:" & ColorCrecimiento & "; border-radius:20px;'></div>
+</div>
+
+<!-- OBJETIVO -->
+<div style='margin-top:22px; font-size:12px; letter-spacing:1px; text-transform:uppercase; font-weight:700; color:#000000;'>
+Objetivo
+</div>
+
+<div style='font-size:24px; font-weight:700; color:" & ColorObjetivo & "; margin-top:4px;'>
+" & ObjetivoFmt & "
+</div>
+
+<div style='width:100%; height:20px; background:#E2E8F0; border-radius:20px; margin-top:6px; overflow:hidden;'>
+    <div style='width:" & FORMAT(MIN(Cumplimiento,1),"0%") & ";
+    height:20px; background:" & ColorObjetivo & ";
+    border-radius:20px;'></div>
+</div>
+
+<!-- SEMAFORO -->
+<div style='margin-top:14px; display:flex; align-items:center; gap:10px;'>
+    <div style='width:18px; height:18px; border-radius:50%;
+    background:" & ColorSemaforo & ";
+    box-shadow:0 0 10px " & ColorSemaforo & ";'></div>
+
+    <div style='font-size:15px; font-weight:600; color:#0F172A;'>
+        " & CumplimientoPct & " de cumplimiento
+    </div>
+</div>
+
+</div>
+"
+
+[Top3 Productos HTML KPI] =
+VAR TipoSel = SELECTEDVALUE(TipoVenta[Tipo], "Monto")
+
+VAR VentasFiltradas =
+    CALCULATETABLE(
+        SUMMARIZE(
+            Ventas_Wellpro,
+            Ventas_Wellpro[Producto],
+            "VentaProd", [Real],
+            "ObjetivoProd", [ObjetivoV2]
+        ),
+        ALLSELECTED(Ventas_Wellpro[Fecha])
+    )
+
+VAR TopProductos =
+    TOPN(
+        3,
+        VentasFiltradas,
+        [VentaProd],
+        DESC
+    )
+
+VAR FilasHTML =
+    CONCATENATEX(
+        TopProductos,
+        VAR Producto = [Producto]
+        VAR VentaProd = [VentaProd]
+        VAR ObjetivoProd = [ObjetivoProd]
+
+        VAR Cumplimiento = DIVIDE(VentaProd, ObjetivoProd, 0)
+        VAR CumplimientoPct = FORMAT(Cumplimiento, "0%")
+
+        VAR VentaFmt =
+            IF(
+                TipoSel = "Piezas",
+                FORMAT(VentaProd,"#,##0"),
+                FORMAT(VentaProd,"$ #,##0")
+            )
+
+        VAR ObjetivoFmt =
+            IF(
+                TipoSel = "Piezas",
+                FORMAT(ObjetivoProd,"#,##0"),
+                FORMAT(ObjetivoProd,"$ #,##0")
+            )
+
+        VAR ColorBarra =
+            SWITCH(
+                TRUE(),
+                Cumplimiento >= 1, "#00E676",
+                Cumplimiento >= 0.9, "#FFD600",
+                "#FF5252"
+            )
+
+        RETURN
+        "<div style='margin-bottom:18px;'>
+
+            <div style='font-weight:700; font-size:14px; color:#0F172A; margin-bottom:6px;'>
+                " & Producto & "
+            </div>
+
+            <div style='position:relative; height:12px; background:#E2E8F0; border-radius:20px; overflow:hidden;'>
+                <div style='width:" & FORMAT(MIN(Cumplimiento,1),"0%") & ";
+                height:12px; background:" & ColorBarra & ";
+                border-radius:20px;'></div>
+            </div>
+
+            <div style='font-size:14px; font-weight:700; color:#414FB1; margin-top:4px;'>
+                " & VentaFmt & " / " & ObjetivoFmt & " (" & CumplimientoPct & ")
+            </div>
+
+        </div>"
+    , "")
+
+RETURN
+"
+<div style='font-family:Segoe UI;
+background:#FFFFFF;
+border-radius:14px;
+padding:24px;
+box-shadow:0 15px 35px rgba(15,23,42,0.12);
+border:1px solid #E2E8F0;'>
+
+    <div style='font-size:14px; letter-spacing:2px; text-transform:uppercase;
+    font-weight:700; color:#000000; margin-bottom:16px;'>
+        Top 3 Productos
+    </div>
+
+    " & FilasHTML & "
+
+</div>
+"
+
+[Promedio Venta 3y6M HTML] =
+VAR TipoSel = SELECTEDVALUE(TipoVenta[Tipo],"Monto")
+VAR MostrarMoneda = IF(TipoSel="Monto","$ ","")
+
+-- Tabla de productos
+VAR TablaProductos =
+    ADDCOLUMNS(
+        SUMMARIZE(Ventas_Wellpro,Ventas_Wellpro[Producto]),
+        "Prom3M", CALCULATE([Real], DATESBETWEEN(Calendario[Date], EDATE(TODAY(),-3), TODAY()))/3,
+        "Prom3MAnt", CALCULATE([Real], DATESBETWEEN(Calendario[Date], EDATE(TODAY(),-6), EDATE(TODAY(),-3)))/3,
+        "Prom6M", CALCULATE([Real], DATESBETWEEN(Calendario[Date], EDATE(TODAY(),-6), TODAY()))/6,
+        "Prom6MAnt", CALCULATE([Real], DATESBETWEEN(Calendario[Date], EDATE(TODAY(),-12), EDATE(TODAY(),-6)))/6
+    )
+
+-- Concatenar filas HTML
+VAR FilasHTML = CONCATENATEX(
+    TablaProductos,
+    VAR Prod = Ventas_Wellpro[Producto]
+
+    -- 3 Meses
+    VAR Prom3 = [Prom3M]
+    VAR Prom3Ant = [Prom3MAnt]
+    VAR Crec3 = IF(Prom3Ant>0,(Prom3-Prom3Ant)/Prom3Ant,0)
+    VAR Icono3 = IF(Crec3>=0,"▲","▼")
+    VAR Color3 = IF(Crec3>=0,"#007F00","#FF5252")
+    VAR Width3 = IF(Prom3Ant>0, MIN(ABS(Crec3)*100,100),0)
+
+    -- 6 Meses
+    VAR Prom6 = [Prom6M]
+    VAR Prom6Ant = [Prom6MAnt]
+    VAR Crec6 = IF(Prom6Ant>0,(Prom6-Prom6Ant)/Prom6Ant,0)
+    VAR Icono6 = IF(Crec6>=0,"▲","▼")
+    VAR Color6 = IF(Crec6>=0,"#007F00","#FF5252")
+    VAR Width6 = IF(Prom6Ant>0, MIN(ABS(Crec6)*100,100),0)
+
+    RETURN
+    "<div style='display:flex; align-items:center; margin-bottom:16px;'>
+        <div style='width:150px; font-weight:700; color:#0F172A;'>" & Prod & "</div>
+        <div style='width:80px; text-align:right; font-weight:700; color:#414FB1;'>" & MostrarMoneda & FORMAT(Prom3,"#,##0") & "</div>
+        <div style='flex:1; height:14px; background:#E2E8F0; border-radius:12px; position:relative; margin-left:8px;'>
+            <div style='width:" & Width3 & "%; height:14px; background:#414FB1; border-radius:12px; position:absolute; top:0; left:0;'></div>
+        </div>
+        <div style='width:50px; text-align:right; font-weight:700; color:" & Color3 & "; margin-left:8px;'>" & Icono3 & " " & FORMAT(Crec3,"0%") & "</div>
+
+        <div style='width:80px; text-align:right; font-weight:700; color:#414FB1; margin-left:16px;'>" & MostrarMoneda & FORMAT(Prom6,"#,##0") & "</div>
+        <div style='flex:1; height:14px; background:#E2E8F0; border-radius:12px; position:relative; margin-left:8px;'>
+            <div style='width:" & Width6 & "%; height:14px; background:#00E5FF; border-radius:12px; position:absolute; top:0; left:0;'></div>
+        </div>
+        <div style='width:50px; text-align:right; font-weight:700; color:" & Color6 & "; margin-left:8px;'>" & Icono6 & " " & FORMAT(Crec6,"0%") & "</div>
+    </div>"
+,"")
+
+RETURN
+"
+<div style='font-family:Segoe UI; background:#FFFFFF; border-radius:14px; padding:24px; min-width:800px; box-shadow:0 12px 28px rgba(0,0,0,0.08);'>
+    <div style='font-size:16px; font-weight:700; color:#000000; margin-bottom:16px;'>
+        Promedio Venta por Producto - Comparativo 3M vs 6M
+    </div>
+    " & FilasHTML & "
+</div>
+"
+
+[Promedio Venta Crecimiento 4M HTML] =
+VAR FechaMax = TODAY()
+VAR FechaMin = EDATE(FechaMax,-4)          -- últimos 4 meses
+VAR FechaMinAnterior = EDATE(FechaMin,-4)  -- mismo periodo anterior
+
+-- Filtrar tipo de venta seleccionado
+VAR TipoSel = SELECTEDVALUE(TipoVenta[Tipo],"Monto")
+VAR MostrarMoneda = IF(TipoSel="Monto","$ ","")
+
+-- Tabla de productos con promedio actuales y anteriores
+VAR TablaPromedio =
+    ADDCOLUMNS(
+        SUMMARIZE(Ventas_Wellpro,Ventas_Wellpro[Producto]),
+        "PromedioActual", CALCULATE(DIVIDE([Real],4,0), Calendario[Date]>FechaMin && Calendario[Date]<=FechaMax),
+        "PromedioAnterior", CALCULATE(DIVIDE([Real],4,0), Calendario[Date]>FechaMinAnterior && Calendario[Date]<=FechaMin)
+    )
+
+-- Concatenamos filas HTML
+VAR FilasHTML =
+CONCATENATEX(
+    TablaPromedio,
+    VAR Prod = Ventas_Wellpro[Producto]
+    VAR Promedio = [PromedioActual]
+    VAR PromedioAnterior = [PromedioAnterior]
+    VAR PromedioFmt = MostrarMoneda & FORMAT(Promedio,"#,##0")
+    
+    -- Crecimiento
+    VAR Crecimiento = IF(PromedioAnterior>0,(Promedio-PromedioAnterior)/PromedioAnterior,0)
+    VAR CrecimientoFmt = FORMAT(Crecimiento,"0%")
+    VAR ColorCrec = IF(Crecimiento>=0,"#007F00","#FF5252")
+    VAR IconoCrec = IF(Crecimiento>=0,"▲","▼")
+    
+    -- Barra proporcional al crecimiento vs anterior
+    VAR WidthCrec = IF(Crecimiento>=0, MIN(Crecimiento*100,100), 0)
+    VAR WidthCrecNeg = IF(Crecimiento<0, MIN(ABS(Crecimiento)*100,100), 0)
+    
+    RETURN
+    "<div style='display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;'>
+        <div style='width:180px; font-weight:700; color:#0F172A;'>" & Prod & "</div>
+        <div style='width:120px; text-align:right; font-weight:700; color:#414FB1;'>" & PromedioFmt & "</div>
+        <div style='flex:1; margin-left:12px; height:14px; background:#E2E8F0; border-radius:12px; position:relative;'>
+            " & 
+            IF(Crecimiento>=0,
+                "<div style='width:" & WidthCrec & "%; height:14px; background:#414FB1; border-radius:12px; position:absolute; top:0; left:0;'></div>",
+                "<div style='width:" & WidthCrecNeg & "%; height:14px; background:#FF5252; border-radius:12px; position:absolute; top:0; right:0;'></div>"
+            ) & "
+        </div>
+        <div style='width:60px; text-align:right; font-weight:700; color:" & ColorCrec & "; margin-left:8px;'>
+            " & IconoCrec & " " & CrecimientoFmt & "
+        </div>
+    </div>"
+,"")
+
+RETURN
+"
+<div style='font-family:Segoe UI; background:#FFFFFF; border-radius:14px; padding:24px; min-width:600px; box-shadow:0 12px 28px rgba(0,0,0,0.08);'>
+    <!-- TITULO -->
+    <div style='font-size:16px; font-weight:700; color:#000000; margin-bottom:16px;'>
+        Promedio Venta Mensual por Producto (Últimos 4 Meses) - Crecimiento
+    </div>
+    
+    <!-- FILAS -->
+    " & FilasHTML & "
+</div>
+"
+
+// ################################################################################
+// Tabla: Sell_Out_WM (1 medidas)
+// ################################################################################
+
+[MedidasAmazon] =
+(vacía)
+
+// ################################################################################
+// Tabla: Medida 2 (7 medidas)
+// ################################################################################
+
+[Venta (us$)] =
+(SUM(Sell_Out_WM[POS Sales]))/[tipo_de_cambio]
+
+[Venta (pza)] =
+CALCULATE(sum(Sell_Out_WM[POS Qty]))
+
+[Filtro_Sell_Out_WM] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Monto", [Venta (us$)] ,
+        "Piezas", [Venta (pza)],
+       [Venta (pza)]
+    )
+
+[Filtro_sell_Out_WM_1] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+    CALCULATE(
+        SWITCH(
+            Seleccion,
+            "Monto", [Venta (US$) Año Anterior],
+            "Piezas", [Venta (pza) Año Anterior],
+            [Venta (pza) Año Anterior]
+        ),
+        YEAR(Calendario[Date]) = YEAR(TODAY()) - 1
+    )
+
+[Venta (US$) Año Anterior] =
+CALCULATE(
+    (SUM(Sell_Out_WM[POS Sales])) / [tipo_de_cambio],
+    SAMEPERIODLASTYEAR('Calendario'[Date])
+)
+
+[Venta (pza) Año Anterior] =
+CALCULATE(
+    SUM(Sell_Out_WM[POS Qty]),
+    SAMEPERIODLASTYEAR('Calendario'[Date])
+)
+
+[Filtro_Sell_Out_WM 2] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+CALCULATE(
+    SWITCH(
+        Seleccion,
+        "Monto", [Venta (us$)],
+        "Piezas", [Venta (pza)],
+        [Venta (pza)]
+    ),
+    DATEADD(Calendario[Date], -1, YEAR)
+)
+
+// ################################################################################
+// Tabla: MedidasAmazon (7 medidas)
+// ################################################################################
+
+[Venta_Pza_Amazon] =
+CALCULATE(sum('Ventas Amazon'[Unidades pedidas]))
+
+[Venta_Monto_Amazon] =
+CALCULATE(sum('Ventas Amazon'[Ganancia por pedidos]), Catalogo_Producto_Wellpro[UPC])
+
+[Filtro Sell Out_Amazon] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Monto", [Venta_Monto_Amazon] / [tipo_de_cambio],
+        "Piezas", [Venta_Pza_Amazon],
+       [Venta_Pza_Amazon]
+    )
+
+[Filtro_Sell_Out_Amazon_1] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+    CALCULATE(
+        SWITCH(
+            Seleccion,
+            "Monto", [Venta_Monto_Amazon_Año_Anterior] / [tipo_de_cambio],
+            "Piezas", [Venta_Pza_Amazon_Año_Anterior],
+            [Venta_Pza_Amazon_Año_Anterior]
+        ),
+        YEAR(Calendario[Date]) = YEAR(TODAY()) - 1
+    )
+
+[Venta_Monto_Amazon_Año_Anterior] =
+CALCULATE(
+    SUM('Ventas Amazon'[Ganancia por pedidos]),
+    Catalogo_Producto_Wellpro[UPC],
+    SAMEPERIODLASTYEAR('Calendario'[Date])
+)
+
+[Venta_Pza_Amazon_Año_Anterior] =
+CALCULATE(
+    SUM('Ventas Amazon'[Unidades pedidas]),
+    SAMEPERIODLASTYEAR('Calendario'[Date])
+)
+
+[Filtro Sell Out_Amazon 2] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+CALCULATE(
+    SWITCH(
+        Seleccion,
+        "Monto", DIVIDE([Venta_Monto_Amazon], [tipo_de_cambio]),
+        "Piezas", [Venta_Pza_Amazon],
+        [Venta_Pza_Amazon]
+    ),
+    DATEADD(Calendario[Date], -1, YEAR)
+)
+
+// ################################################################################
+// Tabla: Clasificacion_Cobertura (11 medidas)
+// ################################################################################
+
+[Filtro_Sell_Out_Consolidado] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Walmart", [Filtro_Sell_Out_WM] ,
+        "Amazon", [Filtro Sell Out_Amazon] ,
+       [Filtro_Sell_Out_WM]
+    )
+
+[Recship (pza)] =
+sum('Recship WM'[Units])
+
+[Recship (us$)] =
+sum('Recship WM'[Monto])
+
+[Filtro_RS_WM] =
+VAR Seleccion = SELECTEDVALUE(TipoSellOut[Tipo])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Monto", [Recship (us$)],
+        "Piezas", [Recship (pza)],
+       [Recship (pza)]
+    )
+
+[Filtro DOH] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Walmart", [DOH],
+        "Amazon", [DOH AMAZON],
+       [DOH]
+    )
+
+[Filtro Inventario Unidades] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Walmart", MedidasInventarioWM[Inventario Actual],
+        "Amazon", MedidasInventarioAMZ[Inventario Actual Amz],
+        MedidasInventarioWM[Inventario Actual]
+      )
+
+[HTML DOH] =
+VAR DOH = [Filtro DOH]
+VAR Inventario = [Filtro Inventario Unidades]
+
+VAR Color = 
+    SWITCH(
+        TRUE(),
+        DOH < 15, "#D13438",
+        DOH <= 30, "#107C10",
+        "#FF8C00"
+    )
+
+VAR Estado = 
+    SWITCH(
+        TRUE(),
+        DOH < 15, "Riesgo de quiebre",
+        DOH <= 30, "Nivel óptimo",
+        "Sobre inventario"
+    )
+
+VAR Porcentaje = MIN(DOH / 60, 1) * 100
+
+RETURN
+"
+<div style='font-family:Segoe UI; padding:18px; border-radius:12px; 
+background:linear-gradient(135deg,#ffffff,#f3f6fb);
+width:320px; box-shadow:0 4px 12px rgba(0,0,0,0.08);'>
+
+<h4 style='margin:0; color:#444;'>Días de Inventario (DOH)</h4>
+
+<h1 style='margin:8px 0; color:" & Color & ";'>
+" & FORMAT(DOH,"0") & " días
+</h1>
+
+<div style='margin-top:12px;'>
+    <div style='height:12px; background:#e0e0e0; border-radius:6px;'>
+        <div style='width:" & FORMAT(Porcentaje,"0") & "%;
+                    height:12px;
+                    background:" & Color & ";
+                    border-radius:6px;'>
+        </div>
+    </div>
+</div>
+
+<p style='margin-top:12px; font-size:13px;'>
+Inventario: <b>" & FORMAT(Inventario,"#,##0") & "</b>
+</p>
+
+<p style='margin:0; font-weight:bold; color:" & Color & ";'>
+" & Estado & "
+</p>
+
+</div>
+"
+
+[FiltroVentasPromedio] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Walmart", [Promedio_Ventas4M_WM] ,
+        "Amazon", [Promedio_Ventas_4M_AMZ] ,
+
+    BLANK()
+)
+
+[Meses de Inventario] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+
+VAR PromedioVenta =
+    SWITCH(
+        Seleccion,
+        "Walmart", [Promedio_Ventas4M_WM],
+        "Amazon", [Promedio_Ventas_4M_AMZ]
+    )
+
+VAR InventarioActual =
+    SWITCH(
+        Seleccion,
+        "Walmart", [Inventario Actual],
+        "Amazon", [Inventario Actual Amz]
+    )
+
+RETURN
+IF(
+    NOT(ISBLANK(PromedioVenta)) &&
+    NOT(ISBLANK(InventarioActual)) &&
+    PromedioVenta > 0,
+    INT(DIVIDE(InventarioActual, PromedioVenta)),
+    BLANK()
+)
+
+[Clasificación Cobertura] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+
+VAR MesesInv =
+    SWITCH(
+        Seleccion,
+        "Walmart", [Inventario_Prom_Tienda],
+        "Amazon", [Meses de Inventario],
+        BLANK()
+    )
+
+VAR TieneDatos =
+    SWITCH(
+        Seleccion,
+        "Walmart", CALCULATE(COUNTROWS(Sell_Out_WM)),
+        "Amazon", CALCULATE(COUNTROWS('Ventas Amazon'))
+    )
+
+RETURN
+IF(
+    TieneDatos > 0,
+    SWITCH(
+        TRUE(),
+
+        -- "Walmart", [Inventario_Prom_Tienda]  --
+        Seleccion = "Walmart" && MesesInv = 0, "⚪ Sin inventario",
+        Seleccion = "Walmart" && MesesInv <= 2, "🟢 Saludable",
+        Seleccion = "Walmart" && MesesInv >= 3 && MesesInv <= 7, "🟢 Saludable",
+        Seleccion = "Walmart" && MesesInv > 7, "🟡 Sobre stock",
+       
+        -- "Amazon", [Meses de Inventario]
+        Seleccion = "Amazon" && MesesInv = 0, "⚪ Sin inventario",
+        Seleccion = "Amazon" && MesesInv <= 1, "🔴 Riesgo quiebre",
+        Seleccion = "Amazon" && MesesInv >= 2 && MesesInv <= 6, "🟢 Saludable",
+        Seleccion = "Amazon" && MesesInv > 6, "🟡 Sobre stock",
+
+        BLANK()
+    ),
+    BLANK()
+)
+
+[Filtro_Sell_Out_Consolidado_Año_Anterior] =
+CALCULATE(
+    [Filtro_Sell_Out_Consolidado],
+    SAMEPERIODLASTYEAR(Calendario[Date])
+)
+
+// ################################################################################
+// Tabla: MedidasFillRate (11 medidas)
+// ################################################################################
+
+[Entregado_$MX] =
+SUM(Fill_rate[Entregado en $MX])
+
+[Entregado_Cajas] =
+SUM(Fill_rate[Cajas Entregadas])
+
+[Entregado_Unidades] =
+SUM(Fill_rate[Entregado en Und])
+
+[Filtro_Entregado] =
+VAR Seleccion = SELECTEDVALUE(TipoVenta[Tipo])
+RETURN
+    SWITCH(
+        Seleccion,
+        "$MX", [Entregado_$MX],
+        "Cajas", [Entregado_Cajas],
+        "Unidades",[Entregado_Unidades],
+       [Entregado_Unidades]
+    )
+
+[Ordenado_$MX] =
+SUM(Fill_rate[Ordenado en $MX])
+
+[Ordenado_Cajas] =
+SUM(Fill_rate[Cajas Ordenadas])
+
+[Ordenado_Unidades] =
+SUM(Fill_rate[Ordenado en Und])
+
+[Filtro_Ordenado] =
+VAR Seleccion = SELECTEDVALUE(TipoVenta[Tipo])
+RETURN
+    SWITCH(
+        Seleccion,
+        "$MX", [Ordenado_$MX],
+        "Cajas", [Ordenado_Cajas],
+        "Unidades",[Ordenado_Unidades],
+       [Ordenado_Unidades]
+    )
+
+[FillrateAMZ] =
+DIVIDE(SUM('Fillrate Amazon New'[Cantidad recibida]),SUM('Fillrate Amazon New'[Cantidad solicitada]))
+
+[Fill rate %] =
+DIVIDE([Filtro_Entregado],[Filtro_Ordenado],0)
+
+[% Fill Rate Consolidado] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+RETURN
+    SWITCH(
+        Seleccion,
+        "Walmart", 'MedidasFillRate'[Fill rate %],
+        "Amazon",'MedidasFillRate'[FillrateAMZ] ,
+       'MedidasFillRate'[Fill rate %]
+    )
+
+// ################################################################################
+// Tabla: MedidasInventarioWM (9 medidas)
+// ################################################################################
+
+[Inventario Actual] =
+CALCULATE(
+    SUM('Inventario en Tienda WM'[Curr Str On Hand Qty]),
+    FILTER(
+        ALL('Inventario en Tienda WM'[Fecha]),
+        'Inventario en Tienda WM'[Fecha] = MAX('Inventario en Tienda WM'[Fecha])
+    )
+)
+
+[Cant.Días] =
+CALCULATE( DISTINCTCOUNT(Sell_Out_WM[Daily]),all(Calendario[Date]))
+
+[Promedio_Ventas_Diarias] =
+DIVIDE([SUMX SELL OUT],[Cant.Días],0)
+
+[SUMX SELL OUT] =
+DIVIDE(
+    SUMX(Sell_Out_WM, [Venta (pza)]),
+    DISTINCTCOUNT(Calendario[Date])
+)
+
+[DOH] =
+DIVIDE([Inventario Actual],[Promedio_Ventas_Diarias],0)
+
+[Cant.TiendasWM] =
+VAR TiendasConInventario = CALCULATE( DISTINCTCOUNT('Inventario en Tienda WM'[Store Nbr]), 'Inventario en Tienda WM'[Curr Str On Hand Qty] > 0 ) RETURN IF( ISBLANK(TiendasConInventario), BLANK(), TiendasConInventario)
+
+[Promedio_Ventas4M_WM] =
+VAR FechaTope =
+    MIN(
+        TODAY(),
+        MAX('Calendario'[Date])
+    )
+
+VAR Ventas4M =
+    CALCULATE(
+        [Venta (pza)],
+        DATESINPERIOD(
+            'Calendario'[Date],
+            FechaTope,
+            -4,
+            MONTH
+        )
+    )
+
+VAR TieneVentasWM =
+    CALCULATE(
+        COUNTROWS(Sell_Out_WM)
+    )
+
+RETURN
+IF(
+    TieneVentasWM > 0,
+    COALESCE(DIVIDE(Ventas4M, 4),0),
+    BLANK()
+)
+
+[Inventario_Prom_Tienda] =
+VAR Seleccion = SELECTEDVALUE(Catalogo_Clientes[Clientes])
+
+RETURN
+IF(
+    Seleccion = "Walmart",
+    INT(
+        DIVIDE(
+            [Inventario Actual], 
+            [Cant.TiendasWM]
+        )
+    ),
+    BLANK()
+)
+
+[TieneInventario] =
+IF(SUM('Inventario en Tienda WM'[POS Qty]) > 0, "Sí", "No")
+
+// ################################################################################
+// Tabla: MedidasInventarioAMZ (7 medidas)
+// ################################################################################
+
+[Inventario Actual Amz] =
+CALCULATE(
+    SUM('Inventario Amazon'[Unidades aptas para la venta disponibles]),
+    FILTER(
+        ALL('Inventario Amazon'[Fecha]),
+        'Inventario Amazon'[Fecha] = MAX('Inventario Amazon'[Fecha])
+    )
+)
+
+[Cant.Días Amazon] =
+30
+
+[Ventas Pzas LY] =
+CALCULATE([Venta_Pza_Amazon],PREVIOUSMONTH(Calendario[Date]))
+
+[SUMX SELL OUT AMAZON] =
+CALCULATE(
+SUMX('Ventas Amazon',[Ventas Pzas LY]),ALL(Calendario[Date]))
+
+[Promedio Vtas Amazon] =
+DIVIDE([SUMX SELL OUT],[Cant.Días],0)
+
+[DOH AMAZON] =
+DIVIDE([Inventario Actual Amz],[Promedio Vtas Amazon],0)
+
+[Promedio_Ventas_4M_AMZ] =
+ROUND(
+    AVERAGEX(
+        DATESINPERIOD(
+            Calendario[Date],
+            MAX(Calendario[Date]),
+            -4,
+            MONTH
+        ),
+        CALCULATE([Venta_Pza_Amazon])
+    ),
+0
+)
+
+// ################################################################################
+// Tabla: InventarioKardex (28 medidas)
+// ################################################################################
+
+[Debug Exist] =
+VAR FechaCorte =
+    MAX(Calendario[Date])
+
+VAR Almacenes =
+    CALCULATETABLE(
+        VALUES(InventarioKardex[Almacen]),
+        REMOVEFILTERS(Calendario)
+    )
+
+RETURN
+    SUMX(
+        Almacenes,
+        VAR AlmacenActual =
+            InventarioKardex[Almacen]
+
+        VAR UltimaFecha =
+            CALCULATE(
+                MAX(InventarioKardex[fecha2]),
+                REMOVEFILTERS(Calendario),
+                REMOVEFILTERS(InventarioKardex[fecha2]),
+                InventarioKardex[Almacen] = AlmacenActual,
+                InventarioKardex[fecha2] <= FechaCorte
+            )
+
+        RETURN
+            CALCULATE(
+                MAX(InventarioKardex[Disp. Vta.]),
+                REMOVEFILTERS(Calendario),
+                REMOVEFILTERS(InventarioKardex[fecha2]),
+                InventarioKardex[Almacen] = AlmacenActual,
+                InventarioKardex[fecha2] = UltimaFecha
+            )
+    )
+
+[Total Salidas] =
+CALCULATE(
+    SUM(InventarioKardex[Salida]),
+    FILTER(
+        InventarioKardex,
+        InventarioKardex[Tipo] = "S"
+            &&
+        InventarioKardex[Salida] <> 6000
+            &&
+        NOT CONTAINSSTRING(
+            LOWER(InventarioKardex[Descripcion]),
+            "tarjeta"
+        )
+    )
+)
+
+[Promedio Salidas] =
+AVERAGEX(
+    FILTER(
+        VALUES(Calendario[nombreMes]),
+        NOT ISBLANK([Grafica Salidas])
+    ),
+    [Grafica Salidas]
+)
+
+[MesesInventario] =
+VAR Existencia =
+    CALCULATE(
+        [Salidas Switch],
+        REMOVEFILTERS(Calendario)
+    )
+
+VAR PromedioSalidas =
+    CALCULATE(
+        [Promedio Salidas 2],
+        REMOVEFILTERS(Calendario)
+    )
+
+RETURN
+    DIVIDE(
+        Existencia,
+        PromedioSalidas,
+        0
+    )
+
+[Punto de Reorden] =
+VAR Valor =
+    CALCULATE(
+        [Promedio Salidas] * 7,
+        ALLSELECTED(Calendario)
+    )
+RETURN
+IF(
+    NOT ISBLANK([Promedio Salidas]),
+    Valor
+)
+
+[SumEntradas] =
+CALCULATE(
+    SUM(InventarioKardex[Entrada]),
+    InventarioKardex[Código Doc.] IN {
+        "NC.C.D.",
+        "CO.D"
+    }
+)
+
+[SumSalidas] =
+CALCULATE(SUM(InventarioKardex[Salida]))
+
+[CostoInventario] =
+SUM('Inventario Auxiliar'[Costo Tot. Alm.])
+
+[Valor Inventario] =
+SUMX(
+    'Inventario Auxiliar',
+    'Inventario Auxiliar'[Costo Prom.] * 'Inventario Auxiliar'[Disponible]
+)
+
+[CodLimpio] =
+TRIM(UPPER(InventarioKardex))
+
+[Grafica Entradas] =
+VAR TipoSel = SELECTEDVALUE(TipoFiltro[Tipo], "UNIDADES")
+
+RETURN
+SWITCH(
+    TipoSel,
+    "UNIDADES", SUM(InventarioKardex[Entrada]),
+    "MONTO", SUM(InventarioKardex[CostoEntradas]) / 20
+)
+
+[Grafica Salidas] =
+VAR TipoSalida =  
+    SELECTEDVALUE(TipoFiltro[Tipo], "UNIDADES")  
+  
+VAR FoliosValidos =  
+    FILTER(  
+        VALUES(InventarioKardex[Folio]),  
+        CALCULATE(  
+            COUNTROWS(InventarioKardex),  
+            InventarioKardex[Tipo] = "S",  
+            InventarioKardex[Código Doc.] IN { "F", "SAL", "R", "AI" }  
+        ) > 0  
+        &&  
+        CALCULATE(  
+            COUNTROWS(InventarioKardex),  
+            InventarioKardex[Tipo] = "E"  
+        ) = 0  
+    )  
+  
+RETURN  
+SWITCH(  
+    TipoSalida,  
+  
+    "UNIDADES",  
+        CALCULATE(  
+            SUM(InventarioKardex[Salida]),  
+            InventarioKardex[Tipo] = "S",  
+            InventarioKardex[Código Doc.] IN { "F", "SAL", "R", "AI" },  
+            FoliosValidos  
+        ),  
+  
+    "MONTO",  
+        CALCULATE(  
+            SUM(InventarioKardex[CostoSalidas]) / 20,  
+            InventarioKardex[Tipo] = "S",  
+            InventarioKardex[Código Doc.] IN { "F", "SAL", "R", "AI" },  
+            FoliosValidos  
+        )  
+)
+
+[Ranking Articulos] =
+RANKX(
+    ALL(InventarioKardex[Descripcion]),
+    [Total Salidas],
+    ,
+    DESC,
+    DENSE
+)
+
+[Top 10 Salidas] =
+IF(
+    [Ranking Articulos] <= 10,
+    [Total Salidas]
+)
+
+[Existencia Última] =
+MAX(InventarioKardex[Exist. Alm.])
+
+[Salidas] =
+ABS([SumEntradas]-[SumSalidas])
+
+[TipoSalida] =
+DATATABLE(
+    "Tipo", STRING,
+    {
+        {"Monto"},
+        {"Piezas"}
+    }
+)
+
+[Salidas Switch] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+RETURN
+    SWITCH(
+        Seleccion,
+        "Monto", [CostoInventario] /20,
+        "Piezas", [Exist],
+        [Exist]
+    )
+
+[Grafica Consolidada] =
+VAR TipoSalida =
+    SELECTEDVALUE(TipoFiltro[Tipo], "UNIDADES")
+
+VAR FoliosValidos =
+    FILTER(
+        VALUES(InventarioKardex[Folio]),
+        CALCULATE(
+            COUNTROWS(InventarioKardex),
+            InventarioKardex[Tipo] = "S",
+            InventarioKardex[Código Doc.] = "F"
+        ) > 0
+        &&
+        CALCULATE(
+            COUNTROWS(InventarioKardex),
+            InventarioKardex[Tipo] = "E"
+        ) = 0
+    )
+
+VAR Salidas =
+    SWITCH(
+        TipoSalida,
+
+        "UNIDADES",
+            CALCULATE(
+                SUM(InventarioKardex[Salida]),
+                InventarioKardex[Tipo] = "S",
+                InventarioKardex[Código Doc.] = "F",
+                FoliosValidos
+            ),
+
+        "MONTO",
+            CALCULATE(
+                SUM(InventarioKardex[CostoSalidas]) / 20,
+                InventarioKardex[Tipo] = "S",
+                InventarioKardex[Código Doc.] = "F",
+                FoliosValidos
+            )
+    )
+
+VAR Existencias =
+    SWITCH(
+        TipoSalida,
+
+        "UNIDADES",
+            [Exist],
+
+        "MONTO",
+            [CostoInventario] / 20
+    )
+
+RETURN
+    Salidas + Existencias
+
+[Grafica Cto Mov] =
+VAR FoliosValidos =
+    FILTER(
+        VALUES(InventarioKardex[Folio]),
+        CALCULATE(
+            COUNTROWS(InventarioKardex),
+            InventarioKardex[Tipo] = "S",
+            InventarioKardex[Código Doc.] = "F"
+        ) > 0
+        &&
+        CALCULATE(
+            COUNTROWS(InventarioKardex),
+            InventarioKardex[Tipo] = "E"
+        ) = 0
+    )
+
+VAR Resultado =
+    CALCULATE(
+        SUM(InventarioKardex[Cto. Mov.]) / 20,
+        InventarioKardex[Tipo] = "S",
+        InventarioKardex[Código Doc.] = "F",
+        FoliosValidos
+    )
+
+RETURN
+    ABS(Resultado)
+
+[EntradasConsolidada] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+
+RETURN
+    SWITCH(
+        Seleccion,
+
+        "Monto",
+            [SumEntradasCosto] ,
+
+        "Piezas",
+            [SumEntradas],
+
+        [SumEntradas] 
+    )
+
+[SumEntradasCosto] =
+VAR Resultado =
+    CALCULATE(
+        SUM(InventarioKardex[Cto. Mov.]),
+        InventarioKardex[Código Doc.] IN {
+            "NC.C.D.",
+            "CO.D"
+        }
+    )
+
+RETURN
+    ABS(Resultado / 20)
+
+[ConsolidadoTEST] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+
+RETURN
+    SWITCH(
+        Seleccion,
+
+        "Monto",
+            [Grafica Cto Mov] + [SumEntradasCosto],
+
+        "Piezas",
+            [Grafica Salidas] + [SumEntradas],
+
+        [Grafica Salidas] + [SumEntradas]
+    )
+
+[EntradasCosto] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+
+RETURN
+    SWITCH(
+        Seleccion,
+
+        "Monto",
+           [SumEntradasCosto],
+
+        "Piezas",
+           [SumEntradas],
+
+        [SumEntradas]
+    )
+
+[SalidasConsolidada] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+
+RETURN
+    SWITCH(
+        Seleccion,
+
+        "Monto",
+            [Grafica Cto Mov] ,
+
+        "Piezas",
+            [Grafica Salidas],
+
+        [Grafica Salidas] 
+    )
+
+[Promedio Salidas Monto] =
+AVERAGEX(
+    FILTER(
+        VALUES(Calendario[nombreMes]),
+        NOT ISBLANK([Grafica Salidas])
+    ),
+    [Grafica Salidas]
+)
+
+[Medida 2] =
+(vacía)
+
+[Promedio Salidas 2] =
+VAR Seleccion =
+    SELECTEDVALUE(TipoSalida[Tipo], "Piezas")
+
+RETURN
+    SWITCH(
+        Seleccion,
+
+        "Monto",
+            AVERAGEX(
+                FILTER(
+                    VALUES(Calendario[nombreMes]),
+                    NOT ISBLANK([Grafica Cto Mov])
+                ),
+                [Grafica Cto Mov]
+            ),
+
+        "Piezas",
+            AVERAGEX(
+                FILTER(
+                    VALUES(Calendario[nombreMes]),
+                    NOT ISBLANK([Grafica Salidas])
+                ),
+                [Grafica Salidas]
+            ),
+
+        AVERAGEX(
+            FILTER(
+                VALUES(Calendario[nombreMes]),
+                NOT ISBLANK([Grafica Salidas])
+            ),
+            [Grafica Salidas]
+        )
+    )
+
+// ################################################################################
+// Tabla: Inventario Auxiliar (7 medidas)
+// ################################################################################
+
+[InventDisponible] =
+CALCULATE(
+    SUM('Inventario Auxiliar'[Disponible]),
+    TREATAS(
+        { SELECTEDVALUE(InventarioKardex[CodArticulo]) },
+        'Inventario Auxiliar'[Código Pro.]
+    )
+)
+
+[DebugCodigos] =
+CONCATENATEX(
+    VALUES(InventarioKardex[CodArticulo]),
+    InventarioKardex[CodArticulo],
+    ", "
+)
+
+[InventDisponible_Filtrada] =
+CALCULATE(
+    SUM('Inventario Auxiliar'[Disponible]),
+    FILTER(
+        'Inventario Auxiliar',
+        'Inventario Auxiliar'[Código Pro.] IN VALUES(InventarioKardex[CodArticulo])
+    )
+)
+
+[Moneda] =
+DATATABLE(
+    "Tipo", STRING,
+    {
+        {"USD"},
+        {"MXN"}
+    }
+)
+
+[Rotacion] =
+VAR Ventas =
+    CALCULATE(
+        SUM('Ventas_Wellpro'[Cantidad Vendida]),
+        ALLSELECTED(Calendario)
+    )
+VAR InventarioPromedio =
+    CALCULATE(
+        AVERAGE('Inventario Auxiliar'[Disponible]),
+        ALLSELECTED(Calendario)
+    )
+RETURN
+    DIVIDE(Ventas, InventarioPromedio, 0)
+
+[Exist_Min] =
+MIN('Inventario Auxiliar'[Existencias])
+
+[Exist] =
+SUM('Inventario Auxiliar'[Existencias])
+
+// ################################################################################
+// Tabla: Metas (1 medidas)
+// ################################################################################
+
+[MetaUNIDADES] =
+SUM(Metas[Cantidad Vendida])
+
+// ################################################################################
+// Tabla: Ventas_Wellpro (1 medidas)
+// ################################################################################
+
+[Medida] =
+(vacía)
+
+// ################################################################################
+// Tabla: Tbl (5 medidas)
+// ################################################################################
+
+[Inventario Último] =
+VAR FechaMaxima =
+    MAX(Tbl[Fecha])
+RETURN
+    CALCULATE(
+        SUM(Tbl[Inventario Final]),
+        Tbl[Fecha] = FechaMaxima
+    )
+
+[Total_Salidas] =
+SUM(Tbl[Salida]) +
+SUM(Tbl[Salida Almacen])
+
+[Promedio Mensual Salidas] =
+VAR TablaMeses =
+    SUMMARIZE(
+        Calendario,
+        Calendario[YEAR],
+        Calendario[Mes],
+        "TotalMes", CALCULATE([Total_Salidas])
+    )
+RETURN
+    AVERAGEX(
+        TablaMeses,
+        [TotalMes]
+    )
+
+[MesesInventario_V2] =
+VAR Existencia =
+    CALCULATE(
+        [Inventario Último],
+        REMOVEFILTERS(Calendario)
+    )
+
+VAR PromedioSalidas =
+    CALCULATE(
+        [Promedio Mensual Salidas],
+        REMOVEFILTERS(Calendario)
+    )
+
+RETURN
+    DIVIDE(
+       Existencia,
+        PromedioSalidas,
+        0
+    )
+
+[Punto de Reorden v2] =
+VAR Valor =
+    CALCULATE(
+        [Promedio Mensual Salidas] * 7,
+        ALLSELECTED(Calendario)
+    )
+RETURN
+IF(
+    NOT ISBLANK([Promedio Mensual Salidas]),
+    Valor
+)
+

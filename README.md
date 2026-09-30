@@ -1,1 +1,15 @@
 # Proyecto-Centroamerica
+
+Rediseño del reporte de Power BI «Análisis de Ventas Wellpro»: sell in del ERP One Goal, sell out e inventario de Amazon México y Walmart México (Retail Link), metas, fill rate e inventario propio.
+
+Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los errores del reporte actual.
+
+## Contenido
+
+| Archivo o carpeta | Qué es |
+|---|---|
+| [`DIAGNOSTICO_REPORTE_ACTUAL.md`](DIAGNOSTICO_REPORTE_ACTUAL.md) | Cómo funciona el reporte actual, qué pasos manuales exige y qué errores tiene, con cifras. |
+| [`analisis/reporte_actual/`](analisis/reporte_actual/) | Código extraído del `.pbix` actual: consultas de Power Query, medidas DAX, relaciones y páginas. |
+| `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix` | Reporte actual, tal como lo entregó el cliente. |
+| `Sell in/BD Sell In.xlsx` | Base de sell in y catálogos: productos, clientes y metas. |
+| `Inventario/Inventarios.xlsx` | Tabla de inventario que se llena a mano cada mes. |

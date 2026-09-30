@@ -1,0 +1,89 @@
+// Tablas y columnas calculadas con DAX (sin las tablas de fecha automáticas LocalDateTable_*).
+
+// ===== TABLAS CALCULADAS =====
+
+Calendario =
+CALENDARAUTO()
+
+Medidas Sell In =
+Row("Column", BLANK())
+
+Medida 2 =
+Row("Column", BLANK())
+
+MedidasAmazon =
+Row("Column", BLANK())
+
+Clasificacion_Cobertura =
+DATATABLE(
+    "Clasificacion", STRING,
+    {
+        {"Sin inventario / sin venta"},
+        {"Riesgo quiebre"},
+        {"Saludable"},
+        {"Sobre stock"}
+    }
+)
+
+MedidasFillRate =
+Row("Column", BLANK())
+
+MedidasInventarioWM =
+Row("Column", BLANK())
+
+TIENDAS =
+'Catalogo de Tiendas'
+
+MedidasInventarioAMZ =
+Row("Column", BLANK())
+
+TipoFiltro =
+DATATABLE(
+    "Tipo", STRING,
+    {
+        {"UNIDADES"},
+        {"MONTO"}
+    }
+)
+
+Moneda =
+DATATABLE(
+    "Tipo", STRING,
+    {
+        {"USD"},
+        {"MXN"}
+    }
+)
+
+TipoSalida =
+DATATABLE(
+    "Tipo", STRING,
+    {
+        {"Monto"},
+        {"Piezas"}
+    }
+)
+
+// ===== COLUMNAS CALCULADAS =====
+
+Inventarios Wellpro[Entradas en monto] =
+'Inventarios Wellpro'[Entrada]*'Inventarios Wellpro'[Cto. Uni.]
+
+Inventarios Wellpro[Salidas en Momto] =
+'Inventarios Wellpro'[Salida]*'Inventarios Wellpro'[Cto. Uni.]
+
+Ventas_Wellpro[TOTAL VENTA SIN IVA] =
+Ventas_Wellpro[Precio de Venta]* Ventas_Wellpro[Cantidad Vendida]
+
+Calendario[YEAR] =
+(Calendario[Date].[Año])
+
+Calendario[Mes] =
+Calendario[Date].[Mes]
+
+Calendario[mesNo] =
+Calendario[Date].[NroMes]
+
+Calendario[nombreMes] =
+FORMAT ( 'Calendario'[Date], "Mmm" )
+
