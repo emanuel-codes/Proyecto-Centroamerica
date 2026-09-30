@@ -221,7 +221,7 @@ table _Medidas
 			    SWITCH (
 			        TRUE (),
 			        _problemas > 0, "🔴 Revisar antes de enviar",
-			        _atraso > 3, "🟡 El sell out de Walmart tiene más de 3 días",
+			        _atraso > 3, "🟡 Sell out Walmart atrasado",
 			        "🟢 Listo para enviar"
 			    )
 		displayFolder: 9. Control

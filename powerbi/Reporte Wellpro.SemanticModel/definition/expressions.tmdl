@@ -75,7 +75,9 @@ expression fnRetailLink =
 		(contenido as binary) as record =>
 		let
 		    Libro = Excel.Workbook(contenido, null, true),
-		    Hoja = Table.SelectRows(Libro, each [Kind] = "Sheet"){0}[Data],
+		    // Primera hoja del libro (algunos archivos no traen la columna Kind en la lista de hojas)
+		    Hojas = if Table.HasColumns(Libro, "Kind") then Table.SelectRows(Libro, each [Kind] = "Sheet") else Libro,
+		    Hoja = Hojas{0}[Data],
 		    Filas = Table.ToRows(Hoja),
 		    // La fila de encabezados es la primera con 5 o más celdas llenas; antes vienen las opciones del reporte
 		    PosEncabezado = List.PositionOf(List.Transform(Filas, each List.Count(List.RemoveNulls(_)) >= 5), true),
@@ -110,7 +112,9 @@ expression fnAmazon =
 		(contenido as binary) as record =>
 		let
 		    Libro = Excel.Workbook(contenido, null, true),
-		    Hoja = Table.SelectRows(Libro, each [Kind] = "Sheet"){0}[Data],
+		    // Primera hoja del libro (algunos archivos no traen la columna Kind en la lista de hojas)
+		    Hojas = if Table.HasColumns(Libro, "Kind") then Table.SelectRows(Libro, each [Kind] = "Sheet") else Libro,
+		    Hoja = Hojas{0}[Data],
 		    Meta = Text.Combine(List.Transform(List.RemoveNulls(Record.FieldValues(Hoja{0})), Text.From), "|"),
 		    FechaDMA = (t as text) as date =>
 		        let
@@ -133,16 +137,30 @@ expression Maestro =
 		let
 		    // Maestro_Wellpro.xlsx, dentro de la carpeta Maestros de RutaDatos
 		    Archivo = Table.SelectRows(Archivos, each [Carpeta] = "maestros" and Text.StartsWith(Text.Lower([Name]), "maestro_wellpro")),
-		    Libro = Excel.Workbook(Archivo{0}[Content], true, true)
+		    Libro = Excel.Workbook(Archivo{0}[Content], null, true)
 		in
 		    Libro
 
 	annotation PBI_ResultType = Table
 
+/// Función: devuelve una tabla del maestro por su nombre.
+expression fnTablaMaestro =
+		// Devuelve una tabla del maestro por su nombre (por ejemplo "tProductos").
+		// Si el libro no la muestra como tabla, usa la hoja del mismo contenido (por ejemplo "Productos").
+		(tabla as text, hoja as text) as table =>
+		let
+		    PorTabla = Table.SelectRows(Maestro, each [Name] = tabla),
+		    PorHoja = Table.SelectRows(Maestro, each [Name] = hoja)
+		in
+		    if Table.RowCount(PorTabla) > 0 then PorTabla{0}[Data]
+		    else Table.PromoteHeaders(PorHoja{0}[Data], [PromoteAllScalars = true])
+
+	annotation PBI_ResultType = Function
+
 /// Hoja Productos del maestro.
 expression Productos =
 		let
-		    Origen = Maestro{[Item = "tProductos", Kind = "Table"]}[Data],
+		    Origen = fnTablaMaestro("tProductos", "Productos"),
 		    ComoTexto = (v) => if v = null then null else Text.Trim(Text.From(v)),
 		    Texto = Table.TransformColumns(Origen, {
 		        {"Codigo_ERP", ComoTexto, type nullable text}, {"EAN", ComoTexto, type nullable text},
@@ -161,7 +179,7 @@ expression Productos =
 /// Hoja Equivalencias del maestro: código de cada cadena -> código del ERP.
 expression Equivalencias =
 		let
-		    Origen = Maestro{[Item = "tEquivalencias", Kind = "Table"]}[Data],
+		    Origen = fnTablaMaestro("tEquivalencias", "Equivalencias"),
 		    ComoTexto = (v) => if v = null then null else Text.Trim(Text.From(v)),
 		    Texto = Table.TransformColumns(Origen, {
 		        {"Cadena", ComoTexto, type nullable text}, {"Codigo_en_cadena", ComoTexto, type nullable text},

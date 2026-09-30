@@ -44,7 +44,7 @@ table Metas
 		mode: import
 		source =
 				let
-				    Origen = Maestro{[Item = "tMetas", Kind = "Table"]}[Data],
+				    Origen = fnTablaMaestro("tMetas", "Metas"),
 				    Tipado = Table.TransformColumns(Origen, {
 				        {"Mes", each Date.StartOfMonth(Date.From(_)), type date},
 				        {"Codigo_ERP", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
