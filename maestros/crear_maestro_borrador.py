@@ -92,7 +92,7 @@ for _,r in wm.iterrows():
     cod=str(int(r['vendor'])) if pd.notna(r['vendor']) else ean2cod.get(ean)
     via='Vendor Stk Nbr' if pd.notna(r['vendor']) else 'EAN calculado del UPC'
     P.loc[P['Codigo_ERP']==cod,'Item_Walmart']=item
-    eq.append(dict(Cadena='Walmart', Codigo_en_cadena=item, Tipo_codigo='Item Nbr', Codigo_ERP=cod, Descripcion_en_cadena=r['desc'], Factor_piezas=1, Estado='OK', Notas=f'Asignado por {via}.'))
+    eq.append(dict(Cadena='Walmart', Codigo_en_cadena=item, Tipo_codigo='Item Nbr', Codigo_ERP=cod, Descripcion_en_cadena=r['desc'], Factor_piezas=1, Estado='OK', Notas=f'Asignado por {via}.' + (' En Retail Link su Vendor Stk Nbr es «MTB132FA», no el código del ERP.' if item=='101618069' else '')))
     eq.append(dict(Cadena='Walmart', Codigo_en_cadena=upc, Tipo_codigo='UPC Retail Link', Codigo_ERP=cod, Descripcion_en_cadena=r['desc'], Factor_piezas=1, Estado='OK', Notas=f'EAN equivalente: {ean} (se quita el 0 y se agrega el dígito verificador).'))
 # Amazon
 va=L('Ventas Amazon'); ia=L('Inventario Amazon')

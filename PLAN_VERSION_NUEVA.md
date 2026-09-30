@@ -124,7 +124,7 @@ Pídele al analista actual los parámetros de sus consultas guardadas: las colum
 | Fill rate | Órdenes de compra | PO Number, PO Type, PO Order Date, PO Ship Date, PO Cancel Date, Item Nbr, UPC, VNPK Qty, VNPK Cost, Hist Eaches Str Ordered, Hist Eaches Str Received |
 | Recship | Pedidos planeados | Item Nbr, UPC, Store Nbr, Plan Order Date, Units, VNPK Qty, VNPK Cost |
 
-`Vendor Stk Nbr` es importante: en Retail Link trae el **código de producto del ERP** (14660, 13471, 13595...). Con esa columna la homologación con Walmart es directa.
+`Vendor Stk Nbr` ayuda: en 4 de los 5 artículos trae el **código de producto del ERP** (14660, 13471, 13595, 13594). El Osito trae «MTB132FA». Por eso la llave para Walmart es el número de artículo (*Item Nbr*), registrado en la hoja Equivalencias del maestro. La receta confirmada de cada descarga está en [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md).
 
 ### ERP One Goal
 

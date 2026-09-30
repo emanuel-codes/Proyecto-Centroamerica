@@ -175,7 +175,7 @@ Otros problemas de la misma tabla:
 - Retail Link reporta el UPC sin dígito verificador y con un 0 adelante. Cuatro consultas (`Sell_Out_WM`, `Inventario en Tienda WM`, `Recship WM` y `Fill_rate`) traducen el código de **4 productos** a mano, uno por uno.
 - En `Inventario en Tienda WM` la regla es "si no es uno de estos 4, poner 0". Por eso el Osito, que Walmart empezó a manejar a fines de agosto de 2026, tiene su inventario (**466 piezas en 214 tiendas**) asignado al código «0», que no corresponde a ningún producto.
 - En `Recship WM`, el Osito se traduce a `743100920748`, un código de 12 dígitos que no existe. Probablemente por eso se agregó al catálogo la segunda fila del Osito, que es la causa del duplicado del punto A1. El código correcto es `7431009207481`.
-- **Walmart ya trae el código del ERP.** La columna `Vendor Stk Nbr` de Retail Link es el código de producto del ERP en 4 de los 5 artículos: 14660, 13471, 13595 y 13594. La homologación puede hacerse directo por ese código, y usar la regla del UPC solo cuando venga vacío, como pasa con el Osito.
+- **Walmart ya trae el código del ERP.** La columna `Vendor Stk Nbr` de Retail Link es el código de producto del ERP en 4 de los 5 artículos: 14660, 13471, 13595 y 13594. La homologación puede hacerse directo por ese código, y usar el número de artículo o la regla del UPC cuando traiga otra cosa. En los datos del reporte el Osito lo trae vacío, y en la descarga del 30/09 trae «MTB132FA».
 - **La regla es fija y se puede automatizar.** Se quita el 0 inicial y se agrega el dígito verificador. Por ejemplo, `0743400255002` → `743400255002` → `7434002550028` (Nebulizador Familiar). Se comprobó con los 5 artículos que maneja Walmart.
 
 **A8. Tarjetas aromatizantes individuales asignadas al Pack.**
