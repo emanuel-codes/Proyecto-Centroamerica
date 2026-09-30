@@ -1,0 +1,65 @@
+/// Órdenes de compra de Walmart: piezas ordenadas y recibidas (tienda + centro de distribución).
+table fFillRate
+
+	column Cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cadena
+
+	column Orden
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Orden
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Codigo_cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_cadena
+
+	column Fecha_orden
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_orden
+
+	column Fecha_envio
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_envio
+
+	column Fecha_cancelacion
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_cancelacion
+
+	column Piezas_ordenadas
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Piezas_ordenadas
+
+	column Piezas_recibidas
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Piezas_recibidas
+
+	column Costo_unitario
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Costo_unitario
+
+	partition fFillRate = m
+		mode: import
+		source =
+				WM_FillRate
+
+	annotation PBI_ResultType = Table

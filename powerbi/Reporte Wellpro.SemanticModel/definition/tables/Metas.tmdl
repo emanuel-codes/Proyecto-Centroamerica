@@ -1,0 +1,60 @@
+/// Metas mensuales de sell in por producto y cliente (hoja Metas del maestro).
+table Metas
+
+	column Mes
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Mes
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Producto
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Producto
+
+	column Cliente_reporte
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cliente_reporte
+
+	column Cantidad
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Cantidad
+
+	column Precio
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Precio
+
+	column Monto
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Monto
+
+	partition Metas = m
+		mode: import
+		source =
+				let
+				    Origen = Maestro{[Item = "tMetas", Kind = "Table"]}[Data],
+				    Tipado = Table.TransformColumns(Origen, {
+				        {"Mes", each Date.StartOfMonth(Date.From(_)), type date},
+				        {"Codigo_ERP", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
+				        {"Producto", each Text.From(_), type text},
+				        {"Cliente_reporte", each Text.From(_), type text},
+				        {"Cantidad", each Number.From(_), type number},
+				        {"Precio", each Number.From(_), type number},
+				        {"Monto", each Number.From(_), type number}}),
+				    Columnas = Table.SelectColumns(Tipado, {"Mes", "Codigo_ERP", "Producto", "Cliente_reporte", "Cantidad", "Precio", "Monto"})
+				in
+				    Columnas
+
+	annotation PBI_ResultType = Table

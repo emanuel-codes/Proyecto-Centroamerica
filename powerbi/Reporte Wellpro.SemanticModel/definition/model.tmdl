@@ -1,0 +1,23 @@
+model Model
+	culture: es-MX
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: es-MX
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["RutaDatos", "Archivos", "fnFechaMDA", "fnFechaAMD", "fnNumero", "fnRetailLink", "fnAmazon", "Maestro", "Productos", "Equivalencias", "WM_SellOut_Filas", "WM_SellOut", "AMZ_SellOut_Archivos", "AMZ_SellOut", "WM_Inventario_Filas", "WM_Inventario", "AMZ_Inventario_Archivos", "AMZ_Inventario", "WM_FillRate", "WM_Recship", "Calendario", "dimCadena", "dimProducto", "dimTienda", "fSellOut", "fInventarioCadena", "fFillRate", "fRecship", "Metas", "ctlArchivos", "_Medidas"]
+
+ref table Calendario
+ref table dimCadena
+ref table dimProducto
+ref table dimTienda
+ref table fSellOut
+ref table fInventarioCadena
+ref table fFillRate
+ref table fRecship
+ref table Metas
+ref table ctlArchivos
+ref table _Medidas

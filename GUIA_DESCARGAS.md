@@ -22,10 +22,12 @@ Nueva versión/
 │   ├── Sell out/
 │   ├── Inventario/
 │   ├── Forecast/          (Recship)
-│   └── Fill rate/         (falta la muestra)
-└── ERP/
-    ├── Sell in/           (falta la muestra)
-    └── Inventario/        (falta la muestra)
+│   └── Fill rate/
+├── ERP/
+│   ├── Sell in/           (falta la muestra)
+│   └── Inventario/        (falta la muestra)
+└── Maestros/
+    └── Maestro_Wellpro.xlsx
 ```
 
 Cuando se decida dónde viven los datos (OneDrive o SharePoint de la empresa), se copia esta misma estructura. El reporte solo necesita saber dónde está la carpeta `Nueva versión`.
@@ -69,7 +71,7 @@ Aunque algunos terminan en `.xls`, por dentro son archivos de Excel modernos. Po
 | **Sell out** | «Sell Out Act.» | `Walmart/Sell out` | Desde el día siguiente a la última descarga hasta ayer, con detalle diario (*Daily*). Puede ser una semana en un solo archivo. | En cada actualización |
 | **Inventario en tiendas** | «Inventario en Tiendas MX Act.» | `Walmart/Inventario` | Un día (*Pos Date* = ayer). Es la foto del inventario. | En cada actualización |
 | **Recship** | «Recship Proxima 5 Sem» | `Walmart/Forecast` | Las próximas 5 semanas de Walmart | En cada actualización. El reporte usa solo el más reciente. |
-| **Fill rate** | (la consulta que usa el analista) | `Walmart/Fill rate` | Las órdenes de los últimos 3 meses | Semanal. **Falta la muestra.** |
+| **Fill rate** | «Fill rate 0.2.1» | `Walmart/Fill rate` | Las semanas de Walmart que interesan; la muestra trae de la 202549 a la 202634 | Semanal |
 
 Lo que se vio en las muestras:
 - **Sell out, del 22/09 al 29/09:**
@@ -78,6 +80,12 @@ Lo que se vio en las muestras:
   - sin duplicados.
 - **Inventario al 29/09:** 4,491 filas, por tienda y artículo.
 - **Recship, creado el 30/09:** es por centro de distribución, no por tienda, con las fechas de pedido y de recepción planeadas.
+- **Fill rate (enero a septiembre de 2026):**
+  - 540 líneas de órdenes, todas de reabastecimiento a tienda (*POS REPLEN*);
+  - 16,163 piezas ordenadas y 15,126 recibidas, un **93.6 %**.
+- **Cuidado con las semanas escritas a mano:** las consultas de fill rate y Recship tienen las semanas de Walmart escritas una por una.
+  - En la de fill rate **falta la semana 202618** (principios de mayo de 2026), así que esas órdenes nunca se descargan.
+  - Si Retail Link lo permite, conviene cambiarlas a un rango relativo, por ejemplo "últimas 13 semanas" o "próximas 5 semanas", para no editarlas en cada descarga.
 - **`Vendor Stk Nbr`:** trae el código del ERP en 4 artículos (14660, 13471, 13595, 13594). El Osito trae otro código, «MTB132FA». Por eso la llave para Walmart es el **número de artículo** (*Item Nbr*), que ya está en la hoja Equivalencias del maestro.
 
 ---
@@ -95,8 +103,8 @@ Lo que se vio en las muestras:
 
 ## Pendientes
 
-1. **Muestra del fill rate de Walmart.**
-2. **Muestras del ERP:** sell in y kardex o inventario auxiliar.
-3. **Fill rate de Amazon:** no tienes acceso a las órdenes de compra. Hay que decidir con el jefe entre:
+1. **Muestras del ERP:** sell in y kardex o inventario auxiliar.
+2. **Fill rate de Amazon:** no tienes acceso a las órdenes de compra. Hay que decidir con el jefe entre:
    - quitar el indicador;
    - que alguien con acceso deje cada mes el export `POItemExport` en una carpeta `Amazon/Ordenes`.
+3. **Semana 202618 del fill rate de Walmart:** agregarla a la consulta, o cambiarla a un rango relativo.

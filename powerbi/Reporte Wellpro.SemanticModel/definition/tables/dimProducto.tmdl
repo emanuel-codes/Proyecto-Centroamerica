@@ -1,0 +1,66 @@
+/// Productos del maestro (hoja Productos). La llave es el código del ERP.
+table dimProducto
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Producto
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Producto
+
+	column Familia
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Familia
+
+	column Marca
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Marca
+
+	column EAN
+		dataType: string
+		summarizeBy: none
+		sourceColumn: EAN
+
+	column ASIN
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ASIN
+
+	column Item_Walmart
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Item_Walmart
+
+	column Lead_time_meses
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Lead_time_meses
+
+	column Stock_seguridad
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Stock_seguridad
+
+	column Activo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Activo
+
+	column Estado
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Estado
+
+	partition dimProducto = m
+		mode: import
+		source =
+				Productos
+
+	annotation PBI_ResultType = Table

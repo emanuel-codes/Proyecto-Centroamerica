@@ -1,0 +1,65 @@
+/// Pronóstico de pedidos de Walmart (Recship); solo el archivo más reciente.
+table fRecship
+
+	column Cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cadena
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Codigo_cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_cadena
+
+	column CEDIS
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CEDIS
+
+	column Fecha_creacion
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_creacion
+
+	column Fecha_pedido
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_pedido
+
+	column Fecha_recepcion
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha_recepcion
+
+	column Piezas
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Piezas
+
+	column Costo_pieza
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Costo_pieza
+
+	column Monto
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Monto
+
+	partition fRecship = m
+		mode: import
+		source =
+				WM_Recship
+
+	annotation PBI_ResultType = Table

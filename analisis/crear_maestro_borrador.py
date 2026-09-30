@@ -53,13 +53,13 @@ fam_marca=lambda n: 'Saint Ciel' if 'Tarjeta' in n else 'Wellpro'
 
 prod=[]; vistos=set()
 for _,r in cat.iterrows():
-    n=r['Nombre de Producto']; cod=cat2erp.get(n)
+    n=r['Nombre de Producto']; cod=cat2erp.get(n) or {'Nebulizador Adulto Moderno Tapa Verde':'PROV-01','Nebulizador Pediatrico Animalitos':'PROV-02'}.get(n)
     if cod in vistos:   # fila duplicada del Osito
         continue
     notas=[]; estado='OK'
     ean=str(r['UPC']) if r['UPC'] is not None else None
     asin=r['ASIN']
-    if n in sin_codigo: notas.append(sin_codigo[n]); estado='Validar'
+    if n in sin_codigo: notas.append(sin_codigo[n] + f' Mientras tanto usa el código provisional {cod}.'); estado='Validar'
     if ean and not gtin_ok(ean): notas.append(f'EAN {ean} inválido (dígito verificador o provisional): confirmar el real.'); estado='Validar'
     if asin and fake_asin(asin):
         notas.append(f'ASIN «{asin}» no es real' + (' (letra O en vez de cero)' if str(asin).startswith('BO') else '') + '. Dejar vacío si no se vende en Amazon.'); estado='Validar'; asin=None
@@ -132,13 +132,13 @@ C=pd.DataFrame(cli)
 # Metas (sin duplicados; producto por código; cliente normalizado)
 m=met.copy()
 m['Mes']=pd.to_datetime(m['Fecha']).dt.to_period('M').dt.to_timestamp().dt.date
-m['Codigo_ERP']=m['Nombre Producto'].map(cat2erp)
+m['Codigo_ERP']=m['Nombre Producto'].map({**cat2erp, 'Nebulizador Adulto Moderno Tapa Verde':'PROV-01','Nebulizador Pediatrico Animalitos':'PROV-02'})
 norm={'WALMART':'WALMART','WALMAR MARKETPLACE':'WALMART MARKETPLACE'}
 m['Cliente_reporte']=m['Cliente'].str.upper().str.strip().map(lambda x: norm.get(x,x))
 M=m[['Mes','Codigo_ERP','Nombre Producto','Cliente_reporte','Cantidad Vendida','Precio de Venta','Total de Venta']].rename(columns={'Nombre Producto':'Producto','Cantidad Vendida':'Cantidad','Precio de Venta':'Precio','Total de Venta':'Monto'})
-assert set(M.loc[M['Codigo_ERP'].isna(),'Producto'])<= {'Nebulizador Pediatrico Animalitos'}
-M['Estado']=['Validar' if pd.isna(c) or cl=='WALMART MARKETPLACE' and orig=='WALMAR MARKETPLACE' else 'OK' for c,cl,orig in zip(M['Codigo_ERP'],M['Cliente_reporte'],m['Cliente'].str.upper().str.strip())]
-M['Notas']=['Producto sin código ERP (ver Productos).' if pd.isna(c) else ('Cliente venía como «Walmar Marketplace».' if orig=='WALMAR MARKETPLACE' else '') for c,orig in zip(M['Codigo_ERP'],m['Cliente'].str.upper().str.strip())]
+assert M['Codigo_ERP'].notna().all()
+M['Estado']=['Validar' if str(c).startswith('PROV') or cl=='WALMART MARKETPLACE' and orig=='WALMAR MARKETPLACE' else 'OK' for c,cl,orig in zip(M['Codigo_ERP'],M['Cliente_reporte'],m['Cliente'].str.upper().str.strip())]
+M['Notas']=['Producto con código provisional (ver Productos).' if str(c).startswith('PROV') else ('Cliente venía como «Walmar Marketplace».' if orig=='WALMAR MARKETPLACE' else '') for c,orig in zip(M['Codigo_ERP'],m['Cliente'].str.upper().str.strip())]
 # Tipo de cambio
 T=pd.DataFrame({'Mes':pd.period_range('2024-01','2026-12',freq='M').to_timestamp().date,'TC_MXN_por_USD':None,'Fuente':None})
 # Pendientes
@@ -159,7 +159,7 @@ pend=[
 PE=pd.DataFrame(pend, columns=['Tema','Pendiente','Quién valida']); PE.insert(0,'N',range(1,len(PE)+1))
 
 # --- escribir Excel
-out=R+'maestros/Maestro_Wellpro_borrador.xlsx'
+out=R+'Nueva versión/Maestros/Maestro_Wellpro.xlsx'
 with pd.ExcelWriter(out, engine='openpyxl') as w:
     pd.DataFrame({'x':[]}).to_excel(w, sheet_name='LEEME', index=False)
     for name,df in [('Productos',P),('Equivalencias',E),('Clientes',C),('Metas',M),('TipoCambio',T),('Pendientes',PE)]:

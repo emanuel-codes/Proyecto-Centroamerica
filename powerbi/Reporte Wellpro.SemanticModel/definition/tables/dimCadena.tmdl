@@ -1,0 +1,20 @@
+/// Cadenas con sell out: Walmart y Amazon.
+table dimCadena
+
+	column Cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cadena
+
+	column Orden
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Orden
+
+	partition dimCadena = m
+		mode: import
+		source =
+				#table(type table [Cadena = text, Orden = Int64.Type], {{"Walmart", 1}, {"Amazon", 2}})
+
+	annotation PBI_ResultType = Table

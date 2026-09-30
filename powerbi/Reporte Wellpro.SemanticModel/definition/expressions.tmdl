@@ -1,0 +1,437 @@
+/// Carpeta donde están los datos (Amazon, Walmart, ERP y Maestros). Debe terminar en \.
+expression RutaDatos = "C:\Proyecto-Centroamerica\Nueva versión\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+
+	annotation PBI_ResultType = Text
+
+/// Lista de todos los archivos de Excel de la carpeta de datos, con su carpeta relativa.
+expression Archivos =
+		let
+		    // Todos los archivos de Excel dentro de la carpeta de datos (parámetro RutaDatos)
+		    Origen = Folder.Files(RutaDatos),
+		    Validos = Table.SelectRows(Origen, each not Text.StartsWith([Name], "~$")
+		        and List.Contains({".xlsx", ".xls"}, Text.Lower([Extension]))
+		        and [Attributes]?[Hidden]? <> true),
+		    // Carpeta relativa en minúsculas, por ejemplo "walmart\sell out"
+		    ConCarpeta = Table.AddColumn(Validos, "Carpeta",
+		        each Text.Trim(Text.Replace(Text.Lower([Folder Path]), Text.Lower(RutaDatos), ""), "\"), type text),
+		    Columnas = Table.SelectColumns(ConCarpeta, {"Content", "Name", "Carpeta"})
+		in
+		    Columnas
+
+	annotation PBI_ResultType = Table
+
+/// Función: texto mm-dd-aaaa o mm/dd/aaaa a fecha.
+expression fnFechaMDA =
+		// Convierte "mm-dd-aaaa" o "mm/dd/aaaa" (formato de Retail Link) en fecha, sin depender de la configuración regional
+		(valor as any) as nullable date =>
+		    if valor = null then null
+		    else if Value.Is(valor, type date) then valor
+		    else if Value.Is(valor, type datetime) then Date.From(valor)
+		    else
+		        let
+		            Texto = Text.Trim(Text.From(valor)),
+		            Partes = Text.SplitAny(Texto, "-/")
+		        in
+		            if Texto = "" then null
+		            else #date(Number.From(Partes{2}), Number.From(Partes{0}), Number.From(Partes{1}))
+
+	annotation PBI_ResultType = Function
+
+/// Función: texto aaaa/mm/dd a fecha.
+expression fnFechaAMD =
+		// Convierte "aaaa/mm/dd" (columna Daily de Retail Link) en fecha
+		(valor as any) as nullable date =>
+		    if valor = null then null
+		    else if Value.Is(valor, type date) then valor
+		    else if Value.Is(valor, type datetime) then Date.From(valor)
+		    else
+		        let
+		            Texto = Text.Trim(Text.From(valor)),
+		            Partes = Text.SplitAny(Texto, "-/")
+		        in
+		            if Texto = "" then null
+		            else #date(Number.From(Partes{0}), Number.From(Partes{1}), Number.From(Partes{2}))
+
+	annotation PBI_ResultType = Function
+
+/// Función: número en texto con punto decimal a número.
+expression fnNumero =
+		// Convierte números que vienen como texto con punto decimal ("18635.76") sin depender de la configuración regional
+		(valor as any) as nullable number =>
+		    if valor = null then null
+		    else if Value.Is(valor, type number) then valor
+		    else
+		        let
+		            Texto = Text.Trim(Text.From(valor))
+		        in
+		            if Texto = "" then null else Number.FromText(Text.Remove(Texto, ","), "en-US")
+
+	annotation PBI_ResultType = Function
+
+/// Función: lee un archivo de Retail Link tal como se descarga.
+expression fnRetailLink =
+		// Lee un archivo de Retail Link tal como se descarga.
+		// Devuelve el nombre del reporte, la fecha y hora de la solicitud, el rango de fechas consultado y la tabla de datos.
+		(contenido as binary) as record =>
+		let
+		    Libro = Excel.Workbook(contenido, null, true),
+		    Hoja = Table.SelectRows(Libro, each [Kind] = "Sheet"){0}[Data],
+		    Filas = Table.ToRows(Hoja),
+		    // La fila de encabezados es la primera con 5 o más celdas llenas; antes vienen las opciones del reporte
+		    PosEncabezado = List.PositionOf(List.Transform(Filas, each List.Count(List.RemoveNulls(_)) >= 5), true),
+		    TextosPrevios = List.Transform(List.RemoveNulls(List.Combine(List.FirstN(Filas, PosEncabezado))), Text.From),
+		    Reporte = Text.Trim(TextosPrevios{0}),
+		    // "Requested 114402242: (MX)  2026 09 30, 16:42"
+		    TextoSolicitud = List.First(List.Select(TextosPrevios, each Text.Contains(_, "Requested")), null),
+		    Solicitado =
+		        if TextoSolicitud = null then null
+		        else
+		            let
+		                Resto = Text.Trim(Text.AfterDelimiter(TextoSolicitud, ")")),
+		                F = List.Select(Text.Split(Text.BeforeDelimiter(Resto, ","), " "), each _ <> ""),
+		                H = Text.Split(Text.Trim(Text.AfterDelimiter(Resto, ",")), ":")
+		            in
+		                #datetime(Number.From(F{0}), Number.From(F{1}), Number.From(F{2}), Number.From(H{0}), Number.From(H{1}), 0),
+		    // "... Time Range 1 Is Between  09-22-2026 and 09-29-2026 And"
+		    TextoRango = List.First(List.Select(TextosPrevios, each Text.Contains(_, "Between")), null),
+		    Rango = if TextoRango = null then null else Text.Trim(Text.BetweenDelimiters(TextoRango, "Between", " And")),
+		    Desde = if Rango = null then null else fnFechaMDA(Text.BeforeDelimiter(Rango, " and ")),
+		    Hasta = if Rango = null then null else fnFechaMDA(Text.AfterDelimiter(Rango, " and ")),
+		    Datos = Table.PromoteHeaders(Table.Skip(Hoja, PosEncabezado), [PromoteAllScalars = true])
+		in
+		    [Reporte = Reporte, Solicitado = Solicitado, Desde = Desde, Hasta = Hasta, Datos = Datos]
+
+	annotation PBI_ResultType = Function
+
+/// Función: lee un archivo de Amazon Vendor Central tal como se descarga.
+expression fnAmazon =
+		// Lee un archivo de Amazon Vendor Central tal como se descarga.
+		// La primera fila trae el rango de fechas ("Rango de visualización=[01/08/26 - 31/08/26]"); la segunda, los encabezados.
+		(contenido as binary) as record =>
+		let
+		    Libro = Excel.Workbook(contenido, null, true),
+		    Hoja = Table.SelectRows(Libro, each [Kind] = "Sheet"){0}[Data],
+		    Meta = Text.Combine(List.Transform(List.RemoveNulls(Record.FieldValues(Hoja{0})), Text.From), "|"),
+		    FechaDMA = (t as text) as date =>
+		        let
+		            P = Text.Split(Text.Trim(t), "/"),
+		            Anio = Number.From(P{2})
+		        in
+		            #date(if Anio < 100 then 2000 + Anio else Anio, Number.From(P{1}), Number.From(P{0})),
+		    Rango = Text.AfterDelimiter(Text.BeforeDelimiter(Text.AfterDelimiter(Meta, "Rango de visualizaci"), "]"), "["),
+		    Desde = FechaDMA(Text.BeforeDelimiter(Rango, " - ")),
+		    Hasta = FechaDMA(Text.AfterDelimiter(Rango, " - ")),
+		    Actualizado = try FechaDMA(Text.BeforeDelimiter(Text.AfterDelimiter(Meta, "Informe actualizado=["), "]")) otherwise null,
+		    Datos = Table.PromoteHeaders(Table.Skip(Hoja, 1), [PromoteAllScalars = true])
+		in
+		    [Desde = Desde, Hasta = Hasta, Actualizado = Actualizado, Datos = Datos]
+
+	annotation PBI_ResultType = Function
+
+/// Libro Maestro_Wellpro.xlsx.
+expression Maestro =
+		let
+		    // Maestro_Wellpro.xlsx, dentro de la carpeta Maestros de RutaDatos
+		    Archivo = Table.SelectRows(Archivos, each [Carpeta] = "maestros" and Text.StartsWith(Text.Lower([Name]), "maestro_wellpro")),
+		    Libro = Excel.Workbook(Archivo{0}[Content], true, true)
+		in
+		    Libro
+
+	annotation PBI_ResultType = Table
+
+/// Hoja Productos del maestro.
+expression Productos =
+		let
+		    Origen = Maestro{[Item = "tProductos", Kind = "Table"]}[Data],
+		    ComoTexto = (v) => if v = null then null else Text.Trim(Text.From(v)),
+		    Texto = Table.TransformColumns(Origen, {
+		        {"Codigo_ERP", ComoTexto, type nullable text}, {"EAN", ComoTexto, type nullable text},
+		        {"ASIN", ComoTexto, type nullable text}, {"Item_Walmart", ComoTexto, type nullable text},
+		        {"Producto", ComoTexto, type nullable text}, {"Familia", ComoTexto, type nullable text},
+		        {"Marca", ComoTexto, type nullable text}, {"Activo", ComoTexto, type nullable text}, {"Estado", ComoTexto, type nullable text}}),
+		    Numeros = Table.TransformColumnTypes(Texto, {{"Lead_time_meses", type number}, {"Stock_seguridad", type number}}),
+		    ConCodigo = Table.SelectRows(Numeros, each [Codigo_ERP] <> null),
+		    Unicos = Table.Distinct(ConCodigo, {"Codigo_ERP"}),
+		    Columnas = Table.SelectColumns(Unicos, {"Codigo_ERP", "Producto", "Familia", "Marca", "EAN", "ASIN", "Item_Walmart", "Lead_time_meses", "Stock_seguridad", "Activo", "Estado"})
+		in
+		    Columnas
+
+	annotation PBI_ResultType = Table
+
+/// Hoja Equivalencias del maestro: código de cada cadena -> código del ERP.
+expression Equivalencias =
+		let
+		    Origen = Maestro{[Item = "tEquivalencias", Kind = "Table"]}[Data],
+		    ComoTexto = (v) => if v = null then null else Text.Trim(Text.From(v)),
+		    Texto = Table.TransformColumns(Origen, {
+		        {"Cadena", ComoTexto, type nullable text}, {"Codigo_en_cadena", ComoTexto, type nullable text},
+		        {"Tipo_codigo", ComoTexto, type nullable text}, {"Codigo_ERP", ComoTexto, type nullable text}}),
+		    Columnas = Table.SelectColumns(Texto, {"Cadena", "Codigo_en_cadena", "Tipo_codigo", "Codigo_ERP"})
+		in
+		    Columnas
+
+	annotation PBI_ResultType = Table
+
+/// Filas de todos los archivos de sell out de Walmart, sin depurar.
+expression WM_SellOut_Filas =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\sell out"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
+		        (a) => Table.AddColumn(a[R][Datos], "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Daily] <> null),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"Daily", fnFechaAMD, type date},
+		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
+		        {"Store Nbr", each Int64.From(_), Int64.Type},
+		        {"Vendor Stk Nbr", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
+		        {"Signing Desc", each Text.From(_), type text},
+		        {"Store Name", each Text.From(_), type text},
+		        {"City", each Text.From(_), type text},
+		        {"Sales Description", each Text.From(_), type text},
+		        {"POS Qty", fnNumero, type number},
+		        {"POS Sales", fnNumero, type number},
+		        {"POS Cost", fnNumero, type number}})
+		in
+		    Tipado
+
+	annotation PBI_ResultType = Table
+
+/// Sell out de Walmart depurado y homologado.
+expression WM_SellOut =
+		let
+		    // Si dos descargas traen el mismo día, tienda, artículo y tipo de venta, se queda la más reciente
+		    Ordenado = Table.Buffer(Table.Sort(WM_SellOut_Filas, {{"Solicitado", Order.Descending}})),
+		    SinRepetidos = Table.Distinct(Ordenado, {"Daily", "Store Nbr", "Item Nbr", "Sales Description"}),
+		    ConMovimiento = Table.SelectRows(SinRepetidos, each [POS Qty] <> 0 or [POS Sales] <> 0),
+		    // Homologación: número de artículo de Walmart -> código del ERP (hoja Equivalencias del maestro).
+		    // Si no está, se usa Vendor Stk Nbr cuando coincide con un código del ERP.
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
+		    Codigos = List.Buffer(Productos[Codigo_ERP]),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(ConMovimiento, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}, {"Codigo_eq"}),
+		    ConCodigo = Table.AddColumn(Unido, "Codigo_ERP",
+		        each if [Codigo_eq] <> null then [Codigo_eq] else if List.Contains(Codigos, [Vendor Stk Nbr]) then [Vendor Stk Nbr] else null, type nullable text),
+		    Salida = Table.FromColumns({
+		        ConCodigo[Daily], ConCodigo[Daily], List.Repeat({"Walmart"}, Table.RowCount(ConCodigo)), ConCodigo[Codigo_ERP],
+		        ConCodigo[Item Nbr], ConCodigo[Signing Desc], ConCodigo[Store Nbr], ConCodigo[Sales Description],
+		        ConCodigo[POS Qty], ConCodigo[POS Sales], ConCodigo[POS Cost]},
+		        type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
+		            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table
+
+/// Archivos de ventas de Amazon y cuál se usa por mes.
+expression AMZ_SellOut_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "amazon\sell out"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnAmazon([Content])),
+		    ConMeta = Table.AddColumn(Table.AddColumn(Table.AddColumn(Leidos,
+		        "Desde", each [R][Desde], type date),
+		        "Hasta", each [R][Hasta], type date),
+		        "Actualizado", each [R][Actualizado], type nullable date),
+		    ConMes = Table.AddColumn(ConMeta, "Mes", each Date.StartOfMonth([Desde]), type date),
+		    // Solo sirven archivos de un solo mes. Por cada mes se usa el que llega más lejos; si empatan, el actualizado más reciente.
+		    DeUnMes = Table.SelectRows(ConMes, each Date.StartOfMonth([Hasta]) = [Mes]),
+		    Elegidos = Table.Group(DeUnMes, {"Mes"}, {{"Nombre", each Table.First(Table.Sort(_, {{"Hasta", Order.Descending}, {"Actualizado", Order.Descending}}))[Name], type text}}),
+		    ConUso = Table.AddColumn(ConMes, "Usado", each if List.Contains(Elegidos[Nombre], [Name]) then "Sí" else if Date.StartOfMonth([Hasta]) <> [Mes] then "No: abarca más de un mes" else "No: hay uno más reciente del mismo mes", type text)
+		in
+		    ConUso
+
+	annotation PBI_ResultType = Table
+
+/// Sell out de Amazon homologado.
+expression AMZ_SellOut =
+		let
+		    Usados = Table.SelectRows(AMZ_SellOut_Archivos, each [Usado] = "Sí"),
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Usados),
+		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos], "Mes", each a[Mes], type date), "Datos_hasta", each a[Hasta], type date))),
+		    Validas = Table.SelectRows(Filas, each [ASIN] <> null and Text.Trim(Text.From([ASIN])) <> ""),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"ASIN", each Text.Trim(Text.From(_)), type text},
+		        {"Título del Producto", each Text.From(_), type text},
+		        {"Unidades pedidas", fnNumero, type number},
+		        {"Ganancia por pedidos", fnNumero, type number}}),
+		    // Homologación: ASIN -> código del ERP (hoja Equivalencias del maestro)
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Amazon"), {"Codigo_en_cadena"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"ASIN"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    N = Table.RowCount(Unido),
+		    Salida = Table.FromColumns({
+		        Unido[Mes], Unido[Datos_hasta], List.Repeat({"Amazon"}, N), Unido[Codigo_ERP],
+		        Unido[ASIN], Unido[#"Título del Producto"], List.Repeat({null}, N), List.Repeat({"Regular"}, N),
+		        Unido[Unidades pedidas], Unido[Ganancia por pedidos], List.Repeat({null}, N)},
+		        type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
+		            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table
+
+/// Filas de todos los archivos de inventario de Walmart, sin depurar.
+expression WM_Inventario_Filas =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\inventario"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    // La foto del inventario corresponde al día consultado (Pos Date); si no viene, el día anterior a la solicitud
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
+		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos],
+		            "Fecha", each if a[R][Hasta] <> null then a[R][Hasta] else Date.AddDays(Date.From(a[R][Solicitado]), -1), type date),
+		            "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Store Nbr] <> null),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
+		        {"Store Nbr", each Int64.From(_), Int64.Type},
+		        {"Signing Desc", each Text.From(_), type text},
+		        {"Store Name", each Text.From(_), type text},
+		        {"City", each Text.From(_), type text},
+		        {"Curr Str On Hand Qty", fnNumero, type number},
+		        {"Curr Str In Transit Qty", fnNumero, type number},
+		        {"Curr Str In Whse Qty", fnNumero, type number},
+		        {"Curr Str On Order Qty", fnNumero, type number}})
+		in
+		    Tipado
+
+	annotation PBI_ResultType = Table
+
+/// Inventario en tiendas de Walmart depurado y homologado.
+expression WM_Inventario =
+		let
+		    Ordenado = Table.Buffer(Table.Sort(WM_Inventario_Filas, {{"Solicitado", Order.Descending}})),
+		    SinRepetidos = Table.Distinct(Ordenado, {"Fecha", "Store Nbr", "Item Nbr"}),
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(SinRepetidos, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    N = Table.RowCount(Unido),
+		    Salida = Table.FromColumns({
+		        Unido[Fecha], List.Repeat({"Walmart"}, N), Unido[Codigo_ERP], Unido[Item Nbr], Unido[Store Nbr],
+		        Unido[Curr Str On Hand Qty], Unido[Curr Str In Transit Qty], Unido[Curr Str In Whse Qty], Unido[Curr Str On Order Qty],
+		        List.Repeat({null}, N), List.Repeat({null}, N)},
+		        type table [Fecha = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, Tienda_Nbr = nullable Int64.Type,
+		            Piezas_disponibles = nullable number, Piezas_transito = nullable number, Piezas_CEDIS = nullable number,
+		            Piezas_en_pedido = nullable number, Piezas_no_aptas = nullable number, Monto_disponible = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table
+
+/// Archivos de inventario de Amazon y cuál se usa por día.
+expression AMZ_Inventario_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each Text.StartsWith([Carpeta], "amazon\inventario")),
+		    Leidos = Table.AddColumn(Lista, "R", each fnAmazon([Content])),
+		    ConMeta = Table.AddColumn(Table.AddColumn(Table.AddColumn(Leidos,
+		        "Desde", each [R][Desde], type date),
+		        "Hasta", each [R][Hasta], type date),
+		        "Actualizado", each [R][Actualizado], type nullable date),
+		    // Una foto por día: si hay dos archivos del mismo día, se usa el actualizado más reciente
+		    Elegidos = Table.Group(ConMeta, {"Hasta"}, {{"Nombre", each Table.First(Table.Sort(_, {{"Actualizado", Order.Descending}}))[Name], type text}}),
+		    ConUso = Table.AddColumn(ConMeta, "Usado", each if List.Contains(Elegidos[Nombre], [Name]) then "Sí" else "No: hay uno más reciente del mismo día", type text)
+		in
+		    ConUso
+
+	annotation PBI_ResultType = Table
+
+/// Inventario de Amazon homologado.
+expression AMZ_Inventario =
+		let
+		    Usados = Table.SelectRows(AMZ_Inventario_Archivos, each [Usado] = "Sí"),
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Usados),
+		        (a) => Table.AddColumn(a[R][Datos], "Fecha", each a[Hasta], type date))),
+		    Validas = Table.SelectRows(Filas, each [ASIN] <> null and Text.Trim(Text.From([ASIN])) <> ""),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"ASIN", each Text.Trim(Text.From(_)), type text},
+		        {"Unidades aptas para la venta disponibles", fnNumero, type number},
+		        {"Inventario apto para la venta disponible", fnNumero, type number},
+		        {"Unidades no aptas para la venta disponibles", fnNumero, type number},
+		        {"Cantidad de órdenes de compra abiertas", fnNumero, type number}}),
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Amazon"), {"Codigo_en_cadena"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"ASIN"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    N = Table.RowCount(Unido),
+		    Salida = Table.FromColumns({
+		        Unido[Fecha], List.Repeat({"Amazon"}, N), Unido[Codigo_ERP], Unido[ASIN], List.Repeat({null}, N),
+		        Unido[Unidades aptas para la venta disponibles], List.Repeat({null}, N), List.Repeat({null}, N),
+		        Unido[#"Cantidad de órdenes de compra abiertas"], Unido[Unidades no aptas para la venta disponibles],
+		        Unido[Inventario apto para la venta disponible]},
+		        type table [Fecha = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, Tienda_Nbr = nullable Int64.Type,
+		            Piezas_disponibles = nullable number, Piezas_transito = nullable number, Piezas_CEDIS = nullable number,
+		            Piezas_en_pedido = nullable number, Piezas_no_aptas = nullable number, Monto_disponible = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table
+
+/// Órdenes de compra de Walmart depuradas y homologadas.
+expression WM_FillRate =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\fill rate"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
+		        (a) => Table.AddColumn(a[R][Datos], "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    Validas = Table.SelectRows(Filas, each [PO Number] <> null and [Item Nbr] <> null),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"PO Number", each Text.From(Int64.From(_)), type text},
+		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
+		        {"PO Order Date", fnFechaMDA, type date},
+		        {"PO Ship Date", fnFechaMDA, type nullable date},
+		        {"PO Cancel Date", fnFechaMDA, type nullable date},
+		        {"Unit Cost", fnNumero, type nullable number},
+		        {"Hist Eaches Str Ordered", fnNumero, type number},
+		        {"Hist Eaches Str Received", fnNumero, type number},
+		        {"Hist Eaches Whse Ordered", fnNumero, type number},
+		        {"Hist Eaches Whse Received", fnNumero, type number}}),
+		    // Una orden se actualiza cuando llega la mercancía: se queda la descarga más reciente de cada orden y artículo
+		    Ordenado = Table.Buffer(Table.Sort(Tipado, {{"Solicitado", Order.Descending}})),
+		    SinRepetidos = Table.Distinct(Ordenado, {"PO Number", "Item Nbr"}),
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(SinRepetidos, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    ConPiezas = Table.AddColumn(Table.AddColumn(Unido,
+		        "Ordenadas", each List.Sum({[Hist Eaches Str Ordered], [Hist Eaches Whse Ordered]}), type number),
+		        "Recibidas", each List.Sum({[Hist Eaches Str Received], [Hist Eaches Whse Received]}), type number),
+		    N = Table.RowCount(ConPiezas),
+		    Salida = Table.FromColumns({
+		        List.Repeat({"Walmart"}, N), ConPiezas[PO Number], ConPiezas[Codigo_ERP], ConPiezas[Item Nbr],
+		        ConPiezas[PO Order Date], ConPiezas[PO Ship Date], ConPiezas[PO Cancel Date],
+		        ConPiezas[Ordenadas], ConPiezas[Recibidas], ConPiezas[Unit Cost]},
+		        type table [Cadena = text, Orden = text, Codigo_ERP = nullable text, Codigo_cadena = text,
+		            Fecha_orden = date, Fecha_envio = nullable date, Fecha_cancelacion = nullable date,
+		            Piezas_ordenadas = number, Piezas_recibidas = number, Costo_unitario = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table
+
+/// Pronóstico de pedidos de Walmart (archivo más reciente).
+expression WM_Recship =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\forecast"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    ConFecha = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    // Solo cuenta el pronóstico más reciente
+		    Ultimo = Table.First(Table.Sort(ConFecha, {{"Solicitado", Order.Descending}})),
+		    Datos = Ultimo[R][Datos],
+		    Validas = Table.SelectRows(Datos, each [Item Nbr] <> null and [Units] <> null),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
+		        {"Whse Name", each Text.From(_), type text},
+		        {"Plan Create Date", fnFechaMDA, type nullable date},
+		        {"Plan Order Date", fnFechaMDA, type date},
+		        {"Plan Recieve Date", fnFechaMDA, type nullable date},
+		        {"Units", fnNumero, type number},
+		        {"VNPK Qty", fnNumero, type number},
+		        {"VNPK Cost", fnNumero, type number}}),
+		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    // Costo por pieza = costo de la caja / piezas por caja (Retail Link lo da en pesos)
+		    ConCosto = Table.AddColumn(Unido, "Costo_pieza", each if [VNPK Qty] = null or [VNPK Qty] = 0 then null else [VNPK Cost] / [VNPK Qty], type nullable number),
+		    N = Table.RowCount(ConCosto),
+		    Salida = Table.FromColumns({
+		        List.Repeat({"Walmart"}, N), ConCosto[Codigo_ERP], ConCosto[Item Nbr], ConCosto[Whse Name],
+		        ConCosto[Plan Create Date], ConCosto[Plan Order Date], ConCosto[Plan Recieve Date],
+		        ConCosto[Units], ConCosto[Costo_pieza], List.Transform(List.Zip({ConCosto[Units], ConCosto[Costo_pieza]}), each if _{1} = null then null else _{0} * _{1})},
+		        type table [Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, CEDIS = text,
+		            Fecha_creacion = nullable date, Fecha_pedido = date, Fecha_recepcion = nullable date,
+		            Piezas = number, Costo_pieza = nullable number, Monto = nullable number])
+		in
+		    Salida
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,71 @@
+/// Fotos del inventario en las cadenas. Walmart por día, tienda y artículo; Amazon por día y ASIN.
+table fInventarioCadena
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha
+
+	column Cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cadena
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Codigo_cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_cadena
+
+	column Tienda_Nbr
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Tienda_Nbr
+
+	column Piezas_disponibles
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Piezas_disponibles
+
+	column Piezas_transito
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Piezas_transito
+
+	column Piezas_CEDIS
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Piezas_CEDIS
+
+	column Piezas_en_pedido
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Piezas_en_pedido
+
+	column Piezas_no_aptas
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Piezas_no_aptas
+
+	column Monto_disponible
+		dataType: double
+		formatString: #,0.##
+		summarizeBy: none
+		sourceColumn: Monto_disponible
+
+	partition fInventarioCadena = m
+		mode: import
+		source =
+				Table.Combine({WM_Inventario, AMZ_Inventario})
+
+	annotation PBI_ResultType = Table

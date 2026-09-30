@@ -31,7 +31,7 @@ El reporte actual no es complejo por lo que muestra. Los errores vienen del proc
 |---|---|---|---|
 | **1. Acuerdos** | Reunir los errores que el jefe suele marcar y definir cada indicador: fórmula, fechas, moneda y umbrales. Decidir la frecuencia de actualización y dónde se publica. | Manuel con el cliente. Claude prepara la propuesta de definiciones. | [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) aprobado |
 | **2. Descargas** | Fijar la "receta" de cada descarga (sección 6) y hacer una descarga de prueba de cada fuente con tus usuarios. | Manuel descarga; Claude revisa las columnas. | `docs/guia_descargas.md` y un ejemplo de cada fuente |
-| **3. Maestros** | Armar el archivo maestro con los códigos del ERP, EAN válidos, ASIN reales y artículos de Walmart. Sacar la lista de lo que falta validar. | Claude arma el borrador; el cliente valida. | [`maestros/Maestro_Wellpro_borrador.xlsx`](maestros/) validado |
+| **3. Maestros** | Armar el archivo maestro con los códigos del ERP, EAN válidos, ASIN reales y artículos de Walmart. Sacar la lista de lo que falta validar. | Claude arma el borrador; el cliente valida. | `Nueva versión/Maestros/Maestro_Wellpro.xlsx` validado |
 | **4. Modelo** | Construir las consultas de Power Query, las tablas y las medidas en el proyecto `.pbip`. | Claude construye; Manuel abre y actualiza en Power BI Desktop. | Modelo que se actualiza sin pasos manuales |
 | **5. Páginas** | Rehacer Sell In, Sell Out e Inventario con la lógica corregida, y agregar la página de control. | Claude y Manuel | Reporte completo |
 | **6. Paralelo** | Correr el reporte viejo y el nuevo con los mismos datos durante 1 o 2 semanas. Explicar cada diferencia. | Manuel, con apoyo de Claude | Diferencias explicadas y aceptadas por el jefe |
@@ -82,17 +82,15 @@ Así los archivos se ordenan solos y la fecha no depende de la configuración de
 
 ---
 
-## 5. Estructura del repositorio (propuesta)
+## 5. Estructura del repositorio
 
 ```
 Proyecto-Centroamerica/
-├── README.md
-├── docs/          diagnóstico, plan, definiciones, guía de descargas, guía de actualización
-├── powerbi/       el proyecto nuevo (.pbip)
-├── maestros/      plantilla del archivo maestro
-├── muestras/      uno o dos archivos de ejemplo por fuente, para probar las consultas
-├── referencia/    reporte actual (.pbix) y Excel que entregó el cliente
-└── analisis/      código extraído del reporte actual
+├── README.md, PLAN, DIAGNOSTICO, DEFINICIONES, GUIA_DESCARGAS
+├── powerbi/          el proyecto nuevo (.pbip)
+├── Nueva versión/    datos de la versión nueva: descargas por fuente y Maestros/Maestro_Wellpro.xlsx
+├── analisis/         código extraído del reporte actual
+└── (raíz)            reporte actual (.pbix) y Excel que entregó el cliente, como referencia
 ```
 
 ---

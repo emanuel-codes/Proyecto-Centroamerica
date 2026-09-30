@@ -1,0 +1,240 @@
+/// Tabla para las medidas del reporte.
+table _Medidas
+
+	/// Piezas vendidas al consumidor. Walmart: POS Qty. Amazon: unidades pedidas.
+	measure 'Sell out piezas' = SUM ( fSellOut[Piezas] )
+		formatString: #,0
+		displayFolder: 1. Sell out
+
+	/// Venta al consumidor en MXN, a precio de la cadena. Walmart: POS Sales. Amazon: ganancia por pedidos.
+	measure 'Sell out monto' = SUM ( fSellOut[Monto] )
+		formatString: "$"#,0
+		displayFolder: 1. Sell out
+
+	/// Último día con datos de sell out en el contexto.
+	measure 'Último día sell out' = MAX ( fSellOut[Datos_hasta] )
+		formatString: dd/mm/yyyy
+		displayFolder: 1. Sell out
+
+	/// Piezas de los mismos días del año anterior, hasta el mismo día del último dato.
+	measure 'Sell out piezas año anterior' =
+			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ) )
+			RETURN
+			    IF ( ISBLANK ( _ultimo ), BLANK (), CALCULATE (
+			        [Sell out piezas],
+			        SAMEPERIODLASTYEAR ( Calendario[Fecha] ),
+			        Calendario[Fecha] <= EDATE ( _ultimo, -12 )
+			    ) )
+		formatString: #,0
+		displayFolder: 1. Sell out
+
+	/// Monto de los mismos días del año anterior, hasta el mismo día del último dato.
+	measure 'Sell out monto año anterior' =
+			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ) )
+			RETURN
+			    IF ( ISBLANK ( _ultimo ), BLANK (), CALCULATE (
+			        [Sell out monto],
+			        SAMEPERIODLASTYEAR ( Calendario[Fecha] ),
+			        Calendario[Fecha] <= EDATE ( _ultimo, -12 )
+			    ) )
+		formatString: "$"#,0
+		displayFolder: 1. Sell out
+
+	/// Crecimiento en piezas contra los mismos días del año anterior.
+	measure 'Crecimiento sell out piezas' = DIVIDE ( [Sell out piezas] - [Sell out piezas año anterior], [Sell out piezas año anterior] )
+		formatString: 0.0%
+		displayFolder: 1. Sell out
+
+	/// Piezas disponibles en la última foto de cada cadena (Walmart: en tienda; Amazon: aptas para la venta).
+	measure 'Inventario piezas' =
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ) )
+			    RETURN
+			        CALCULATE ( SUM ( fInventarioCadena[Piezas_disponibles] ), fInventarioCadena[Fecha] = _f )
+			)
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Fecha de la foto de inventario más reciente en el contexto.
+	measure 'Fecha de inventario' = MAX ( fInventarioCadena[Fecha] )
+		formatString: dd/mm/yyyy
+		displayFolder: 2. Inventario en cadenas
+
+	/// Tiendas de Walmart con más de 0 piezas en la última foto.
+	measure 'Tiendas con inventario' =
+			VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), dimCadena[Cadena] = "Walmart" )
+			RETURN
+			    CALCULATE (
+			        DISTINCTCOUNT ( fInventarioCadena[Tienda_Nbr] ),
+			        dimCadena[Cadena] = "Walmart",
+			        fInventarioCadena[Fecha] = _f,
+			        fInventarioCadena[Piezas_disponibles] > 0
+			    )
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Promedio de piezas vendidas en los últimos 3 meses cerrados (propuesta; ver DEFINICIONES_INDICADORES.md).
+	measure 'Venta promedio mensual piezas' =
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ) )
+			    VAR _fin = IF ( _ultimo = EOMONTH ( _ultimo, 0 ), _ultimo, EOMONTH ( _ultimo, -1 ) )
+			    VAR _ini = EOMONTH ( _fin, -3 ) + 1
+			    RETURN
+			        IF ( ISBLANK ( _ultimo ), BLANK (), DIVIDE ( CALCULATE ( [Sell out piezas], DATESBETWEEN ( Calendario[Fecha], _ini, _fin ) ), 3 ) )
+			)
+		formatString: #,0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Meses de inventario: inventario / venta promedio mensual. Misma fórmula para las dos cadenas.
+	measure 'Cobertura meses' = DIVIDE ( [Inventario piezas], [Venta promedio mensual piezas] )
+		formatString: 0.0
+		displayFolder: 2. Inventario en cadenas
+
+	/// Umbrales provisionales: menos de 1 mes riesgo, de 1 a 3 saludable, más de 3 sobre stock. Pendientes de aprobar.
+	measure 'Clasificación cobertura' =
+			VAR _inv = [Inventario piezas]
+			VAR _vta = [Venta promedio mensual piezas]
+			VAR _cob = DIVIDE ( _inv, _vta )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _inv ) && ISBLANK ( _vta ), BLANK (),
+			        _inv <= 0, "⚫ Sin inventario",
+			        ISBLANK ( _vta ) || _vta <= 0, "⚪ Sin rotación",
+			        _cob < 1, "🔴 Riesgo de quiebre",
+			        _cob <= 3, "🟢 Saludable",
+			        "🟡 Sobre stock"
+			    )
+		displayFolder: 2. Inventario en cadenas
+
+	/// Piezas pedidas por Walmart en sus órdenes de compra.
+	measure 'Piezas ordenadas' = SUM ( fFillRate[Piezas_ordenadas] )
+		formatString: #,0
+		displayFolder: 3. Fill rate
+
+	/// Piezas que Walmart recibió de esas órdenes.
+	measure 'Piezas recibidas' = SUM ( fFillRate[Piezas_recibidas] )
+		formatString: #,0
+		displayFolder: 3. Fill rate
+
+	/// Piezas recibidas / piezas ordenadas, por mes de la fecha de la orden (propuesta).
+	measure 'Fill rate' = DIVIDE ( [Piezas recibidas], [Piezas ordenadas] )
+		formatString: 0.0%
+		displayFolder: 3. Fill rate
+
+	/// Piezas que Walmart planea pedir (Recship más reciente).
+	measure 'Pronóstico piezas' = SUM ( fRecship[Piezas] )
+		formatString: #,0
+		displayFolder: 4. Pronóstico
+
+	/// Piezas planeadas por costo por pieza, en MXN.
+	measure 'Pronóstico monto' = SUM ( fRecship[Monto] )
+		formatString: "$"#,0
+		displayFolder: 4. Pronóstico
+
+	/// Meta mensual de sell in en MXN (hoja Metas del maestro).
+	measure 'Meta monto' = SUM ( Metas[Monto] )
+		formatString: "$"#,0
+		displayFolder: 5. Metas
+
+	/// Meta mensual de sell in en piezas.
+	measure 'Meta piezas' = SUM ( Metas[Cantidad] )
+		formatString: #,0
+		displayFolder: 5. Metas
+
+	/// Último día con sell out de Walmart.
+	measure 'Datos al - sell out Walmart' = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), fSellOut[Cadena] = "Walmart", REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Último día que cubre el archivo de ventas de Amazon más reciente.
+	measure 'Datos al - sell out Amazon' = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), fSellOut[Cadena] = "Amazon", REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Fecha de la última foto de inventario de Walmart.
+	measure 'Datos al - inventario Walmart' = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), fInventarioCadena[Cadena] = "Walmart", REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Fecha de la última foto de inventario de Amazon.
+	measure 'Datos al - inventario Amazon' = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), fInventarioCadena[Cadena] = "Amazon", REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Fecha de la orden más reciente en el fill rate.
+	measure 'Datos al - fill rate Walmart' = CALCULATE ( MAX ( fFillRate[Fecha_orden] ), REMOVEFILTERS () )
+		formatString: dd/mm/yyyy
+		displayFolder: 9. Control
+
+	/// Días entre el primero y el último con datos en los que no hay sell out de Walmart (descargas faltantes).
+	measure 'Días sin sell out Walmart' =
+			VAR _dias = CALCULATETABLE ( VALUES ( fSellOut[Fecha] ), fSellOut[Cadena] = "Walmart", REMOVEFILTERS () )
+			VAR _ini = MINX ( _dias, fSellOut[Fecha] )
+			VAR _fin = MAXX ( _dias, fSellOut[Fecha] )
+			RETURN
+			    IF ( ISBLANK ( _ini ), BLANK (), COUNTROWS ( EXCEPT ( CALENDAR ( _ini, _fin ), _dias ) ) + 0 )
+		formatString: #,0
+		displayFolder: 9. Control
+
+	/// Días sin foto de inventario de Walmart entre la primera y la última.
+	measure 'Días sin inventario Walmart' =
+			VAR _dias = CALCULATETABLE ( VALUES ( fInventarioCadena[Fecha] ), fInventarioCadena[Cadena] = "Walmart", REMOVEFILTERS () )
+			VAR _ini = MINX ( _dias, fInventarioCadena[Fecha] )
+			VAR _fin = MAXX ( _dias, fInventarioCadena[Fecha] )
+			RETURN
+			    IF ( ISBLANK ( _ini ), BLANK (), COUNTROWS ( EXCEPT ( CALENDAR ( _ini, _fin ), _dias ) ) + 0 )
+		formatString: #,0
+		displayFolder: 9. Control
+
+	/// Filas cuyo código de cadena no está en la hoja Equivalencias del maestro.
+	measure 'Filas sin homologar' =
+			CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), ISBLANK ( fSellOut[Codigo_ERP] ) ) + 0
+			    + CALCULATE ( COUNTROWS ( fInventarioCadena ), REMOVEFILTERS (), ISBLANK ( fInventarioCadena[Codigo_ERP] ) ) + 0
+			    + CALCULATE ( COUNTROWS ( fFillRate ), REMOVEFILTERS (), ISBLANK ( fFillRate[Codigo_ERP] ) ) + 0
+			    + CALCULATE ( COUNTROWS ( fRecship ), REMOVEFILTERS (), ISBLANK ( fRecship[Codigo_ERP] ) ) + 0
+		formatString: #,0
+		displayFolder: 9. Control
+
+	/// Lista de códigos (artículo de Walmart o ASIN) que faltan en la hoja Equivalencias.
+	measure 'Códigos sin homologar' =
+			VAR _t =
+			    UNION (
+			        SELECTCOLUMNS ( CALCULATETABLE ( VALUES ( fSellOut[Codigo_cadena] ), REMOVEFILTERS (), ISBLANK ( fSellOut[Codigo_ERP] ) ), "Codigo", fSellOut[Codigo_cadena] ),
+			        SELECTCOLUMNS ( CALCULATETABLE ( VALUES ( fInventarioCadena[Codigo_cadena] ), REMOVEFILTERS (), ISBLANK ( fInventarioCadena[Codigo_ERP] ) ), "Codigo", fInventarioCadena[Codigo_cadena] ),
+			        SELECTCOLUMNS ( CALCULATETABLE ( VALUES ( fFillRate[Codigo_cadena] ), REMOVEFILTERS (), ISBLANK ( fFillRate[Codigo_ERP] ) ), "Codigo", fFillRate[Codigo_cadena] ),
+			        SELECTCOLUMNS ( CALCULATETABLE ( VALUES ( fRecship[Codigo_cadena] ), REMOVEFILTERS (), ISBLANK ( fRecship[Codigo_ERP] ) ), "Codigo", fRecship[Codigo_cadena] )
+			    )
+			VAR _lista = CONCATENATEX ( DISTINCT ( _t ), [Codigo], ", " )
+			RETURN
+			    IF ( _lista = "", "Ninguno", _lista )
+		displayFolder: 9. Control
+
+	/// Semáforo general: rojo si faltan días de sell out o hay códigos sin homologar; amarillo si el sell out de Walmart tiene más de 3 días.
+	measure 'Estado del reporte' =
+			VAR _problemas = [Días sin sell out Walmart] + [Filas sin homologar]
+			VAR _ultimo = [Datos al - sell out Walmart]
+			VAR _atraso = IF ( ISBLANK ( _ultimo ), 999, DATEDIFF ( _ultimo, TODAY (), DAY ) )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        _problemas > 0, "🔴 Revisar antes de enviar",
+			        _atraso > 3, "🟡 El sell out de Walmart tiene más de 3 días",
+			        "🟢 Listo para enviar"
+			    )
+		displayFolder: 9. Control
+
+	column Columna
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Columna
+
+	partition _Medidas = m
+		mode: import
+		source =
+				#table(type table [Columna = text], {})
+
+	annotation PBI_ResultType = Table

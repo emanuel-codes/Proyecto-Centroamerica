@@ -1,0 +1,69 @@
+/// Venta de las cadenas al consumidor. Walmart por día, tienda y artículo; Amazon por mes y ASIN (Fecha = primer día del mes; Datos_hasta = último día que cubre el archivo).
+table fSellOut
+
+	column Fecha
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha
+
+	column Datos_hasta
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Datos_hasta
+
+	column Cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Cadena
+
+	column Codigo_ERP
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_ERP
+
+	column Codigo_cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Codigo_cadena
+
+	column Descripcion_cadena
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Descripcion_cadena
+
+	column Tienda_Nbr
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Tienda_Nbr
+
+	column Tipo_venta
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Tipo_venta
+
+	column Piezas
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Piezas
+
+	column Monto
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Monto
+
+	column Costo
+		dataType: double
+		formatString: #,0
+		summarizeBy: sum
+		sourceColumn: Costo
+
+	partition fSellOut = m
+		mode: import
+		source =
+				Table.Combine({WM_SellOut, AMZ_SellOut})
+
+	annotation PBI_ResultType = Table

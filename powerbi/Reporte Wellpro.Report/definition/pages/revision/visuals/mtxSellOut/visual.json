@@ -1,0 +1,111 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "mtxSellOut",
+  "position": {
+    "x": 20,
+    "y": 20,
+    "z": 1000,
+    "height": 680,
+    "width": 620,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dimProducto"
+                    }
+                  },
+                  "Property": "Producto"
+                }
+              },
+              "queryRef": "dimProducto.Producto",
+              "nativeQueryRef": "Producto"
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dimCadena"
+                    }
+                  },
+                  "Property": "Cadena"
+                }
+              },
+              "queryRef": "dimCadena.Cadena",
+              "nativeQueryRef": "Cadena"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Sell out piezas"
+                }
+              },
+              "queryRef": "_Medidas.Sell out piezas",
+              "nativeQueryRef": "Sell out piezas",
+              "displayName": "Piezas"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Sell out monto"
+                }
+              },
+              "queryRef": "_Medidas.Sell out monto",
+              "nativeQueryRef": "Sell out monto",
+              "displayName": "Monto"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sell out por producto y cadena'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

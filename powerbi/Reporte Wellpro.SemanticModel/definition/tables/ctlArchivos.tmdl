@@ -1,0 +1,83 @@
+/// Control: archivos leídos por el reporte, sus fechas y si se usaron.
+table ctlArchivos
+
+	column Fuente
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Fuente
+
+	column Archivo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Archivo
+
+	column Reporte
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Reporte
+
+	column Desde
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Desde
+
+	column Hasta
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Hasta
+
+	column Generado
+		dataType: dateTime
+		formatString: dd/mm/yyyy hh:nn
+		summarizeBy: none
+		sourceColumn: Generado
+
+	column Filas
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Filas
+
+	column Usado
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Usado
+
+	partition ctlArchivos = m
+		mode: import
+		source =
+				let
+				    // Qué archivos leyó el reporte, de qué fechas y si se usaron
+				    FuentesWM = {
+				        {"Walmart - Sell out", "walmart\sell out"},
+				        {"Walmart - Inventario", "walmart\inventario"},
+				        {"Walmart - Fill rate", "walmart\fill rate"},
+				        {"Walmart - Forecast (Recship)", "walmart\forecast"}},
+				    LeerWM = (f as list) as table =>
+				        let
+				            Lista = Table.SelectRows(Archivos, each [Carpeta] = f{1}),
+				            Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+				            UltimaSolicitud = List.Max(List.Transform(Leidos[R], each _[Solicitado])),
+				            T = Table.FromRecords(List.Transform(Table.ToRecords(Leidos), (a) => [
+				                Fuente = f{0}, Archivo = a[Name], Reporte = a[R][Reporte], Desde = a[R][Desde], Hasta = a[R][Hasta],
+				                Generado = a[R][Solicitado], Filas = Table.RowCount(a[R][Datos]),
+				                Usado = if f{1} = "walmart\forecast" and a[R][Solicitado] <> UltimaSolicitud then "No: hay uno más reciente"
+				                    else if f{1} = "walmart\forecast" then "Sí"
+				                    else "Sí (los días repetidos se toman del más reciente)"]))
+				        in
+				            T,
+				    LeerAMZ = (fuente as text, tabla as table) as table =>
+				        Table.FromRecords(List.Transform(Table.ToRecords(tabla), (a) => [
+				            Fuente = fuente, Archivo = a[Name], Reporte = fuente, Desde = a[Desde], Hasta = a[Hasta],
+				            Generado = if a[Actualizado] = null then null else DateTime.From(a[Actualizado]),
+				            Filas = Table.RowCount(a[R][Datos]), Usado = a[Usado]])),
+				    Todas = Table.Combine(List.Transform(FuentesWM, LeerWM) & {
+				        LeerAMZ("Amazon - Sell out", AMZ_SellOut_Archivos),
+				        LeerAMZ("Amazon - Inventario", AMZ_Inventario_Archivos)}),
+				    Tipado = Table.TransformColumnTypes(Todas, {{"Fuente", type text}, {"Archivo", type text}, {"Reporte", type text},
+				        {"Desde", type date}, {"Hasta", type date}, {"Generado", type datetime}, {"Filas", Int64.Type}, {"Usado", type text}})
+				in
+				    Tipado
+
+	annotation PBI_ResultType = Table

@@ -1,0 +1,37 @@
+/// Tiendas de Walmart que aparecen en el sell out o en el inventario.
+table dimTienda
+
+	column Tienda_Nbr
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: Tienda_Nbr
+
+	column Tienda
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Tienda
+
+	column Ciudad
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Ciudad
+
+	column Tienda_etiqueta
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Tienda_etiqueta
+
+	partition dimTienda = m
+		mode: import
+		source =
+				let
+				    Filas = Table.Combine({
+				        Table.SelectColumns(WM_Inventario_Filas, {"Store Nbr", "Store Name", "City"}),
+				        Table.SelectColumns(WM_SellOut_Filas, {"Store Nbr", "Store Name", "City"})}),
+				    Unicas = Table.Distinct(Table.SelectRows(Filas, each [Store Nbr] <> null), {"Store Nbr"}),
+				    Renombrado = Table.RenameColumns(Unicas, {{"Store Nbr", "Tienda_Nbr"}, {"Store Name", "Tienda"}, {"City", "Ciudad"}}),
+				    Etiqueta = Table.AddColumn(Renombrado, "Tienda_etiqueta", each Text.From([Tienda_Nbr]) & " - " & [Tienda], type text)
+				in
+				    Etiqueta
+
+	annotation PBI_ResultType = Table

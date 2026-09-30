@@ -1,0 +1,63 @@
+relationship fSellOut_Fecha_Calendario
+	fromColumn: fSellOut.Fecha
+	toColumn: Calendario.Fecha
+
+relationship fSellOut_Codigo_ERP_dimProducto
+	fromColumn: fSellOut.Codigo_ERP
+	toColumn: dimProducto.Codigo_ERP
+
+relationship fSellOut_Cadena_dimCadena
+	fromColumn: fSellOut.Cadena
+	toColumn: dimCadena.Cadena
+
+relationship fSellOut_Tienda_Nbr_dimTienda
+	fromColumn: fSellOut.Tienda_Nbr
+	toColumn: dimTienda.Tienda_Nbr
+
+relationship fInventarioCadena_Fecha_Calendario
+	fromColumn: fInventarioCadena.Fecha
+	toColumn: Calendario.Fecha
+
+relationship fInventarioCadena_Codigo_ERP_dimProducto
+	fromColumn: fInventarioCadena.Codigo_ERP
+	toColumn: dimProducto.Codigo_ERP
+
+relationship fInventarioCadena_Cadena_dimCadena
+	fromColumn: fInventarioCadena.Cadena
+	toColumn: dimCadena.Cadena
+
+relationship fInventarioCadena_Tienda_Nbr_dimTienda
+	fromColumn: fInventarioCadena.Tienda_Nbr
+	toColumn: dimTienda.Tienda_Nbr
+
+relationship fFillRate_Fecha_orden_Calendario
+	fromColumn: fFillRate.Fecha_orden
+	toColumn: Calendario.Fecha
+
+relationship fFillRate_Codigo_ERP_dimProducto
+	fromColumn: fFillRate.Codigo_ERP
+	toColumn: dimProducto.Codigo_ERP
+
+relationship fFillRate_Cadena_dimCadena
+	fromColumn: fFillRate.Cadena
+	toColumn: dimCadena.Cadena
+
+relationship fRecship_Fecha_pedido_Calendario
+	fromColumn: fRecship.Fecha_pedido
+	toColumn: Calendario.Fecha
+
+relationship fRecship_Codigo_ERP_dimProducto
+	fromColumn: fRecship.Codigo_ERP
+	toColumn: dimProducto.Codigo_ERP
+
+relationship fRecship_Cadena_dimCadena
+	fromColumn: fRecship.Cadena
+	toColumn: dimCadena.Cadena
+
+relationship Metas_Mes_Calendario
+	fromColumn: Metas.Mes
+	toColumn: Calendario.Fecha
+
+relationship Metas_Codigo_ERP_dimProducto
+	fromColumn: Metas.Codigo_ERP
+	toColumn: dimProducto.Codigo_ERP
