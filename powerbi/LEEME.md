@@ -1,4 +1,4 @@
-# Reporte Wellpro (versión nueva) — v0.1
+# Reporte Wellpro (versión nueva) — v0.2
 
 Proyecto de Power BI (`.pbip`) de la versión nueva. En esta primera entrega:
 
