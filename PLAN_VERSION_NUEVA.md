@@ -27,15 +27,15 @@ El reporte actual no es complejo por lo que muestra. Los errores vienen del proc
 
 ## 2. Fases
 
-| Fase | Qué se hace | Quién | Resultado |
-|---|---|---|---|
-| **1. Acuerdos** | Reunir los errores que el jefe suele marcar y definir cada indicador: fórmula, fechas, moneda y umbrales. Decidir la frecuencia de actualización y dónde se publica. | Manuel con el cliente. Claude prepara la propuesta de definiciones. | [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) aprobado |
-| **2. Descargas** | Fijar la "receta" de cada descarga (sección 6) y hacer una descarga de prueba de cada fuente con tus usuarios. | Manuel descarga; Claude revisa las columnas. | `docs/guia_descargas.md` y un ejemplo de cada fuente |
-| **3. Maestros** | Armar el archivo maestro con los códigos del ERP, EAN válidos, ASIN reales y artículos de Walmart. Sacar la lista de lo que falta validar. | Claude arma el borrador; el cliente valida. | `Nueva versión/Maestros/Maestro_Wellpro.xlsx` validado |
-| **4. Modelo** | Construir las consultas de Power Query, las tablas y las medidas en el proyecto `.pbip`. | Claude construye; Manuel abre y actualiza en Power BI Desktop. | Modelo que se actualiza sin pasos manuales |
-| **5. Páginas** | Rehacer Sell In, Sell Out e Inventario con la lógica corregida, y agregar la página de control. | Claude y Manuel | Reporte completo |
-| **6. Paralelo** | Correr el reporte viejo y el nuevo con los mismos datos durante 1 o 2 semanas. Explicar cada diferencia. | Manuel, con apoyo de Claude | Diferencias explicadas y aceptadas por el jefe |
-| **7. Entrega** | Publicar, programar la actualización y escribir la guía paso a paso (meta: menos de 30 minutos). | Manuel | Reporte en producción |
+| Fase | Qué se hace | Estado (01/10/2026) |
+|---|---|---|
+| **1. Acuerdos** | Definir cada indicador: fórmula, fechas, moneda y umbrales. | Propuesta lista en [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md); **falta que el jefe la apruebe**. |
+| **2. Descargas** | Fijar la receta de cada descarga y probarla. | **Listo** para Amazon y Walmart ([`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md)). **Falta el ERP** (sin acceso todavía). |
+| **3. Maestros** | Archivo maestro con productos, códigos, clientes, metas y tipo de cambio. | Borrador listo; **falta validar** la hoja Pendientes con el cliente. |
+| **4. Modelo** | Consultas, tablas y medidas en el proyecto `.pbip`. | **Listo** para Amazon y Walmart, a prueba de duplicados. **Falta el ERP.** |
+| **5. Páginas** | Páginas del reporte y página de control. | **Sell out, Inventario, Abasto y Control listas.** Falta **Sell in** (depende del ERP). |
+| **6. Paralelo** | Correr el reporte viejo y el nuevo con los mismos datos 1 o 2 semanas y explicar cada diferencia. | Pendiente; necesita el historial de Walmart. Resumen de errores ya encontrados: [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md). |
+| **7. Entrega** | Publicar, programar la actualización y documentar la rutina. | Manual listo ([`MANUAL_OPERACION.md`](MANUAL_OPERACION.md)); plan en [`PLAN_ENTREGA.md`](PLAN_ENTREGA.md). |
 
 ---
 
@@ -43,42 +43,32 @@ El reporte actual no es complejo por lo que muestra. Los errores vienen del proc
 
 Cada control se muestra con semáforo verde, amarillo o rojo. **Si hay algo en rojo, no se envía.**
 
-| Control | Qué revisa |
-|---|---|
-| Datos al día | La última fecha cargada de cada fuente frente a la esperada: ayer o la última semana. |
-| Días faltantes | Días sin datos en el sell out y el inventario de Walmart y en las ventas y el inventario de Amazon. |
-| Duplicados | Filas repetidas: misma fecha, tienda y artículo; o misma fecha y ASIN. |
-| Códigos sin homologar | Artículos de Walmart, ASIN o códigos del ERP que no están en el maestro. También clientes del ERP sin clasificar. |
-| Metas | Productos con venta y sin meta, y metas de productos que no existen. |
-| Cuadre de totales | El sell in del mes contra el total del ERP, y el detalle de cada archivo contra su total. |
-| Tipo de cambio | Que exista el tipo de cambio del mes. |
-| Valores raros | Días con venta cero, o con más del triple del promedio. |
+| Control | Qué revisa | Estado |
+|---|---|---|
+| Datos al día | La última fecha de cada fuente: amarillo si tiene más de 3 días | Listo |
+| Días faltantes | Días sin sell out de Walmart; meses de Amazon que faltan o quedaron incompletos | Listo |
+| Duplicados | Cada día se toma de un solo archivo, así que no puede haber duplicados | Listo, por diseño |
+| Códigos sin homologar | Artículos de Walmart o ASIN que no están en el maestro | Listo |
+| Metas | Productos con venta y sin meta, y metas de productos que no existen | Pendiente (página Sell in) |
+| Cuadre de totales | El sell in del mes contra el total del ERP | Pendiente (ERP) |
+| Tipo de cambio | Que exista el tipo de cambio del mes | Pendiente (falta definirlo) |
+| Valores raros | Días con venta cero, o con más del triple del promedio | Pendiente |
 
 ---
 
 ## 4. Carpetas de datos
 
-Van en el OneDrive o SharePoint de la empresa, no en una computadora personal:
-
 ```
-Wellpro Reporte/
-├── 01 Descargas/              ← archivos tal como salen; nunca se editan
-│   ├── Amazon Ventas/
-│   ├── Amazon Inventario/
-│   ├── Amazon Ordenes/
-│   ├── Walmart Sell Out/
-│   ├── Walmart Inventario Tiendas/
-│   ├── Walmart Fill Rate/
-│   ├── Walmart Recship/
-│   ├── ERP Sell In/
-│   └── ERP Inventario/
-└── 02 Maestros/
-    └── Maestro_Wellpro.xlsx   ← hojas: Productos, Equivalencias, Clientes, Metas, TipoCambio
+Nueva versión/
+├── Amazon/      Sell out, Inventarios
+├── Walmart/     Sell out, Inventario, Fill rate, Forecast
+├── ERP/         Sell in, Inventario   (faltan las muestras)
+└── Maestros/    Maestro_Wellpro.xlsx
 ```
 
-**Nombres de archivo:** `Fuente_AAAA-MM-DD`, con la fecha de los datos. Por ejemplo, `WalmartSellOut_2026-09-29.csv` o `AmazonVentas_2026-09.csv`.
-
-Así los archivos se ordenan solos y la fecha no depende de la configuración de la computadora. Si el archivo ya trae la fecha por dentro, el nombre solo sirve para ordenar.
+- Los archivos se guardan **con el nombre con que se descargan**. El reporte saca las fechas del contenido.
+- Cada carpeta tiene una subcarpeta `Respaldo` para los archivos que la página Control marca con «Usado = No». El reporte no la lee.
+- En la entrega, esta carpeta pasa al OneDrive o SharePoint de la empresa ([`PLAN_ENTREGA.md`](PLAN_ENTREGA.md)).
 
 ---
 
@@ -86,56 +76,30 @@ Así los archivos se ordenan solos y la fecha no depende de la configuración de
 
 ```
 Proyecto-Centroamerica/
-├── README.md, PLAN, DIAGNOSTICO, DEFINICIONES, GUIA_DESCARGAS
+├── README.md                       índice
+├── MANUAL_OPERACION.md             rutina y mantenimiento (para los dos analistas)
+├── GUIA_DESCARGAS.md, GUIA_VALIDACION.md
+├── DEFINICIONES_INDICADORES.md, PLAN_VERSION_NUEVA.md, PLAN_ENTREGA.md
+├── DIAGNOSTICO_REPORTE_ACTUAL.md, ERRORES_REPORTE_ACTUAL.md, DEMO_VIERNES.md
 ├── powerbi/          el proyecto nuevo (.pbip)
-├── Nueva versión/    datos de la versión nueva: descargas por fuente y Maestros/Maestro_Wellpro.xlsx
-├── analisis/         código extraído del reporte actual
+├── Nueva versión/    datos de la versión nueva
+├── analisis/         código extraído del reporte actual y herramientas internas
 └── (raíz)            reporte actual (.pbix) y Excel que entregó el cliente, como referencia
 ```
 
 ---
 
-## 6. Recetas de descarga (primera versión)
+## 6. Recetas de descarga
 
-Hay que confirmarlas con las descargas de prueba. La idea es que cada descarga tenga siempre las mismas columnas y la menor cantidad de archivos posible.
-
-### Amazon Vendor Central
-
-Los archivos actuales muestran los ajustes que se usan: Programa *Retail*, Vista del distribuidor *Fabricación*, Visto por *ASIN*, Moneda *MXN* y rango *Personalizado*.
-
-| Descarga | Rango | Para qué |
-|---|---|---|
-| Ventas | Mes anterior completo, y mes en curso hasta ayer, **en un archivo cada uno** | Sell out Amazon |
-| Inventario | Último día disponible | Inventario y cobertura en Amazon |
-| Órdenes de compra, líneas de artículos (`POItemExport`) | Últimos 3 meses | Fill rate Amazon |
-
-Hasta octubre de 2025 las ventas se bajaban así, por mes, en un solo archivo. Por eso no hacen falta 30 descargas diarias.
-
-### Retail Link (Walmart México)
-
-Pídele al analista actual los parámetros de sus consultas guardadas: las columnas, los filtros y el nivel de detalle. Con eso armas las tuyas iguales.
-
-| Descarga | Detalle | Columnas mínimas |
-|---|---|---|
-| Sell out | Diario, por tienda y artículo. Idealmente **una semana en un solo archivo**. | Fecha (Daily), Store Nbr, Item Nbr, UPC, Vendor Stk Nbr, Signing Desc, POS Qty, POS Sales, POS Cost, Sales Type |
-| Inventario en tiendas | Foto del día, por tienda y artículo | Store Nbr, Item Nbr, UPC, Vendor Stk Nbr, Curr Str On Hand Qty, Curr Str In Transit Qty, Curr Str In Whse Qty, Curr Str On Order Qty, Max Shelf Qty |
-| Fill rate | Órdenes de compra | PO Number, PO Type, PO Order Date, PO Ship Date, PO Cancel Date, Item Nbr, UPC, VNPK Qty, VNPK Cost, Hist Eaches Str Ordered, Hist Eaches Str Received |
-| Recship | Pedidos planeados | Item Nbr, UPC, Store Nbr, Plan Order Date, Units, VNPK Qty, VNPK Cost |
-
-`Vendor Stk Nbr` ayuda: en 4 de los 5 artículos trae el **código de producto del ERP** (14660, 13471, 13595, 13594). El Osito trae «MTB132FA». Por eso la llave para Walmart es el número de artículo (*Item Nbr*), registrado en la hoja Equivalencias del maestro. La receta confirmada de cada descarga está en [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md).
-
-### ERP One Goal
-
-| Descarga | Pedido |
-|---|---|
-| Sell in | Que la exportación incluya el **código de producto** (por ejemplo 13595 o JH0002), el cliente, la fecha, la cantidad, el precio y, si se puede, el número de factura. Hoy solo trae nombres. |
-| Inventario | El kardex o el inventario auxiliar, que ya traen el código. Reemplazan la tabla de inventario que hoy se escribe a mano. |
+Confirmadas con las descargas de prueba. Están en [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md), y la rutina diaria en [`MANUAL_OPERACION.md`](MANUAL_OPERACION.md).
 
 ---
 
 ## 7. Decisiones pendientes
 
-1. **Dónde viven los datos y dónde se publica el reporte:** en la cuenta de Microsoft de la empresa del cliente o en la tuya, mientras tanto.
-2. **Frecuencia de actualización** que esperan los jefes: diaria o semanal.
-3. **Diseño visual:** si se mantiene el actual, con los colores Wellpro, o se renueva.
-4. **Exportación del ERP con código de producto:** si sistemas la puede hacer, o si hay acceso de solo lectura a la base de datos.
+1. **Dónde viven los datos y dónde se publica el reporte:** propuesta en [`PLAN_ENTREGA.md`](PLAN_ENTREGA.md). Falta confirmar las licencias de Power BI y la carpeta de la empresa.
+2. **Definiciones de los indicadores:** las marcadas «Por decidir» en [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md).
+3. **Exportación del ERP con código de producto:** si sistemas la puede hacer.
+4. **Resueltas:**
+   - la frecuencia es diaria;
+   - el diseño usa los colores y el logo de Wellpro.
