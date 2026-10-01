@@ -197,7 +197,7 @@ ROW (
     "Recship monto", [Pronóstico monto]
 )
 ```
-Muestras: 363 · 87,070.21 · 7,481 · 1,068,205.79 · 27,281 · 3,198 · 16,163 · 15,126 · 552 · 70,173.84. El total de Amazon suma todos los meses cargados: los 20 del historial más agosto y septiembre de 2026 (sin historial serían 1,256 · 120,654.58).
+Muestras: 363 · 87,070.21 · 12,966 · 1,737,546.92 · 27,281 · 3,198 · 16,163 · 15,126 · 552 · 70,173.84. El total de Amazon suma los 32 meses cargados, de febrero de 2024 a septiembre de 2026.
 
 **7. Una fila de Walmart.** Cambia la tienda y la fecha por las de la fila que elegiste en el archivo.
 ```

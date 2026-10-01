@@ -245,6 +245,10 @@ Otros problemas de la misma tabla:
   - El archivo de dic-2025 lo muestra: tiene 6 hojas, con los datos diarios del 1 al 27 de diciembre, una tabla dinámica que los suma y dos versiones anteriores con cifras distintas.
   - El archivo de ene-2025 también trae un rango que no le corresponde: `01/02/25 - 28/02/25`, que es febrero.
   - **Conclusión:** la cuenta de Amazon sí permite bajar el mes completo en un archivo, porque así se hizo hasta octubre de 2025. Volver a eso pasa de unas 30 descargas al mes a una.
+  - **Comprobado con las descargas nuevas del mes completo (30/09/2026):**
+    - **Noviembre y diciembre de 2025 están incompletos en el reporte actual:** le faltan **112 piezas y 16,928 MXN**. Noviembre: −24 piezas y −3,841 MXN. Diciembre: −88 piezas y −13,087 MXN, porque solo llega al día 27.
+    - **De enero a agosto de 2026**, las piezas coinciden y el monto difiere menos de 25 MXN al mes, por el redondeo de las sumas a mano.
+    - **Enero de 2025** coincide: el contenido era correcto, solo traía mal el rango de fechas.
 
 ### C. Catálogo de productos con códigos inválidos
 

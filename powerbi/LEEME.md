@@ -56,12 +56,12 @@ Para comprobar cada cifra por tu cuenta contra los archivos descargados, sigue [
 
 ## Cifras esperadas con los datos actuales
 
-Datos: las muestras de Walmart (del 22 al 29/09) y de Amazon (agosto y septiembre de 2026), más el historial de Amazon copiado.
+Datos: las muestras de Walmart (del 22 al 29/09) y el historial completo de Amazon, de febrero de 2024 al 28/09/2026.
 
 | Página | Qué | Valor esperado |
 |---|---|---|
-| Control | Estado del reporte | 🔴 Faltan meses de ventas de Amazon |
-| Control | Meses de Amazon por descargar | Faltan: Ene 2025, Nov 2025, Dic 2025, Ene 2026, Feb 2026, Mar 2026, Abr 2026, May 2026, Jun 2026, Jul 2026 |
+| Control | Estado del reporte | 🟢 Listo para enviar (mientras los datos tengan 3 días o menos) |
+| Control | Meses de Amazon por descargar | Ninguno |
 | Control | Archivos leídos | Todos con «Usado = Sí» |
 | Control | Días sin sell out Walmart · Filas sin homologar · Códigos sin homologar | 0 · 0 · Ninguno |
 | Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $147,182 (Walmart $87,070 del 22 al 29/09 + Amazon $60,112 del 1 al 28/09) |
@@ -76,11 +76,10 @@ Datos: las muestras de Walmart (del 22 al 29/09) y de Amazon (agosto y septiembr
 
 **De dónde sale la comparación de Amazon:** septiembre de 2025 tuvo 602 piezas y $71,387. Como el archivo de 2026 llega al día 28, se compara contra 28 de 30 días: 561.9 piezas y $66,628. Contra eso, septiembre de 2026 (692 piezas, $60,112) da ▲ 23.2 % en piezas y ▼ 9.8 % en monto.
 
-**Mientras no se cargue el resto del historial es normal que:**
-- el semáforo esté en 🔴 por los meses de Amazon que faltan; se pone en 🟢 cuando los descargas;
-- el gráfico de 12 meses tenga huecos y el diario de Walmart solo vaya del 22 al 29/09;
-- la venta promedio y la cobertura de Amazon salgan bajas o altas: usan junio, julio y agosto de 2026, y faltan junio y julio;
-- el crecimiento diga «(solo Amazon)» porque Walmart todavía no tiene historial.
+**Mientras no se cargue el historial de Walmart es normal que:**
+- el crecimiento diga «(solo Amazon)»;
+- el gráfico de 12 meses y el diario de Walmart solo tengan del 22 al 29/09 para Walmart;
+- la venta promedio y la cobertura de Walmart salgan en blanco.
 
 ## Cómo está armado
 
