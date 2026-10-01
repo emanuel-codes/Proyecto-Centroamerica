@@ -47,13 +47,13 @@ Amazon ya nombra los archivos con el rango de fechas, por ejemplo `Ventas_ASIN_F
 
 | Descarga | Carpeta | Rango | Cada cuánto |
 |---|---|---|---|
-| **Ventas** | `Amazon/Sell out` | **Del día 1 del mes hasta ayer.** El día 1 de cada mes, eso es el mes anterior completo. | Cada día |
+| **Ventas** | `Amazon/Sell out` | **Del día 1 al último día disponible**, dentro del mes de ese día. Amazon va 2 días atrás: si el último disponible es el 29/09, del 01/09 al 29/09; si es el 01/10, del 01/10 al 01/10. | Cada día |
 | **Inventario** | `Amazon/Inventarios` | Un solo día: ayer | Cada día |
 | Órdenes de compra (fill rate) | — | — | **Sin acceso.** Ver «Pendientes» |
 
 **Comprobado:** la descarga de agosto completo trae las mismas 564 unidades que el archivo que el analista armó a mano con 31 descargas diarias. El monto difiere en 9 MXN porque el analista redondeaba las cifras. Por eso, **una descarga al mes reemplaza a las 30 diarias.**
 
-**Mes en curso:** cada vez que bajas el mes en curso hasta ayer, el reporte usa ese archivo y descarta los anteriores del mismo mes. Si Amazon todavía no tiene el último día cuando cambia el mes, la página Control avisa «meses de Amazon incompletos»: vuelve a bajar ese mes completo.
+**Mes en curso:** cada vez que bajas el mes en curso hasta el último día disponible, el reporte usa ese archivo y descarta los anteriores del mismo mes. Si Amazon todavía no tiene el último día cuando cambia el mes, la página Control avisa «meses de Amazon incompletos»: vuelve a bajar ese mes completo.
 
 ---
 

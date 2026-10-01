@@ -18,12 +18,14 @@ El detalle de cada descarga (ajustes de Amazon y consultas de Retail Link) está
 |---|---|---|---|
 | 1 | Walmart sell out («Sell Out Act.») | Del día siguiente al último que bajaste hasta ayer. Normalmente es solo ayer; el lunes, de viernes a domingo. | `Walmart/Sell out` |
 | 2 | Walmart inventario («Inventario en Tiendas MX Act.») | Ayer | `Walmart/Inventario` |
-| 3 | Amazon ventas | Del día 1 del mes hasta ayer. El día 1 de cada mes, eso es el mes anterior completo. | `Amazon/Sell out` |
-| 4 | Amazon inventario | Ayer | `Amazon/Inventarios` |
+| 3 | Amazon ventas | Del día 1 al último día que Amazon deja ver (va 2 días atrás), dentro del mes de ese día. Ejemplo: si el último es el 29/09, del 01/09 al 29/09; si es el 01/10, del 01/10 al 01/10. | `Amazon/Sell out` |
+| 4 | Amazon inventario | El último día que Amazon deja ver | `Amazon/Inventarios` |
 
 5. Abre el reporte → **Inicio → Actualizar**.
 6. Revisa la página **Control**: semáforo en 🟢 y fechas de «Datos al» de ayer.
 7. Envía o publica.
+
+**Desfase normal:** Walmart llega hasta ayer y Amazon hasta antier. El día de hoy nunca se descarga porque está incompleto. El reporte usa la fecha real de cada fuente y la muestra en el encabezado.
 
 **No te preocupes por repetir:**
 - si bajas un día dos veces, o un rango que se cruza con otro archivo, el reporte toma cada día del archivo más reciente;
