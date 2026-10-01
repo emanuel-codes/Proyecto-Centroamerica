@@ -5,9 +5,15 @@
 1. ~~Baja el ZIP nuevo y actualiza~~ **Listo:** Control en 🟢.
    - Para hablar de los errores del reporte actual, usa [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md).
 2. ~~Amazon, 10 meses completos~~ **Listo:** ya están en `Amazon/Sell out` y llegan con el ZIP.
-3. **Walmart sell out, historial**, a `Walmart/Sell out`:
-   - del **01/10/2024 al 21/09/2026**, un archivo por trimestre si Retail Link lo permite, o por mes;
-   - si no alcanza el tiempo, al menos del **01/09/2025 al 21/09/2026**, sin huecos.
+3. **Walmart sell out, historial**, a `Walmart/Sell out` (octubre a diciembre de 2024 ya están). Bajar **de lo más reciente a lo más antiguo**:
+   1. 01/07/2026 – 21/09/2026
+   2. 01/04/2026 – 30/06/2026
+   3. 01/01/2026 – 31/03/2026
+   4. 01/10/2025 – 31/12/2025
+   5. 01/07/2025 – 30/09/2025
+   6. 01/04/2025 – 30/06/2025
+   7. 01/01/2025 – 31/03/2025
+   - Si el jueves en la noche no terminaste, mueve los archivos de 2024 a la subcarpeta `Respaldo`. Así no queda un hueco y Control sigue en 🟢. Cuando completes todo, los regresas.
 4. **El jueves, la rutina diaria** del manual (`MANUAL_OPERACION.md`). Así llegas al viernes con datos al día.
 5. **El viernes temprano, guarda capturas** de cada página como respaldo, por si algo falla en vivo.
 6. **Deja sin bajar el sell out de Walmart de ayer**, para descargarlo en vivo.
