@@ -7,6 +7,8 @@ table Metas
 		summarizeBy: none
 		sourceColumn: Mes
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Codigo_ERP
 		dataType: string
 		summarizeBy: none

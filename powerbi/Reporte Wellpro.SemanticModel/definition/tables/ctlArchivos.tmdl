@@ -22,11 +22,15 @@ table ctlArchivos
 		summarizeBy: none
 		sourceColumn: Desde
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Hasta
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Hasta
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	column Generado
 		dataType: dateTime

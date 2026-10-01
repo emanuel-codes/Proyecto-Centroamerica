@@ -27,17 +27,23 @@ table fRecship
 		summarizeBy: none
 		sourceColumn: Fecha_creacion
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Fecha_pedido
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Fecha_pedido
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Fecha_recepcion
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Fecha_recepcion
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	column Piezas
 		dataType: double

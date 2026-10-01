@@ -7,11 +7,15 @@ table fSellOut
 		summarizeBy: none
 		sourceColumn: Fecha
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Datos_hasta
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Datos_hasta
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	column Cadena
 		dataType: string

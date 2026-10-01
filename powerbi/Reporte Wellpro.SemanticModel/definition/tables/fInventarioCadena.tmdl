@@ -7,6 +7,8 @@ table fInventarioCadena
 		summarizeBy: none
 		sourceColumn: Fecha
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Cadena
 		dataType: string
 		summarizeBy: none

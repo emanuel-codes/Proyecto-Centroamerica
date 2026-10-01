@@ -27,17 +27,23 @@ table fFillRate
 		summarizeBy: none
 		sourceColumn: Fecha_orden
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Fecha_envio
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Fecha_envio
 
+		annotation UnderlyingDateTimeDataType = Date
+
 	column Fecha_cancelacion
 		dataType: dateTime
 		formatString: dd/mm/yyyy
 		summarizeBy: none
 		sourceColumn: Fecha_cancelacion
+
+		annotation UnderlyingDateTimeDataType = Date
 
 	column Piezas_ordenadas
 		dataType: double
