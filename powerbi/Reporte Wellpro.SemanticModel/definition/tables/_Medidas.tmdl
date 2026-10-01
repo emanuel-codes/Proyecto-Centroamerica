@@ -329,16 +329,6 @@ table _Medidas
 		formatString: #,0
 		displayFolder: 9. Control
 
-	/// Días sin foto de inventario de Walmart entre la primera y la última.
-	measure 'Días sin inventario Walmart' =
-			VAR _dias = CALCULATETABLE ( VALUES ( fInventarioCadena[Fecha] ), fInventarioCadena[Cadena] = "Walmart", REMOVEFILTERS () )
-			VAR _ini = MINX ( _dias, fInventarioCadena[Fecha] )
-			VAR _fin = MAXX ( _dias, fInventarioCadena[Fecha] )
-			RETURN
-			    IF ( ISBLANK ( _ini ), BLANK (), COUNTROWS ( EXCEPT ( CALENDAR ( _ini, _fin ), _dias ) ) + 0 )
-		formatString: #,0
-		displayFolder: 9. Control
-
 	/// Meses sin archivo de ventas de Amazon entre el primero y el último cargados.
 	measure 'Meses sin sell out Amazon' =
 			VAR _meses = CALCULATETABLE ( VALUES ( fSellOut[Fecha] ), fSellOut[Cadena] = "Amazon", REMOVEFILTERS () )
@@ -349,15 +339,39 @@ table _Medidas
 		formatString: #,0
 		displayFolder: 9. Control
 
-	/// Lista de los meses sin archivo de ventas de Amazon, para saber qué descargar.
+	/// Meses ya cerrados cuyo archivo de Amazon no llega al último día del mes (por ejemplo, porque Amazon todavía no tenía el último día al descargarlo).
+	measure 'Meses incompletos Amazon' =
+			VAR _meses = CALCULATETABLE (
+			    ADDCOLUMNS ( VALUES ( fSellOut[Fecha] ), "@Hasta", CALCULATE ( MAX ( fSellOut[Datos_hasta] ) ) ),
+			    fSellOut[Cadena] = "Amazon", REMOVEFILTERS ()
+			)
+			VAR _ultimo = MAXX ( _meses, fSellOut[Fecha] )
+			RETURN
+			    IF ( ISBLANK ( _ultimo ), BLANK (), COUNTROWS ( FILTER ( _meses, fSellOut[Fecha] < _ultimo && [@Hasta] < EOMONTH ( fSellOut[Fecha], 0 ) ) ) + 0 )
+		formatString: #,0
+		displayFolder: 9. Control
+
+	/// Meses de Amazon por descargar: los que faltan y los cerrados que quedaron incompletos.
 	measure 'Meses faltantes Amazon' =
-			VAR _meses = CALCULATETABLE ( VALUES ( fSellOut[Fecha] ), fSellOut[Cadena] = "Amazon", REMOVEFILTERS () )
+			VAR _meses = CALCULATETABLE (
+			    ADDCOLUMNS ( VALUES ( fSellOut[Fecha] ), "@Hasta", CALCULATE ( MAX ( fSellOut[Datos_hasta] ) ) ),
+			    fSellOut[Cadena] = "Amazon", REMOVEFILTERS ()
+			)
 			VAR _ini = MINX ( _meses, fSellOut[Fecha] )
 			VAR _fin = MAXX ( _meses, fSellOut[Fecha] )
-			VAR _faltan = EXCEPT ( FILTER ( CALENDAR ( _ini, _fin ), DAY ( [Date] ) = 1 ), _meses )
-			VAR _lista = CONCATENATEX ( _faltan, LOOKUPVALUE ( Calendario[Mes_año], Calendario[Fecha], [Date] ), ", ", [Date], ASC )
+			VAR _faltan = EXCEPT ( FILTER ( CALENDAR ( _ini, _fin ), DAY ( [Date] ) = 1 ), SELECTCOLUMNS ( _meses, "Date", fSellOut[Fecha] ) )
+			VAR _incompletos = FILTER ( _meses, fSellOut[Fecha] < _fin && [@Hasta] < EOMONTH ( fSellOut[Fecha], 0 ) )
+			VAR _txtFaltan = CONCATENATEX ( _faltan, LOOKUPVALUE ( Calendario[Mes_año], Calendario[Fecha], [Date] ), ", ", [Date], ASC )
+			VAR _txtIncompletos = CONCATENATEX ( _incompletos, LOOKUPVALUE ( Calendario[Mes_año], Calendario[Fecha], fSellOut[Fecha] ), ", ", fSellOut[Fecha], ASC )
 			RETURN
-			    IF ( ISBLANK ( _ini ), BLANK (), IF ( COUNTROWS ( _faltan ) = 0, "Ninguno", _lista ) )
+			    IF (
+			        ISBLANK ( _ini ), BLANK (),
+			        IF ( _txtFaltan = "" && _txtIncompletos = "", "Ninguno",
+			            IF ( _txtFaltan <> "", "Faltan: " & _txtFaltan )
+			                & IF ( _txtFaltan <> "" && _txtIncompletos <> "", " · " )
+			                & IF ( _txtIncompletos <> "", "Incompletos: " & _txtIncompletos )
+			        )
+			    )
 		displayFolder: 9. Control
 
 	/// Filas cuyo código de cadena no está en la hoja Equivalencias del maestro.
@@ -400,19 +414,24 @@ table _Medidas
 	measure 'Texto datos abasto' = "Walmart · órdenes hasta el " & IF ( ISBLANK ( [Datos al - fill rate Walmart] ), "sin datos", FORMAT ( [Datos al - fill rate Walmart], "dd/mm/yyyy" ) ) & "  ·  Recship del " & IF ( ISBLANK ( [Fecha del Recship] ), "sin datos", FORMAT ( [Fecha del Recship], "dd/mm/yyyy" ) )
 		displayFolder: 9. Control
 
-	/// Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan meses de Amazon o hay códigos sin homologar. Amarillo: el sell out de Walmart o de Amazon tiene más de 3 días.
+	/// Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan o están incompletos meses de Amazon, o hay códigos sin homologar. Amarillo: el sell out o el inventario de Walmart o de Amazon tiene más de 3 días.
 	measure 'Estado del reporte' =
 			VAR _hoy = TODAY ()
 			VAR _atrasoWM = IF ( ISBLANK ( [Datos al - sell out Walmart] ), 999, DATEDIFF ( [Datos al - sell out Walmart], _hoy, DAY ) )
 			VAR _atrasoAMZ = IF ( ISBLANK ( [Datos al - sell out Amazon] ), 999, DATEDIFF ( [Datos al - sell out Amazon], _hoy, DAY ) )
+			VAR _atrasoInvWM = IF ( ISBLANK ( [Datos al - inventario Walmart] ), 999, DATEDIFF ( [Datos al - inventario Walmart], _hoy, DAY ) )
+			VAR _atrasoInvAMZ = IF ( ISBLANK ( [Datos al - inventario Amazon] ), 999, DATEDIFF ( [Datos al - inventario Amazon], _hoy, DAY ) )
 			RETURN
 			    SWITCH (
 			        TRUE (),
 			        [Días sin sell out Walmart] > 0, "🔴 Faltan días de sell out de Walmart",
 			        [Meses sin sell out Amazon] > 0, "🔴 Faltan meses de ventas de Amazon",
+			        [Meses incompletos Amazon] > 0, "🔴 Hay meses de Amazon incompletos",
 			        [Filas sin homologar] > 0, "🔴 Hay códigos sin homologar",
 			        _atrasoWM > 3, "🟡 Sell out de Walmart atrasado",
 			        _atrasoAMZ > 3, "🟡 Ventas de Amazon atrasadas",
+			        _atrasoInvWM > 3, "🟡 Inventario de Walmart atrasado",
+			        _atrasoInvAMZ > 3, "🟡 Inventario de Amazon atrasado",
 			        "🟢 Listo para enviar"
 			    )
 		displayFolder: 9. Control

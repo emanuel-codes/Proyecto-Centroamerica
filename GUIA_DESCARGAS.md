@@ -1,6 +1,6 @@
 # Guía de descargas
 
-Qué se descarga de cada fuente, cada cuánto y dónde se guarda. Está confirmado con las muestras de `Nueva versión/` (30/09/2026).
+Detalle de cada descarga: ajustes, consultas y carpetas. La rutina del día a día está en [`MANUAL_OPERACION.md`](MANUAL_OPERACION.md).
 
 ## Reglas
 
@@ -8,8 +8,13 @@ Qué se descarga de cada fuente, cada cuánto y dónde se guarda. Está confirma
 2. **No hace falta renombrar nada.** El reporte identifica cada archivo por lo que trae dentro:
    - Walmart: el título del reporte y las fechas de la consulta.
    - Amazon: el rango de fechas de la primera fila.
-3. **Bajar dos veces el mismo periodo no genera errores.** Si dos archivos cubren los mismos días, el reporte se queda con el más reciente. Así, una descarga repetida no duplica ventas.
-4. **Los archivos viejos no se borran.** Son el historial.
+3. **Bajar dos veces el mismo periodo no duplica nada:**
+   - Walmart sell out: cada día se toma de un solo archivo, el más reciente.
+   - Amazon ventas: de cada mes se usa un solo archivo, el que llega más lejos.
+   - Inventarios: una foto por día y, de cada mes, solo la última.
+   - Fill rate: cada orden se toma de la descarga más reciente.
+   - Recship: solo el archivo más reciente.
+4. **Los archivos viejos no se borran.** Los que la página Control marca con «Usado = No» se mueven a la subcarpeta `Respaldo` de su carpeta, que el reporte no lee.
 
 ## Carpetas
 
@@ -42,13 +47,13 @@ Amazon ya nombra los archivos con el rango de fechas, por ejemplo `Ventas_ASIN_F
 
 | Descarga | Carpeta | Rango | Cada cuánto |
 |---|---|---|---|
-| **Ventas** | `Amazon/Sell out` | **El mes cerrado completo**, una vez al inicio del mes siguiente; y **el mes en curso hasta ayer**, en cada actualización. | Mes cerrado: una vez al mes. Mes en curso: en cada actualización. |
-| **Inventario** | `Amazon/Inventarios` | Un solo día: el último disponible | En cada actualización |
+| **Ventas** | `Amazon/Sell out` | **Del día 1 del mes hasta ayer.** El día 1 de cada mes, eso es el mes anterior completo. | Cada día |
+| **Inventario** | `Amazon/Inventarios` | Un solo día: ayer | Cada día |
 | Órdenes de compra (fill rate) | — | — | **Sin acceso.** Ver «Pendientes» |
 
 **Comprobado:** la descarga de agosto completo trae las mismas 564 unidades que el archivo que el analista armó a mano con 31 descargas diarias. El monto difiere en 9 MXN porque el analista redondeaba las cifras. Por eso, **una descarga al mes reemplaza a las 30 diarias.**
 
-**Mes en curso:** cada vez que bajas el mes en curso hasta ayer, el reporte usa ese archivo y descarta los anteriores del mismo mes. No hace falta borrarlos.
+**Mes en curso:** cada vez que bajas el mes en curso hasta ayer, el reporte usa ese archivo y descarta los anteriores del mismo mes. Si Amazon todavía no tiene el último día cuando cambia el mes, la página Control avisa «meses de Amazon incompletos»: vuelve a bajar ese mes completo.
 
 ---
 
@@ -68,10 +73,10 @@ Aunque algunos terminan en `.xls`, por dentro son archivos de Excel modernos. Po
 
 | Descarga | Nombre en Retail Link | Carpeta | Rango | Cada cuánto |
 |---|---|---|---|---|
-| **Sell out** | «Sell Out Act.» | `Walmart/Sell out` | Desde el día siguiente a la última descarga hasta ayer, con detalle diario (*Daily*). Puede ser una semana en un solo archivo. | En cada actualización |
-| **Inventario en tiendas** | «Inventario en Tiendas MX Act.» | `Walmart/Inventario` | Un día (*Pos Date* = ayer). Es la foto del inventario. | En cada actualización |
-| **Recship** | «Recship Proxima 5 Sem» | `Walmart/Forecast` | Las próximas 5 semanas de Walmart | En cada actualización. El reporte usa solo el más reciente. |
-| **Fill rate** | «Fill rate 0.2.1» | `Walmart/Fill rate` | Las semanas de Walmart que interesan; la muestra trae de la 202549 a la 202634 | Semanal |
+| **Sell out** | «Sell Out Act.» | `Walmart/Sell out` | Desde el día siguiente a la última descarga hasta ayer, con detalle diario (*Daily*). El primer día hábil del mes, además, el mes anterior completo en un archivo. | Cada día, y el mes completo una vez al mes |
+| **Inventario en tiendas** | «Inventario en Tiendas MX Act.» | `Walmart/Inventario` | Un día (*Pos Date* = ayer). Es la foto del inventario. | Cada día |
+| **Recship** | «Recship Proxima 5 Sem» | `Walmart/Forecast` | Las próximas 5 semanas de Walmart | Cada lunes. El reporte usa solo el más reciente. |
+| **Fill rate** | «Fill rate 0.2.1» | `Walmart/Fill rate` | Las últimas 13 semanas de Walmart (la muestra trae de la 202549 a la 202634) | Cada lunes |
 
 Lo que se vio en las muestras:
 - **Sell out, del 22/09 al 29/09:**

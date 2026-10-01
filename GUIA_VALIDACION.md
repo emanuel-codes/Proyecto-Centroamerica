@@ -241,7 +241,7 @@ Si una diferencia no se explica con esta tabla, repite los pasos 2 y 3 para esa 
 1. **Página Control:**
    - semáforo en 🟢;
    - «Días sin sell out Walmart» en 0;
-   - «Meses sin ventas de Amazon» en «Ninguno»;
+   - «Meses de Amazon por descargar» en «Ninguno»;
    - «Códigos sin homologar» en «Ninguno»;
    - fechas de «Datos al» de ayer.
 2. **Archivos leídos:** los archivos de hoy aparecen con «Usado = Sí».

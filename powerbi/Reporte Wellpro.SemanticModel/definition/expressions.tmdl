@@ -190,16 +190,49 @@ expression Equivalencias =
 
 	annotation PBI_ResultType = Table
 
-/// Filas de todos los archivos de sell out de Walmart, sin depurar.
-expression WM_SellOut_Filas =
+/// Archivos de sell out de Walmart y qué días se toman de cada uno (cada día, del más reciente).
+expression WM_SellOut_Archivos =
 		let
 		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\sell out"),
 		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
-		        (a) => Table.AddColumn(a[R][Datos], "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    // Días que trae cada archivo (columna Daily)
+		    ConDias = Table.AddColumn(ConSolicitud, "Dias", each
+		        if Table.HasColumns([R][Datos], "Daily")
+		        then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
+		        else {}, type list),
+		    // Cada día se toma de UN solo archivo: el de la solicitud más reciente (si empatan, el último por nombre).
+		    // Así, bajar dos veces el mismo día, o el mes completo encima de los diarios, nunca duplica.
+		    Pares = Table.SelectRows(Table.ExpandListColumn(Table.SelectColumns(ConDias, {"Name", "Solicitado", "Dias"}), "Dias"), each [Dias] <> null),
+		    PorDia = Table.Buffer(Table.Group(Pares, {"Dias"}, {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
+		    ConUsados = Table.AddColumn(ConDias, "Dias_usados", (a) => Table.SelectRows(PorDia, each [Elegido] = a[Name])[Dias], type list),
+		    ConUso = Table.AddColumn(ConUsados, "Usado", each
+		        let n = List.Count([Dias]), u = List.Count([Dias_usados]) in
+		            if n = 0 then "No: no trae datos"
+		            else if u = n then "Sí"
+		            else if u = 0 then "No: sus días están en un archivo más reciente"
+		            else "Parcial: usa " & Text.From(u) & " de " & Text.From(n) & " días", type text),
+		    ConRango = Table.AddColumn(Table.AddColumn(ConUso,
+		        "Desde", each if List.IsEmpty([Dias]) then [R][Desde] else List.Min([Dias]), type nullable date),
+		        "Hasta", each if List.IsEmpty([Dias]) then [R][Hasta] else List.Max([Dias]), type nullable date)
+		in
+		    ConRango
+
+	annotation PBI_ResultType = Table
+
+/// Filas de sell out de Walmart: de cada archivo, solo los días que le tocan.
+expression WM_SellOut_Filas =
+		let
+		    Usados = Table.SelectRows(WM_SellOut_Archivos, each not List.IsEmpty([Dias_usados])),
+		    // De cada archivo, solo los días que le tocan
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Usados), (a) =>
+		        let
+		            Dias = List.Buffer(a[Dias_usados]),
+		            Datos = Table.TransformColumns(a[R][Datos], {{"Daily", fnFechaAMD, type nullable date}})
+		        in
+		            Table.SelectRows(Datos, each List.Contains(Dias, [Daily])))),
 		    Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Daily] <> null),
 		    Tipado = Table.TransformColumns(Validas, {
-		        {"Daily", fnFechaAMD, type date},
 		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
 		        {"Store Nbr", each Int64.From(_), Int64.Type},
 		        {"Vendor Stk Nbr", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
@@ -218,10 +251,8 @@ expression WM_SellOut_Filas =
 /// Sell out de Walmart depurado y homologado.
 expression WM_SellOut =
 		let
-		    // Si dos descargas traen el mismo día, tienda, artículo y tipo de venta, se queda la más reciente
-		    Ordenado = Table.Buffer(Table.Sort(WM_SellOut_Filas, {{"Solicitado", Order.Descending}})),
-		    SinRepetidos = Table.Distinct(Ordenado, {"Daily", "Store Nbr", "Item Nbr", "Sales Description"}),
-		    ConMovimiento = Table.SelectRows(SinRepetidos, each [POS Qty] <> 0 or [POS Sales] <> 0),
+		    // Cada día ya viene de un solo archivo (ver WM_SellOut_Archivos)
+		    ConMovimiento = Table.SelectRows(WM_SellOut_Filas, each [POS Qty] <> 0 or [POS Sales] <> 0),
 		    // Homologación: número de artículo de Walmart -> código del ERP (hoja Equivalencias del maestro).
 		    // Si no está, se usa Vendor Stk Nbr cuando coincide con un código del ERP.
 		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
@@ -247,12 +278,13 @@ expression AMZ_SellOut_Archivos =
 		    Leidos = Table.AddColumn(Lista, "R", each fnAmazon([Content])),
 		    ConMeta = Table.AddColumn(Table.AddColumn(Table.AddColumn(Leidos,
 		        "Desde", each [R][Desde], type date),
-		        "Hasta", each [R][Hasta], type date),
+		        // Último día con datos: el fin del rango, o la fecha de actualización de Amazon si es anterior
+		        "Hasta", each if [R][Actualizado] <> null and [R][Actualizado] < [R][Hasta] then [R][Actualizado] else [R][Hasta], type date),
 		        "Actualizado", each [R][Actualizado], type nullable date),
 		    ConMes = Table.AddColumn(ConMeta, "Mes", each Date.StartOfMonth([Desde]), type date),
 		    // Solo sirven archivos de un solo mes. Por cada mes se usa el que llega más lejos; si empatan, el actualizado más reciente.
 		    DeUnMes = Table.SelectRows(ConMes, each Date.StartOfMonth([Hasta]) = [Mes]),
-		    Elegidos = Table.Group(DeUnMes, {"Mes"}, {{"Nombre", each Table.First(Table.Sort(_, {{"Hasta", Order.Descending}, {"Actualizado", Order.Descending}}))[Name], type text}}),
+		    Elegidos = Table.Group(DeUnMes, {"Mes"}, {{"Nombre", each Table.First(Table.Sort(_, {{"Hasta", Order.Descending}, {"Actualizado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}}),
 		    ConUso = Table.AddColumn(ConMes, "Usado", each if List.Contains(Elegidos[Nombre], [Name]) then "Sí" else if Date.StartOfMonth([Hasta]) <> [Mes] then "No: abarca más de un mes" else "No: hay uno más reciente del mismo mes", type text)
 		in
 		    ConUso
@@ -286,16 +318,40 @@ expression AMZ_SellOut =
 
 	annotation PBI_ResultType = Table
 
-/// Filas de todos los archivos de inventario de Walmart, sin depurar.
-expression WM_Inventario_Filas =
+/// Archivos de inventario de Walmart y cuáles se usan (una foto por día; de cada mes, la última).
+expression WM_Inventario_Archivos =
 		let
 		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\inventario"),
 		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    // La foto del inventario corresponde al día consultado (Pos Date); si no viene, el día anterior a la solicitud
-		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
-		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos],
-		            "Fecha", each if a[R][Hasta] <> null then a[R][Hasta] else Date.AddDays(Date.From(a[R][Solicitado]), -1), type date),
-		            "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    // La foto corresponde al día consultado (Pos Date); si no viene, al día anterior a la solicitud
+		    ConFecha = Table.AddColumn(ConSolicitud, "Fecha", each
+		        if [R][Hasta] <> null then [R][Hasta]
+		        else if [Solicitado] = null then null
+		        else Date.AddDays(Date.From([Solicitado]), -1), type nullable date),
+		    // Una foto por día: la de la solicitud más reciente (si empatan, la última por nombre)
+		    PorDia = Table.Buffer(Table.Group(Table.SelectRows(ConFecha, each [Fecha] <> null), {"Fecha"},
+		        {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
+		    Elegidos = List.Buffer(PorDia[Elegido]),
+		    // De cada mes solo cuenta la última foto: la más reciente es el inventario actual y las de cierre de mes, el historial
+		    UltimasDelMes = List.Buffer(Table.Group(Table.AddColumn(PorDia, "Mes", each Date.StartOfMonth([Fecha])), {"Mes"},
+		        {{"Ultima", each List.Max([Fecha]), type date}})[Ultima]),
+		    ConUso = Table.AddColumn(ConFecha, "Usado", each
+		        if [Fecha] = null then "No: no se pudo leer la fecha"
+		        else if not List.Contains(Elegidos, [Name]) then "No: hay uno más reciente del mismo día"
+		        else if not List.Contains(UltimasDelMes, [Fecha]) then "No: no es la última foto del mes"
+		        else "Sí", type text)
+		in
+		    ConUso
+
+	annotation PBI_ResultType = Table
+
+/// Filas de los archivos de inventario de Walmart que se usan.
+expression WM_Inventario_Filas =
+		let
+		    Usados = Table.SelectRows(WM_Inventario_Archivos, each [Usado] = "Sí"),
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(Usados),
+		        (a) => Table.AddColumn(a[R][Datos], "Fecha", each a[Fecha], type date))),
 		    Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Store Nbr] <> null),
 		    Tipado = Table.TransformColumns(Validas, {
 		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
@@ -315,10 +371,9 @@ expression WM_Inventario_Filas =
 /// Inventario en tiendas de Walmart depurado y homologado.
 expression WM_Inventario =
 		let
-		    Ordenado = Table.Buffer(Table.Sort(WM_Inventario_Filas, {{"Solicitado", Order.Descending}})),
-		    SinRepetidos = Table.Distinct(Ordenado, {"Fecha", "Store Nbr", "Item Nbr"}),
+		    // Cada día ya viene de un solo archivo (ver WM_Inventario_Archivos)
 		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
-		    Unido = Table.ExpandTableColumn(Table.NestedJoin(SinRepetidos, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(WM_Inventario_Filas, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
 		    N = Table.RowCount(Unido),
 		    Salida = Table.FromColumns({
 		        Unido[Fecha], List.Repeat({"Walmart"}, N), Unido[Codigo_ERP], Unido[Item Nbr], Unido[Store Nbr],
@@ -332,18 +387,27 @@ expression WM_Inventario =
 
 	annotation PBI_ResultType = Table
 
-/// Archivos de inventario de Amazon y cuál se usa por día.
+/// Archivos de inventario de Amazon y cuáles se usan (una foto por día; de cada mes, la última).
 expression AMZ_Inventario_Archivos =
 		let
-		    Lista = Table.SelectRows(Archivos, each Text.StartsWith([Carpeta], "amazon\inventario")),
+		    // Carpeta exacta (las subcarpetas, como Respaldo, no se leen)
+		    Lista = Table.SelectRows(Archivos, each List.Contains({"amazon\inventario", "amazon\inventarios"}, [Carpeta])),
 		    Leidos = Table.AddColumn(Lista, "R", each fnAmazon([Content])),
 		    ConMeta = Table.AddColumn(Table.AddColumn(Table.AddColumn(Leidos,
 		        "Desde", each [R][Desde], type date),
 		        "Hasta", each [R][Hasta], type date),
 		        "Actualizado", each [R][Actualizado], type nullable date),
-		    // Una foto por día: si hay dos archivos del mismo día, se usa el actualizado más reciente
-		    Elegidos = Table.Group(ConMeta, {"Hasta"}, {{"Nombre", each Table.First(Table.Sort(_, {{"Actualizado", Order.Descending}}))[Name], type text}}),
-		    ConUso = Table.AddColumn(ConMeta, "Usado", each if List.Contains(Elegidos[Nombre], [Name]) then "Sí" else "No: hay uno más reciente del mismo día", type text)
+		    // Una foto por día: la actualizada más recientemente (si empatan, la última por nombre)
+		    PorDia = Table.Buffer(Table.Group(ConMeta, {"Hasta"},
+		        {{"Nombre", each Table.First(Table.Sort(_, {{"Actualizado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
+		    Elegidos = List.Buffer(PorDia[Nombre]),
+		    // De cada mes solo cuenta la última foto
+		    UltimasDelMes = List.Buffer(Table.Group(Table.AddColumn(PorDia, "Mes", each Date.StartOfMonth([Hasta])), {"Mes"},
+		        {{"Ultima", each List.Max([Hasta]), type date}})[Ultima]),
+		    ConUso = Table.AddColumn(ConMeta, "Usado", each
+		        if not List.Contains(Elegidos, [Name]) then "No: hay uno más reciente del mismo día"
+		        else if not List.Contains(UltimasDelMes, [Hasta]) then "No: no es la última foto del mes"
+		        else "Sí", type text)
 		in
 		    ConUso
 
@@ -378,13 +442,22 @@ expression AMZ_Inventario =
 
 	annotation PBI_ResultType = Table
 
-/// Órdenes de compra de Walmart depuradas y homologadas.
-expression WM_FillRate =
+/// Archivos de fill rate de Walmart.
+expression WM_FillRate_Archivos =
 		let
 		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\fill rate"),
 		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    Filas = Table.Combine(List.Transform(Table.ToRecords(Leidos),
-		        (a) => Table.AddColumn(a[R][Datos], "Solicitado", each a[R][Solicitado], type nullable datetime))),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime)
+		in
+		    ConSolicitud
+
+	annotation PBI_ResultType = Table
+
+/// Líneas de órdenes de Walmart: cada orden y artículo, de la descarga más reciente.
+expression WM_FillRate_Lineas =
+		let
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(WM_FillRate_Archivos),
+		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos], "Solicitado", each a[Solicitado], type nullable datetime), "Archivo", each a[Name], type text))),
 		    Validas = Table.SelectRows(Filas, each [PO Number] <> null and [Item Nbr] <> null),
 		    Tipado = Table.TransformColumns(Validas, {
 		        {"PO Number", each Text.From(Int64.From(_)), type text},
@@ -397,11 +470,19 @@ expression WM_FillRate =
 		        {"Hist Eaches Str Received", fnNumero, type number},
 		        {"Hist Eaches Whse Ordered", fnNumero, type number},
 		        {"Hist Eaches Whse Received", fnNumero, type number}}),
-		    // Una orden se actualiza cuando llega la mercancía: se queda la descarga más reciente de cada orden y artículo
-		    Ordenado = Table.Buffer(Table.Sort(Tipado, {{"Solicitado", Order.Descending}})),
-		    SinRepetidos = Table.Distinct(Ordenado, {"PO Number", "Item Nbr"}),
+		    // Una orden se actualiza cuando llega la mercancía: cada línea (orden + artículo) se toma de la descarga más reciente
+		    Ordenado = Table.Buffer(Table.Sort(Tipado, {{"Solicitado", Order.Descending}, {"Archivo", Order.Descending}})),
+		    SinRepetidos = Table.Distinct(Ordenado, {"PO Number", "Item Nbr"})
+		in
+		    SinRepetidos
+
+	annotation PBI_ResultType = Table
+
+/// Órdenes de compra de Walmart homologadas.
+expression WM_FillRate =
+		let
 		    Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
-		    Unido = Table.ExpandTableColumn(Table.NestedJoin(SinRepetidos, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
+		    Unido = Table.ExpandTableColumn(Table.NestedJoin(WM_FillRate_Lineas, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
 		    ConPiezas = Table.AddColumn(Table.AddColumn(Unido,
 		        "Ordenadas", each List.Sum({[Hist Eaches Str Ordered], [Hist Eaches Whse Ordered]}), type number),
 		        "Recibidas", each List.Sum({[Hist Eaches Str Received], [Hist Eaches Whse Received]}), type number),
@@ -418,14 +499,24 @@ expression WM_FillRate =
 
 	annotation PBI_ResultType = Table
 
-/// Pronóstico de pedidos de Walmart (archivo más reciente).
-expression WM_Recship =
+/// Archivos de Recship de Walmart y cuál es el más reciente.
+expression WM_Recship_Archivos =
 		let
 		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\forecast"),
 		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    ConFecha = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    Elegido = Table.First(Table.Sort(ConSolicitud, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name],
+		    ConUso = Table.AddColumn(ConSolicitud, "Usado", each if [Name] = Elegido then "Sí" else "No: hay uno más reciente", type text)
+		in
+		    ConUso
+
+	annotation PBI_ResultType = Table
+
+/// Pronóstico de pedidos de Walmart (archivo más reciente).
+expression WM_Recship =
+		let
 		    // Solo cuenta el pronóstico más reciente
-		    Ultimo = Table.First(Table.Sort(ConFecha, {{"Solicitado", Order.Descending}})),
+		    Ultimo = Table.First(Table.SelectRows(WM_Recship_Archivos, each [Usado] = "Sí")),
 		    Datos = Ultimo[R][Datos],
 		    Validas = Table.SelectRows(Datos, each [Item Nbr] <> null and [Units] <> null),
 		    Tipado = Table.TransformColumns(Validas, {

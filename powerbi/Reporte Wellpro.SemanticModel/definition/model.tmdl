@@ -8,7 +8,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["RutaDatos", "Archivos", "fnFechaMDA", "fnFechaAMD", "fnNumero", "fnRetailLink", "fnAmazon", "Maestro", "fnTablaMaestro", "Productos", "Equivalencias", "WM_SellOut_Filas", "WM_SellOut", "AMZ_SellOut_Archivos", "AMZ_SellOut", "WM_Inventario_Filas", "WM_Inventario", "AMZ_Inventario_Archivos", "AMZ_Inventario", "WM_FillRate", "WM_Recship", "Calendario", "dimCadena", "dimProducto", "dimTienda", "fSellOut", "fInventarioCadena", "fFillRate", "fRecship", "Metas", "ctlArchivos", "sMetrica", "_Medidas"]
+annotation PBI_QueryOrder = ["RutaDatos", "Archivos", "fnFechaMDA", "fnFechaAMD", "fnNumero", "fnRetailLink", "fnAmazon", "Maestro", "fnTablaMaestro", "Productos", "Equivalencias", "WM_SellOut_Archivos", "WM_SellOut_Filas", "WM_SellOut", "AMZ_SellOut_Archivos", "AMZ_SellOut", "WM_Inventario_Archivos", "WM_Inventario_Filas", "WM_Inventario", "AMZ_Inventario_Archivos", "AMZ_Inventario", "WM_FillRate_Archivos", "WM_FillRate_Lineas", "WM_FillRate", "WM_Recship_Archivos", "WM_Recship", "Calendario", "dimCadena", "dimProducto", "dimTienda", "fSellOut", "fInventarioCadena", "fFillRate", "fRecship", "Metas", "ctlArchivos", "sMetrica", "_Medidas"]
 
 ref table Calendario
 ref table dimCadena

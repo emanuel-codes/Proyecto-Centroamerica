@@ -25,7 +25,8 @@ Todavía **no** incluye el sell in ni el inventario del ERP (faltan sus muestras
 **Novedades de la v0.4** (la v0.3 ya se probó en Power BI Desktop y sus cifras coinciden):
 - **Historial de Amazon:** se copiaron a `Nueva versión/Amazon/Sell out` los 20 meses que el analista anterior descargó completos (de febrero a diciembre de 2024 y de febrero a octubre de 2025). Los demás meses hay que bajarlos de nuevo: ver «Carga del historial» en `GUIA_DESCARGAS.md`.
 - **Crecimiento comparable:** el crecimiento contra el año anterior solo toma las cadenas que tienen historial. Mientras falte el de Walmart, la tarjeta dice «(solo Amazon)».
-- **Página Control:** avisa qué meses de ventas de Amazon faltan, y el semáforo dice el motivo.
+- **Página Control:** avisa qué meses de ventas de Amazon faltan o quedaron incompletos, y el semáforo dice el motivo.
+- **A prueba de duplicados:** cada día de Walmart se toma de un solo archivo, el más reciente, aunque lo bajes dos veces. De cada mes se guarda solo la última foto de inventario. Los archivos que sobran salen con «Usado = No» en la página Control y se pueden mover a la subcarpeta `Respaldo`, que el reporte no lee.
 
 ## Cómo abrirlo
 
@@ -60,7 +61,8 @@ Datos: las muestras de Walmart (del 22 al 29/09) y de Amazon (agosto y septiembr
 | Página | Qué | Valor esperado |
 |---|---|---|
 | Control | Estado del reporte | 🔴 Faltan meses de ventas de Amazon |
-| Control | Meses sin ventas de Amazon | Ene 2025, Nov 2025, Dic 2025, Ene 2026, Feb 2026, Mar 2026, Abr 2026, May 2026, Jun 2026, Jul 2026 |
+| Control | Meses de Amazon por descargar | Faltan: Ene 2025, Nov 2025, Dic 2025, Ene 2026, Feb 2026, Mar 2026, Abr 2026, May 2026, Jun 2026, Jul 2026 |
+| Control | Archivos leídos | Todos con «Usado = Sí» |
 | Control | Días sin sell out Walmart · Filas sin homologar · Códigos sin homologar | 0 · 0 · Ninguno |
 | Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $147,182 (Walmart $87,070 del 22 al 29/09 + Amazon $60,112 del 1 al 28/09) |
 | Sell out («Mes actual») | Sell out (piezas) | 1,055 (Walmart 363 + Amazon 692) |

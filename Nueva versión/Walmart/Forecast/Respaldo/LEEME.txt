@@ -1,0 +1,2 @@
+Aquí van los archivos que la página Control marca con "Usado = No".
+El reporte no lee esta carpeta. No borres estos archivos: son el respaldo.

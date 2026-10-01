@@ -238,7 +238,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Si dos archivos cubren los mismos días se usa el más reciente'"
+                  "Value": "'Cada día se toma del archivo más reciente · los que dicen «No» pueden pasar a la subcarpeta Respaldo'"
                 }
               }
             },
