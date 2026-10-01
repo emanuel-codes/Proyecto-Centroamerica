@@ -2,7 +2,8 @@
 
 ## Antes del viernes (en este orden)
 
-1. **Baja el ZIP nuevo**, extráelo en `Documentos` reemplazando los archivos, abre el reporte y **actualiza**. Mándame una captura de la página Control.
+1. ~~Baja el ZIP nuevo y actualiza~~ **Listo:** Control en 🟢.
+   - Para hablar de los errores del reporte actual, usa [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md).
 2. ~~Amazon, 10 meses completos~~ **Listo:** ya están en `Amazon/Sell out` y llegan con el ZIP.
 3. **Walmart sell out, historial**, a `Walmart/Sell out`:
    - del **01/10/2024 al 21/09/2026**, un archivo por trimestre si Retail Link lo permite, o por mes;

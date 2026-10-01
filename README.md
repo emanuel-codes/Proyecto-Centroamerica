@@ -12,6 +12,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 |---|---|
 | [`MANUAL_OPERACION.md`](MANUAL_OPERACION.md) | Rutina diaria, semanal y mensual; qué hacer según la página Control; cómo dar de alta un producto nuevo. Para Manuel y el analista que lo reemplaza. |
 | [`DEMO_VIERNES.md`](DEMO_VIERNES.md) | Qué preparar y guion de la presentación del primer vistazo. |
+| [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md) | Resumen para presentar: errores del reporte actual, su impacto, su causa y cómo los evita la versión nueva. |
 | [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.4): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon (con historial desde febrero de 2024) y el maestro. La v0.3 ya se probó en Power BI Desktop. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo de la versión nueva: reglas, fases, controles, carpetas y recetas de descarga. |
 | [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md) | Qué se descarga de Amazon, Retail Link y el ERP, cada cuánto y en qué carpeta. |
