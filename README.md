@@ -8,7 +8,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 
 | Archivo o carpeta | Qué es |
 |---|---|
-| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.3): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon y el maestro. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
+| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.4): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon (con historial desde febrero de 2024) y el maestro. La v0.3 ya se probó en Power BI Desktop. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo de la versión nueva: reglas, fases, controles, carpetas y recetas de descarga. |
 | [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md) | Qué se descarga de Amazon, Retail Link y el ERP, cada cuánto y en qué carpeta. |
 | [`GUIA_VALIDACION.md`](GUIA_VALIDACION.md) | Cómo comprobar por tu cuenta cada cifra del reporte contra los archivos descargados, y la rutina diaria antes de enviar. |
@@ -19,4 +19,4 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix` | Reporte actual, tal como lo entregó el cliente. |
 | `Sell in/BD Sell In.xlsx` | Base de sell in y catálogos: productos, clientes y metas. |
 | `Inventario/Inventarios.xlsx` | Tabla de inventario que se llena a mano cada mes. |
-| `Ventas Amazon/` | Archivos mensuales de ventas de Amazon Vendor Central que lee el reporte actual (feb-2024 a sep-2026). |
+| `Ventas Amazon/` | Archivos mensuales de ventas de Amazon Vendor Central que lee el reporte actual (feb-2024 a sep-2026). Los 20 que son descargas completas del mes ya se copiaron a `Nueva versión/Amazon/Sell out`. |

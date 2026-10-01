@@ -101,6 +101,43 @@ Lo que se vio en las muestras:
 
 ---
 
+## Carga del historial (una sola vez)
+
+Para comparar con el año anterior, calcular la cobertura y mostrar la tendencia de 12 meses, el reporte necesita **historial de ventas**. El inventario no necesita historial: se acumula solo con las descargas de cada actualización.
+
+### Amazon: faltan 10 meses
+- **Ya están en `Amazon/Sell out`** los 20 meses que el analista anterior descargó completos: de febrero a diciembre de 2024 y de febrero a octubre de 2025.
+- **Hay que bajar de nuevo:** enero de 2025, noviembre y diciembre de 2025, y de enero a julio de 2026. Para cada uno:
+  - el **mes completo**, del día 1 al último;
+  - los ajustes de siempre;
+  - a la carpeta `Amazon/Sell out`.
+- **Por qué no sirven los archivos del analista para esos meses:** traen por dentro un rango de fechas que no corresponde al mes, porque se armaron a mano sobre un archivo viejo (ver B8 en `DIAGNOSTICO_REPORTE_ACTUAL.md`). El reporte los pondría en el mes equivocado.
+- **Cómo saber cuáles faltan:** la página Control los lista en «Meses sin ventas de Amazon». Cada mes que descargas desaparece de la lista; cuando queda en «Ninguno», terminaste.
+
+### Walmart: sell out desde enero de 2025
+- **Consulta:** la misma «Sell Out Act.», con detalle diario (*Daily*). Solo cambia el rango de *Pos Date*.
+- **Rango:**
+  - del **01/01/2025 al 21/09/2026**, porque la muestra ya cubre del 22 al 29/09;
+  - si Retail Link lo permite, empieza en el **01/10/2024**. Así el gráfico de 12 meses también tiene año anterior en todos sus meses.
+- **Un archivo por mes**, o por trimestre si Retail Link lo deja. Al reporte le da igual: junta todos y, si dos archivos repiten días, usa el más reciente. Por mes es más fácil repetir una descarga que falle.
+- **No uses el Excel consolidado del analista anterior:** tiene días pegados dos veces y días faltantes (error 4 del diagnóstico).
+- **Cómo comprobarlo:** en la página Control, «Días sin sell out Walmart» debe quedar en 0. Para cuadrar cada archivo, sigue el paso 2 de `GUIA_VALIDACION.md`.
+
+### Inventario: no descargues fechas pasadas por ahora
+- **Walmart:** la consulta «Inventario en Tiendas MX Act.» trae columnas *Curr* (*current*, es decir, actual). Con una fecha pasada, lo más probable es que traiga **el inventario de hoy con la fecha vieja**, y el reporte lo tomaría como si fuera de esa fecha.
+  - Si el jefe quiere el historial de cierres de mes, prueba primero: baja el 31/08/2026 y compáralo con el archivo del 29/09.
+  - Si las piezas son iguales, la consulta no sirve para historial y hay que buscar en Retail Link una columna de inventario histórico.
+- **Amazon:** es opcional. Si quieres llenar el gráfico «Inventario al cierre de cada mes», baja el inventario del **último día de cada mes**, de octubre de 2025 a agosto de 2026.
+
+### Orden sugerido
+1. Los 10 meses de Amazon: son 10 descargas.
+2. El sell out de Walmart, mes por mes.
+3. Opcional: los cierres de mes del inventario de Amazon.
+
+Con eso, el reporte queda listo para la fase de paralelo: comparar contra el reporte anterior y explicar cada diferencia (paso 6 de `GUIA_VALIDACION.md`).
+
+---
+
 ## Pendientes
 
 1. **Muestras del ERP:** sell in y kardex o inventario auxiliar.

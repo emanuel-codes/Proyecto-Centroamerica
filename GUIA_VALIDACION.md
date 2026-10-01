@@ -6,7 +6,7 @@
 
 Si las dos se cumplen, la cifra es correcta, aunque no coincida con el reporte anterior. Las diferencias con el reporte anterior se explican en el paso 6.
 
-Los valores de ejemplo de esta guía son los de las muestras de `Nueva versión/` (30/09/2026).
+Los valores de ejemplo de esta guía son los de las muestras de `Nueva versión/` (30/09/2026). Desde la v0.4 también está cargado el historial de Amazon de 2024 y 2025; donde eso cambia el resultado, se indica.
 
 > **Regla de oro: valida sobre una copia, fuera de `Nueva versión`.**
 > Copia el archivo a otra carpeta, por ejemplo `Documentos\Validaciones\`, y trabaja ahí.
@@ -120,7 +120,7 @@ SUMMARIZECOLUMNS (
 )
 ORDER BY dimCadena[Cadena], Calendario[Inicio_mes]
 ```
-Muestras:
+Muestras (con el historial de Amazon salen también los meses de 2024 y 2025):
 
 | Cadena | Mes | Piezas | Monto | Datos hasta |
 |---|---|---|---|---|
@@ -197,7 +197,7 @@ ROW (
     "Recship monto", [Pronóstico monto]
 )
 ```
-Muestras: 363 · 87,070.21 · 1,256 · 120,654.58 (agosto + septiembre) · 27,281 · 3,198 · 16,163 · 15,126 · 552 · 70,173.84.
+Muestras: 363 · 87,070.21 · 7,481 · 1,068,205.79 · 27,281 · 3,198 · 16,163 · 15,126 · 552 · 70,173.84. El total de Amazon suma todos los meses cargados: los 20 del historial más agosto y septiembre de 2026 (sin historial serían 1,256 · 120,654.58).
 
 **7. Una fila de Walmart.** Cambia la tienda y la fecha por las de la fila que elegiste en el archivo.
 ```
@@ -241,6 +241,7 @@ Si una diferencia no se explica con esta tabla, repite los pasos 2 y 3 para esa 
 1. **Página Control:**
    - semáforo en 🟢;
    - «Días sin sell out Walmart» en 0;
+   - «Meses sin ventas de Amazon» en «Ninguno»;
    - «Códigos sin homologar» en «Ninguno»;
    - fechas de «Datos al» de ayer.
 2. **Archivos leídos:** los archivos de hoy aparecen con «Usado = Sí».

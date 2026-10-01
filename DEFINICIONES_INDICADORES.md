@@ -82,6 +82,7 @@ Cada indicador trae tres cosas: la **definición propuesta**, **cómo lo calcula
 ### Sell out del año anterior
 - **Propuesta:** los mismos días del año anterior, igual que en Sell In. El corte es el último día con datos **de cada cadena**: si Walmart llega al 29/09 y Amazon al 28/09, Walmart se compara hasta el 29/09 del año anterior y Amazon hasta el 28/09.
 - **Amazon viene por mes.** Si el mes en curso está incompleto (por ejemplo, del 1 al 28 de septiembre), el mismo mes del año anterior se toma **en proporción a los días**: 28 de 30. Así no se compara un mes parcial contra uno completo, que haría ver una caída que no existe.
+- **Crecimiento comparable:** el crecimiento solo toma las cadenas que tienen datos cargados en el año anterior. Si Walmart todavía no tiene historial, se compara solo Amazon contra Amazon, y la tarjeta lo dice: «▲ 23.2 % (solo Amazon)». Sumar la venta de Walmart sin su año anterior inflaría el crecimiento.
 - **Por decidir:** si se acepta la proporción para Amazon, o si el mes en curso de Amazon no se compara hasta que cierre.
 
 ### Tiendas con venta (Walmart)

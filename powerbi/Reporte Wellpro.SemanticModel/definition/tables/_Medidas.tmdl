@@ -50,13 +50,45 @@ table _Medidas
 		formatString: "$"#,0
 		displayFolder: 1. Sell out
 
-	/// Crecimiento en piezas contra los mismos días del año anterior.
-	measure 'Crecimiento sell out piezas' = DIVIDE ( [Sell out piezas] - [Sell out piezas año anterior], [Sell out piezas año anterior] )
+	/// Verdadero si la cadena tiene datos cargados en los mismos días del año anterior (de cualquier producto). Sirve para no comparar una cadena que todavía no tiene historial.
+	measure 'Hay historial año anterior' =
+			VAR _ultimo = CALCULATE ( MAX ( fSellOut[Datos_hasta] ), REMOVEFILTERS ( Calendario ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
+			RETURN
+			    NOT ISBLANK ( _ultimo )
+			        && CALCULATE (
+			            COUNTROWS ( fSellOut ),
+			            SAMEPERIODLASTYEAR ( Calendario[Fecha] ),
+			            Calendario[Fecha] <= EDATE ( _ultimo, -12 ),
+			            REMOVEFILTERS ( dimProducto ),
+			            REMOVEFILTERS ( dimTienda )
+			        ) > 0
+		displayFolder: 1. Sell out
+
+	/// Sell out en piezas solo de las cadenas que tienen historial del año anterior. Es la base del crecimiento, para comparar lo mismo contra lo mismo.
+	measure 'Sell out piezas comparable' =
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    IF ( [Hay historial año anterior], [Sell out piezas] )
+			)
+		formatString: #,0
+		displayFolder: 1. Sell out
+
+	/// Sell out en monto solo de las cadenas que tienen historial del año anterior. Es la base del crecimiento, para comparar lo mismo contra lo mismo.
+	measure 'Sell out monto comparable' =
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    IF ( [Hay historial año anterior], [Sell out monto] )
+			)
+		formatString: "$"#,0
+		displayFolder: 1. Sell out
+
+	/// Crecimiento en piezas contra los mismos días del año anterior, solo con las cadenas que tienen historial.
+	measure 'Crecimiento sell out piezas' = DIVIDE ( [Sell out piezas comparable] - [Sell out piezas año anterior], [Sell out piezas año anterior] )
 		formatString: "▲ "0.0%;"▼ "0.0%;0.0%
 		displayFolder: 1. Sell out
 
-	/// Crecimiento en monto contra los mismos días del año anterior.
-	measure 'Crecimiento sell out monto' = DIVIDE ( [Sell out monto] - [Sell out monto año anterior], [Sell out monto año anterior] )
+	/// Crecimiento en monto contra los mismos días del año anterior, solo con las cadenas que tienen historial.
+	measure 'Crecimiento sell out monto' = DIVIDE ( [Sell out monto comparable] - [Sell out monto año anterior], [Sell out monto año anterior] )
 		formatString: "▲ "0.0%;"▼ "0.0%;0.0%
 		displayFolder: 1. Sell out
 
@@ -65,20 +97,34 @@ table _Medidas
 		formatString: 0.0%
 		displayFolder: 1. Sell out
 
-	/// Tarjeta: crecimiento en monto contra los mismos días del año anterior, con flecha. "Sin año anterior" si no hay datos para comparar.
+	/// Tarjeta: crecimiento en monto contra los mismos días del año anterior, con flecha. Si una cadena todavía no tiene historial, dice qué cadenas se compararon. "Sin año anterior" si no hay datos para comparar.
 	measure 'Texto vs año anterior monto' =
 			VAR _aa = [Sell out monto año anterior]
-			VAR _crec = DIVIDE ( [Sell out monto] - _aa, _aa )
+			VAR _crec = [Crecimiento sell out monto]
+			VAR _conVenta = FILTER ( VALUES ( dimCadena[Cadena] ), NOT ISBLANK ( [Sell out monto] ) )
+			VAR _sinHistorial = FILTER ( _conVenta, NOT [Hay historial año anterior] )
+			VAR _comparadas = CONCATENATEX ( FILTER ( _conVenta, [Hay historial año anterior] ), dimCadena[Cadena], " y " )
 			RETURN
-			    IF ( ISBLANK ( _aa ) || _aa = 0, "Sin año anterior", IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" ) )
+			    IF (
+			        ISBLANK ( _aa ) || _aa = 0, "Sin año anterior",
+			        IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" )
+			            & IF ( COUNTROWS ( _sinHistorial ) > 0, " (solo " & _comparadas & ")" )
+			    )
 		displayFolder: 1. Sell out
 
-	/// Tarjeta: crecimiento en piezas contra los mismos días del año anterior, con flecha. "Sin año anterior" si no hay datos para comparar.
+	/// Tarjeta: crecimiento en piezas contra los mismos días del año anterior, con flecha. Si una cadena todavía no tiene historial, dice qué cadenas se compararon. "Sin año anterior" si no hay datos para comparar.
 	measure 'Texto vs año anterior piezas' =
 			VAR _aa = [Sell out piezas año anterior]
-			VAR _crec = DIVIDE ( [Sell out piezas] - _aa, _aa )
+			VAR _crec = [Crecimiento sell out piezas]
+			VAR _conVenta = FILTER ( VALUES ( dimCadena[Cadena] ), NOT ISBLANK ( [Sell out piezas] ) )
+			VAR _sinHistorial = FILTER ( _conVenta, NOT [Hay historial año anterior] )
+			VAR _comparadas = CONCATENATEX ( FILTER ( _conVenta, [Hay historial año anterior] ), dimCadena[Cadena], " y " )
 			RETURN
-			    IF ( ISBLANK ( _aa ) || _aa = 0, "Sin año anterior", IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" ) )
+			    IF (
+			        ISBLANK ( _aa ) || _aa = 0, "Sin año anterior",
+			        IF ( _crec >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _crec ), "0.0%" )
+			            & IF ( COUNTROWS ( _sinHistorial ) > 0, " (solo " & _comparadas & ")" )
+			    )
 		displayFolder: 1. Sell out
 
 	/// Tiendas de Walmart que vendieron al menos una pieza en el periodo.
@@ -293,6 +339,27 @@ table _Medidas
 		formatString: #,0
 		displayFolder: 9. Control
 
+	/// Meses sin archivo de ventas de Amazon entre el primero y el último cargados.
+	measure 'Meses sin sell out Amazon' =
+			VAR _meses = CALCULATETABLE ( VALUES ( fSellOut[Fecha] ), fSellOut[Cadena] = "Amazon", REMOVEFILTERS () )
+			VAR _ini = MINX ( _meses, fSellOut[Fecha] )
+			VAR _fin = MAXX ( _meses, fSellOut[Fecha] )
+			RETURN
+			    IF ( ISBLANK ( _ini ), BLANK (), COUNTROWS ( EXCEPT ( FILTER ( CALENDAR ( _ini, _fin ), DAY ( [Date] ) = 1 ), _meses ) ) + 0 )
+		formatString: #,0
+		displayFolder: 9. Control
+
+	/// Lista de los meses sin archivo de ventas de Amazon, para saber qué descargar.
+	measure 'Meses faltantes Amazon' =
+			VAR _meses = CALCULATETABLE ( VALUES ( fSellOut[Fecha] ), fSellOut[Cadena] = "Amazon", REMOVEFILTERS () )
+			VAR _ini = MINX ( _meses, fSellOut[Fecha] )
+			VAR _fin = MAXX ( _meses, fSellOut[Fecha] )
+			VAR _faltan = EXCEPT ( FILTER ( CALENDAR ( _ini, _fin ), DAY ( [Date] ) = 1 ), _meses )
+			VAR _lista = CONCATENATEX ( _faltan, LOOKUPVALUE ( Calendario[Mes_año], Calendario[Fecha], [Date] ), ", ", [Date], ASC )
+			RETURN
+			    IF ( ISBLANK ( _ini ), BLANK (), IF ( COUNTROWS ( _faltan ) = 0, "Ninguno", _lista ) )
+		displayFolder: 9. Control
+
 	/// Filas cuyo código de cadena no está en la hoja Equivalencias del maestro.
 	measure 'Filas sin homologar' =
 			CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), ISBLANK ( fSellOut[Codigo_ERP] ) ) + 0
@@ -333,16 +400,19 @@ table _Medidas
 	measure 'Texto datos abasto' = "Walmart · órdenes hasta el " & IF ( ISBLANK ( [Datos al - fill rate Walmart] ), "sin datos", FORMAT ( [Datos al - fill rate Walmart], "dd/mm/yyyy" ) ) & "  ·  Recship del " & IF ( ISBLANK ( [Fecha del Recship] ), "sin datos", FORMAT ( [Fecha del Recship], "dd/mm/yyyy" ) )
 		displayFolder: 9. Control
 
-	/// Semáforo general: rojo si faltan días de sell out o hay códigos sin homologar; amarillo si el sell out de Walmart tiene más de 3 días.
+	/// Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan meses de Amazon o hay códigos sin homologar. Amarillo: el sell out de Walmart o de Amazon tiene más de 3 días.
 	measure 'Estado del reporte' =
-			VAR _problemas = [Días sin sell out Walmart] + [Filas sin homologar]
-			VAR _ultimo = [Datos al - sell out Walmart]
-			VAR _atraso = IF ( ISBLANK ( _ultimo ), 999, DATEDIFF ( _ultimo, TODAY (), DAY ) )
+			VAR _hoy = TODAY ()
+			VAR _atrasoWM = IF ( ISBLANK ( [Datos al - sell out Walmart] ), 999, DATEDIFF ( [Datos al - sell out Walmart], _hoy, DAY ) )
+			VAR _atrasoAMZ = IF ( ISBLANK ( [Datos al - sell out Amazon] ), 999, DATEDIFF ( [Datos al - sell out Amazon], _hoy, DAY ) )
 			RETURN
 			    SWITCH (
 			        TRUE (),
-			        _problemas > 0, "🔴 Revisar antes de enviar",
-			        _atraso > 3, "🟡 Sell out Walmart atrasado",
+			        [Días sin sell out Walmart] > 0, "🔴 Faltan días de sell out de Walmart",
+			        [Meses sin sell out Amazon] > 0, "🔴 Faltan meses de ventas de Amazon",
+			        [Filas sin homologar] > 0, "🔴 Hay códigos sin homologar",
+			        _atrasoWM > 3, "🟡 Sell out de Walmart atrasado",
+			        _atrasoAMZ > 3, "🟡 Ventas de Amazon atrasadas",
 			        "🟢 Listo para enviar"
 			    )
 		displayFolder: 9. Control

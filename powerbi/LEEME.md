@@ -1,4 +1,4 @@
-# Reporte Wellpro (versión nueva) — v0.3
+# Reporte Wellpro (versión nueva) — v0.4
 
 Proyecto de Power BI (`.pbip`) de la versión nueva.
 
@@ -17,10 +17,15 @@ Proyecto de Power BI (`.pbip`) de la versión nueva.
   | **Sell out** | Venta de Walmart y Amazon en monto y piezas, contra el año anterior. Por mes, por familia y cadena, por producto, y el diario de Walmart. |
   | **Inventario** | Inventario en las cadenas, venta promedio, cobertura y estado de cada producto; inventario al cierre de cada mes; tiendas de Walmart sin inventario que sí venden. |
   | **Abasto** | Fill rate de Walmart por mes y por producto, y los pedidos planeados del Recship. |
-  | **Control** | Semáforo, fecha de los datos de cada fuente, días faltantes, códigos sin homologar y lista de archivos leídos. **Revísala antes de enviar.** |
+  | **Control** | Semáforo con el motivo, fecha de los datos de cada fuente, días faltantes de Walmart, meses faltantes de Amazon, códigos sin homologar y lista de archivos leídos. **Revísala antes de enviar.** |
   | Revisión de datos | Oculta. Sirve para comprobar cifras en Power BI Desktop; no aparece en el reporte publicado. |
 
 Todavía **no** incluye el sell in ni el inventario del ERP (faltan sus muestras).
+
+**Novedades de la v0.4** (la v0.3 ya se probó en Power BI Desktop y sus cifras coinciden):
+- **Historial de Amazon:** se copiaron a `Nueva versión/Amazon/Sell out` los 20 meses que el analista anterior descargó completos (de febrero a diciembre de 2024 y de febrero a octubre de 2025). Los demás meses hay que bajarlos de nuevo: ver «Carga del historial» en `GUIA_DESCARGAS.md`.
+- **Crecimiento comparable:** el crecimiento contra el año anterior solo toma las cadenas que tienen historial. Mientras falte el de Walmart, la tarjeta dice «(solo Amazon)».
+- **Página Control:** avisa qué meses de ventas de Amazon faltan, y el semáforo dice el motivo.
 
 ## Cómo abrirlo
 
@@ -33,7 +38,7 @@ Todavía **no** incluye el sell in ni el inventario del ERP (faltan sus muestras
    `C:\Users\mpalacios\OneDrive - VISION MEDICA S.A\Documentos\Proyecto-Centroamerica-claude-confident-dijkstra-apgh2d\Nueva versión\`
 
    Si extraes el ZIP en otro lugar, cámbiala en **Inicio → Transformar datos → Editar parámetros**. Tiene que terminar en `\`.
-4. **Actualiza** con Inicio → Actualizar. Hazlo aunque ya lo hayas actualizado antes: la v0.3 agrega columnas nuevas al calendario.
+4. **Actualiza** con Inicio → Actualizar.
 5. **Revisa la página Control** y compara con las cifras de abajo.
 
 Si aparece un error, copia el mensaje completo, o toma una captura, y mándamelo.
@@ -48,27 +53,32 @@ Para comprobar cada cifra por tu cuenta contra los archivos descargados, sigue [
 - **Sell out por mes** muestra siempre los últimos 12 meses, sin importar el mes elegido.
 - **Abasto:** el filtro «Mes de la orden» solo afecta al fill rate. Sin elegir ninguno, usa todas las órdenes descargadas. Los pedidos planeados (Recship) no se filtran por mes.
 
-## Cifras esperadas con las muestras actuales
+## Cifras esperadas con los datos actuales
+
+Datos: las muestras de Walmart (del 22 al 29/09) y de Amazon (agosto y septiembre de 2026), más el historial de Amazon copiado.
 
 | Página | Qué | Valor esperado |
 |---|---|---|
-| Control | Estado del reporte | 🟢 Listo para enviar (con datos al 29/09) |
-| Control | Días sin sell out Walmart · Filas sin homologar | 0 · 0 |
+| Control | Estado del reporte | 🔴 Faltan meses de ventas de Amazon |
+| Control | Meses sin ventas de Amazon | Ene 2025, Nov 2025, Dic 2025, Ene 2026, Feb 2026, Mar 2026, Abr 2026, May 2026, Jun 2026, Jul 2026 |
+| Control | Días sin sell out Walmart · Filas sin homologar · Códigos sin homologar | 0 · 0 · Ninguno |
 | Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $147,182 (Walmart $87,070 del 22 al 29/09 + Amazon $60,112 del 1 al 28/09) |
 | Sell out («Mes actual») | Sell out (piezas) | 1,055 (Walmart 363 + Amazon 692) |
 | Sell out («Mes actual») | Tiendas de Walmart con venta | 260 |
-| Sell out | Monto y piezas vs año anterior | «Sin año anterior» hasta que se descargue el historial |
+| Sell out («Mes actual») | Monto vs año anterior | ▼ 9.8 % (solo Amazon) |
+| Sell out («Mes actual») | Piezas vs año anterior | ▲ 23.2 % (solo Amazon) |
 | Sell out, eligiendo «Ago 2026» | Sell out | Amazon: 564 piezas · $60,543 |
 | Inventario | Inventario (piezas) | 30,479 (Walmart 27,281 al 29/09 + Amazon 3,198 al 28/09) |
 | Abasto (sin elegir mes) | Fill rate | 93.6 % (15,126 de 16,163 piezas; 1,037 no surtidas) |
 | Abasto | Pedidos planeados | 552 piezas · $70,174 |
 
-**Con las muestras actuales es normal que:**
-- los gráficos por mes tengan solo agosto y septiembre, y el diario de Walmart solo del 22 al 29/09;
-- la venta promedio y la cobertura salgan en blanco o bajas: se calculan con los 3 últimos meses cerrados y todavía no hay historial;
-- no haya comparación con el año anterior.
+**De dónde sale la comparación de Amazon:** septiembre de 2025 tuvo 602 piezas y $71,387. Como el archivo de 2026 llega al día 28, se compara contra 28 de 30 días: 561.9 piezas y $66,628. Contra eso, septiembre de 2026 (692 piezas, $60,112) da ▲ 23.2 % en piezas y ▼ 9.8 % en monto.
 
-Todo eso se llena solo cuando se descargue el historial (sell out de Walmart y ventas de Amazon desde enero de 2025).
+**Mientras no se cargue el resto del historial es normal que:**
+- el semáforo esté en 🔴 por los meses de Amazon que faltan; se pone en 🟢 cuando los descargas;
+- el gráfico de 12 meses tenga huecos y el diario de Walmart solo vaya del 22 al 29/09;
+- la venta promedio y la cobertura de Amazon salgan bajas o altas: usan junio, julio y agosto de 2026, y faltan junio y julio;
+- el crecimiento diga «(solo Amazon)» porque Walmart todavía no tiene historial.
 
 ## Cómo está armado
 
