@@ -51,6 +51,7 @@ Como no abre el proyecto, no puede dañar el diseño del reporte por accidente.
 | 4 | Activar las alertas de la carpeta para Manuel | Manuel |
 | 5 | Una sesión de 1 hora con el otro analista: hace la rutina del manual con Manuel al lado | Los dos |
 | 6 | La primera semana, Manuel revisa la página Control cada día | Manuel |
+| 7 | Entregar el **manual en PDF**: cómo funciona el reporte y cómo se mantiene. Se arma al final con este plan, el manual de operación, las definiciones aprobadas y capturas del reporte. | Claude prepara, Manuel revisa |
 
 ## 5. Lo que hay que confirmar antes
 
