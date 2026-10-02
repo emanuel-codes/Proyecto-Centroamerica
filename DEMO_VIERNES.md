@@ -10,6 +10,17 @@
 5. **El viernes temprano, guarda capturas** de cada página como respaldo, por si algo falla en vivo.
 6. **Deja sin bajar el sell out de Walmart de ayer**, para descargarlo en vivo.
 
+## Apertura (1 minuto)
+
+> «Hoy les muestro la **primera versión** del reporte nuevo. Está completo para **Walmart y Amazon**. Falta el **sell in del ERP**, que es lo siguiente que voy a cargar en cuanto tenga el acceso.
+>
+> Para llegar aquí:
+> - **Reconstruí el historial completo:** dos años de sell out de Walmart, desde octubre de 2024, en 11 consultas de Retail Link (casi 200 mil filas), y 32 meses de ventas de Amazon. Tuve que volver a bajar 10 meses de Amazon, porque los archivos que existían estaban armados a mano.
+> - **Validé cada cifra contra los archivos originales:** cuadra **al peso**. Incluso encontré que Retail Link exporta las ventas sin decimales, y el reporte ahora lee el valor exacto.
+> - **Comparé contra el reporte actual:** coincide exacto donde los datos estaban bien, y encontré los errores que explican las diferencias: días repetidos, días faltantes y meses incompletos.
+>
+> Lo más importante es que la actualización ya no depende de copiar y pegar: se guardan las descargas y el reporte se revisa solo antes de enviarse.»
+
 ## Guion (15 minutos)
 
 | Min | Qué mostrar | Qué decir |
