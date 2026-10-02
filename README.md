@@ -10,6 +10,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 
 | Archivo o carpeta | Qué es |
 |---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Contexto y reglas para trabajar el proyecto con Claude Code en la computadora local (MCP de Power BI). |
 | [`MANUAL_OPERACION.md`](MANUAL_OPERACION.md) | Rutina diaria, semanal y mensual; qué hacer según la página Control; cómo dar de alta un producto nuevo. Para Manuel y el analista que lo reemplaza. |
 | [`DEMO_VIERNES.md`](DEMO_VIERNES.md) | Qué preparar y guion de la presentación del primer vistazo. |
 | [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md) | Resumen para presentar: errores del reporte actual, su impacto, su causa y cómo los evita la versión nueva. |
@@ -22,7 +23,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | [`DEFINICIONES_INDICADORES.md`](DEFINICIONES_INDICADORES.md) | Propuesta de definición de cada indicador, para aprobar con el jefe. |
 | [`DIAGNOSTICO_REPORTE_ACTUAL.md`](DIAGNOSTICO_REPORTE_ACTUAL.md) | Cómo funciona el reporte actual, qué pasos manuales exige y qué errores tiene, con cifras. |
 | [`analisis/reporte_actual/`](analisis/reporte_actual/) | Código extraído del `.pbix` actual: consultas de Power Query, medidas DAX, relaciones y páginas. |
-| `analisis/herramientas/` | Herramientas internas de Claude que generan el proyecto y el maestro. **No se ejecutan a mano.** |
+| `analisis/herramientas/` | Herramientas internas de Claude que generan el proyecto y el maestro. **No se ejecutan:** reescriben el proyecto completo y borrarían los cambios hechos en Power BI Desktop. |
 | `Analisis de Ventas Wellpro -V5.pbix respaldo.pbix` | Reporte actual, tal como lo entregó el cliente. |
 | `Sell in/BD Sell In.xlsx` | Base de sell in y catálogos: productos, clientes y metas. |
 | `Inventario/Inventarios.xlsx` | Tabla de inventario que se llena a mano cada mes. |
