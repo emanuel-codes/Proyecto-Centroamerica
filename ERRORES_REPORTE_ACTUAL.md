@@ -6,6 +6,21 @@ Resumen para presentar. El detalle y la forma de comprobar cada cifra están en 
 
 > **El mensaje principal:** los errores no son de la persona, son del proceso. El reporte exige copiar, pegar, renombrar y escribir reglas a mano todos los días. Así, cualquier analista se equivoca y nada avisa antes de enviar.
 
+## Para mostrar en vivo (en piezas)
+
+Compáralo en **piezas**: el reporte actual muestra el monto en dólares con tipo de cambio fijo de 20, y el nuevo en pesos.
+
+| Qué | Mes | Reporte actual | Reporte nuevo | Diferencia | Causa |
+|---|---|---|---|---|---|
+| Walmart | Noviembre 2025 | 1,827 | **1,391** | +436 (+31 %) | Del 1 al 10 de noviembre se pegaron dos veces |
+| Walmart | Septiembre 2025 | 1,429 | **1,701** | −272 (−16 %) | Los 30 días están incompletos. Además es el «año anterior» de septiembre 2026, así que el crecimiento actual sale inflado. |
+| Amazon | Diciembre 2025 | 489 | **577** | −88 (−15 %) | El mes se armó a mano y solo llega al 27/12 |
+| Walmart | Abril 2026 | 726 | **815** | −89 (−11 %) | Faltan el 14, el 27 y el 28 de abril |
+
+En pesos: noviembre 2025 de Walmart, $825,629 contra $629,395; diciembre 2025 de Amazon, $56,792 contra $69,879.
+
+Las cifras del reporte actual salen del respaldo del 21/09/2026.
+
 ## 1. Errores en las cifras
 
 Todos se comprobaron con los datos que tenía cargados el reporte (21/09/2026) o con descargas nuevas.

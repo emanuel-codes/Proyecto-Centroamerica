@@ -33,6 +33,12 @@
 | 1 | Página **Control** y el maestro | Si algo falta, o llega un producto nuevo, el semáforo lo dice antes de enviar. Un producto nuevo se da de alta en el maestro, en 2 filas. |
 | 1 | — | Siguientes pasos (abajo). |
 
+## Errores para mostrar en vivo
+
+Están en [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md), sección «Para mostrar en vivo».
+- **Reporte actual:** página Sell Out → botón Walmart o Amazon → **Piezas** → pasa el mouse sobre el mes en «Tendencia de Venta por Mes». Para ver 2025, amplía el filtro «Rango de Fechas», por ejemplo a los últimos 13 meses.
+- **Reporte nuevo:** página Sell out → Mes = ese mes → Cadena = Walmart o Amazon → tarjeta «Sell out (piezas)».
+
 ## Siguientes pasos que presentas
 
 1. **Sell in del ERP:** falta el acceso para bajar la muestra.
