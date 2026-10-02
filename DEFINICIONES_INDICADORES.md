@@ -136,6 +136,8 @@ Propuesta de umbrales, a confirmar:
 
 **Por decidir:** los umbrales, y si son iguales para las dos cadenas.
 
+**Productos nuevos:** un producto que empezó a venderse hace menos de 3 meses sale «⚪ Sin rotación», porque no tiene venta en los 3 meses cerrados. Le pasa al Termómetro Osito en Walmart, que empezó a venderse en septiembre de 2026. **Por decidir:** si para los productos nuevos se usa el promedio de los meses que sí tienen venta.
+
 **Conteos de la página Inventario** (productos en riesgo, sin inventario y con sobre stock): se cuenta cada producto **en cada cadena**. Un producto en riesgo en Walmart y en Amazon cuenta 2, igual que en la tabla, donde aparece una vez por cadena.
 
 ---

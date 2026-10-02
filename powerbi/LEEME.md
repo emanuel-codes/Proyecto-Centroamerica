@@ -56,30 +56,37 @@ Para comprobar cada cifra por tu cuenta contra los archivos descargados, sigue [
 
 ## Cifras esperadas con los datos actuales
 
-Datos: las muestras de Walmart (del 22 al 29/09) y el historial completo de Amazon, de febrero de 2024 al 28/09/2026.
+Datos del repositorio: el historial completo de Walmart (del 01/10/2024 al 29/09/2026) y de Amazon (de febrero de 2024 al 28/09/2026). Si ya bajaste días más recientes, tus cifras del mes actual serán mayores.
 
 | Página | Qué | Valor esperado |
 |---|---|---|
 | Control | Estado del reporte | 🟢 Listo para enviar (mientras los datos tengan 3 días o menos) |
-| Control | Meses de Amazon por descargar | Ninguno |
-| Control | Archivos leídos | Todos con «Usado = Sí» |
-| Control | Días sin sell out Walmart · Filas sin homologar · Códigos sin homologar | 0 · 0 · Ninguno |
-| Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $147,182 (Walmart $87,070 del 22 al 29/09 + Amazon $60,112 del 1 al 28/09) |
-| Sell out («Mes actual») | Sell out (piezas) | 1,055 (Walmart 363 + Amazon 692) |
-| Sell out («Mes actual») | Tiendas de Walmart con venta | 260 |
-| Sell out («Mes actual») | Monto vs año anterior | ▼ 9.8 % (solo Amazon) |
-| Sell out («Mes actual») | Piezas vs año anterior | ▲ 23.2 % (solo Amazon) |
-| Sell out, eligiendo «Ago 2026» | Sell out | Amazon: 564 piezas · $60,543 |
+| Control | Días sin sell out Walmart · Meses de Amazon por descargar · Códigos sin homologar | 0 · Ninguno · Ninguno |
+| Sell out («Mes actual» = septiembre 2026) | Sell out (MXN) | $335,146 (Walmart $275,034 del 1 al 29/09 + Amazon $60,112 del 1 al 28/09) |
+| Sell out («Mes actual») | Sell out (piezas) | 1,982 (Walmart 1,290 + Amazon 692) |
+| Sell out («Mes actual») | Tiendas de Walmart con venta | 576 |
+| Sell out («Mes actual») | Monto vs año anterior | ▼ 38.9 % |
+| Sell out («Mes actual») | Piezas vs año anterior | ▼ 9.5 % |
 | Inventario | Inventario (piezas) | 30,479 (Walmart 27,281 al 29/09 + Amazon 3,198 al 28/09) |
+| Inventario | Venta promedio mensual (piezas) | 1,690 (Walmart 1,149 + Amazon 541; junio a agosto de 2026) |
+| Inventario | Cobertura (meses) | 18.0 (Walmart 23.7 · Amazon 5.9) |
 | Abasto (sin elegir mes) | Fill rate | 93.6 % (15,126 de 16,163 piezas; 1,037 no surtidas) |
 | Abasto | Pedidos planeados | 552 piezas · $70,174 |
 
-**De dónde sale la comparación de Amazon:** septiembre de 2025 tuvo 602 piezas y $71,387. Como el archivo de 2026 llega al día 28, se compara contra 28 de 30 días: 561.9 piezas y $66,628. Contra eso, septiembre de 2026 (692 piezas, $60,112) da ▲ 23.2 % en piezas y ▼ 9.8 % en monto.
+**De dónde sale la comparación con el año anterior:**
+- Walmart: del 1 al 29 de septiembre de 2025 fueron 1,629 piezas y $482,042.
+- Amazon: septiembre de 2025 en proporción a 28 de 30 días, 561.9 piezas y $66,628.
+- Total: 2,190.9 piezas y $548,670. Contra eso, septiembre de 2026 da ▼ 9.5 % en piezas y ▼ 38.9 % en monto.
 
-**Mientras no se cargue el historial de Walmart es normal que:**
-- el crecimiento diga «(solo Amazon)»;
-- el gráfico de 12 meses y el diario de Walmart solo tengan del 22 al 29/09 para Walmart;
-- la venta promedio y la cobertura de Walmart salgan en blanco.
+**Cobertura de Walmart por producto** (inventario al 29/09 ÷ venta promedio de junio a agosto):
+
+| Producto | Inventario | Venta promedio | Cobertura |
+|---|---|---|---|
+| Termómetro Koala | 12 | 127 | **0.1 meses: riesgo de quiebre** |
+| Termómetro Panda | 18,846 | 796 | 23.7 meses |
+| Nebulizador Familiar | 3,573 | 143 | 24.9 meses |
+| Nebulizador Elefante Azul | 3,660 | 82 | 44.5 meses |
+| Termómetro Osito | 1,190 | — | Sin venta de junio a agosto: empezó a venderse en septiembre |
 
 ## Cómo está armado
 

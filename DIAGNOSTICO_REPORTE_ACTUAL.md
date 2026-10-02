@@ -147,6 +147,12 @@ Cada paso es una oportunidad de error. Varios de los errores de la sección 5 so
   - El 27 de agosto de 2026, el 84 %.
 - Faltan **14 días de 2026**: 06/01, 15/01, 03/02, 23/03, 14/04, 27/04, 28/04, 20/05, 25/05, 28/05, 11/06, 12/06, 16/06 y 12/08. Con una venta diaria típica de 10–13 mil MXN, faltan unos **140–180 mil MXN**, alrededor del 5 % de 2026.
 - **Corrección:** leer las descargas directamente de una carpeta, sin consolidado manual, y eliminar duplicados por llave (día + tienda + artículo). Agregar una alerta de días faltantes.
+- **Comprobado con las descargas nuevas (02/10/2026)**, del 01/10/2024 al 20/09/2026, el último día del reporte actual:
+  - de octubre de 2024 a agosto de 2025, el reporte actual coincide exactamente, al peso;
+  - **de más:** 203,270 MXN y 471 piezas en 12 días (del 1 al 10 de noviembre de 2025, y el 27 y 30 de agosto de 2026);
+  - **días completos faltantes:** 191,566 MXN y 540 piezas en los 14 días de 2026 ya listados;
+  - **días incompletos:** 129,981 MXN y 517 piezas en 120 días, de septiembre de 2025 a septiembre de 2026. Todo septiembre de 2025 trae menos venta (−31,170 MXN) y el 21/12/2025 solo tiene un artículo (−34,747 MXN);
+  - **neto:** el reporte actual muestra 118,278 MXN y 586 piezas menos de lo real. Por mes el error es mayor: +31 % en noviembre de 2025, −8.6 % en enero de 2026 y −6.2 % en septiembre de 2025.
 
 **A5. La clasificación de cobertura se contradice con los meses de inventario.**
 
