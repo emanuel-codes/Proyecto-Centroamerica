@@ -21,7 +21,7 @@ El detalle de cada descarga (ajustes de Amazon y consultas de Retail Link) está
 | 3 | Amazon ventas | Del día 1 al último día que Amazon deja ver (va 2 días atrás), dentro del mes de ese día. Ejemplo: si el último es el 29/09, del 01/09 al 29/09; si es el 01/10, del 01/10 al 01/10. | `Amazon/Sell out` |
 | 4 | Amazon inventario | El último día que Amazon deja ver | `Amazon/Inventarios` |
 
-5. Abre el reporte → **Inicio → Actualizar**.
+5. Abre el reporte → **Inicio → Actualizar**. Tarda unos 4 minutos.
 6. Revisa la página **Control**: semáforo en 🟢 y fechas de «Datos al» de ayer.
 7. Envía o publica.
 
