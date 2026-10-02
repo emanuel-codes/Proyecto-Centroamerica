@@ -68,21 +68,47 @@ expression fnNumero =
 
 	annotation PBI_ResultType = Function
 
-/// Función: lee un archivo de Retail Link tal como se descarga.
+/// Función: convierte el texto de una celda del XML de Excel en texto normal.
+expression fnXmlTexto =
+		// Convierte el texto de una celda del XML de Excel en texto normal (&amp; -> &, etc.)
+		(t as nullable text) as nullable text =>
+		    if t = null then null
+		    else Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(t,
+		        "&lt;", "<"), "&gt;", ">"), "&quot;", """"), "&apos;", "'"), "&amp;", "&")
+
+	annotation PBI_ResultType = Function
+
+/// Función: lee un archivo de Retail Link tal como se descarga (las opciones del reporte, directo del XML).
 expression fnRetailLink =
 		// Lee un archivo de Retail Link tal como se descarga.
 		// Devuelve el nombre del reporte, la fecha y hora de la solicitud, el rango de fechas consultado y la tabla de datos.
 		(contenido as binary) as record =>
 		let
+		    // Opciones del reporte (nombre, solicitud y rango): se leen del principio del XML de la hoja.
+		    // Es casi instantáneo; abrir la hoja con Excel solo para esto obligaba a leer el archivo completo.
+		    TextosXml = try
+		        let
+		            Hoja = fnZipArchivo(contenido, "xl/worksheets/sheet1.xml"),
+		            Inicio = try Binary.Range(Hoja, 0, 300000) otherwise Hoja,
+		            Texto = Text.FromBinary(Inicio, TextEncoding.Utf8),
+		            Textos = List.Transform(List.Skip(Text.Split(Texto, "<t"), 1),
+		                each fnXmlTexto(Text.BeforeDelimiter(Text.AfterDelimiter(_, ">"), "</t>"))),
+		            // Hasta la fila de encabezados (todas las consultas de Retail Link traen la columna Item Nbr)
+		            Previos = List.FirstN(Textos, each _ <> "Item Nbr")
+		        in
+		            Previos
+		        otherwise null,
+		    // La hoja con Excel solo se abre para los datos (o si no se pudo leer el XML)
 		    Libro = Excel.Workbook(contenido, null, true),
 		    // Primera hoja del libro (algunos archivos no traen la columna Kind en la lista de hojas)
 		    Hojas = if Table.HasColumns(Libro, "Kind") then Table.SelectRows(Libro, each [Kind] = "Sheet") else Libro,
 		    Hoja = Hojas{0}[Data],
-		    // Solo las primeras filas: ahí están las opciones y los encabezados (no se recorre todo el archivo)
+		    // Solo las primeras filas: ahí están las opciones y los encabezados
 		    Filas = Table.ToRows(Table.FirstN(Hoja, 200)),
 		    // La fila de encabezados es la primera con 5 o más celdas llenas; antes vienen las opciones del reporte
 		    PosEncabezado = List.PositionOf(List.Transform(Filas, each List.Count(List.RemoveNulls(_)) >= 5), true),
-		    TextosPrevios = List.Transform(List.RemoveNulls(List.Combine(List.FirstN(Filas, PosEncabezado))), Text.From),
+		    TextosExcel = List.Transform(List.RemoveNulls(List.Combine(List.FirstN(Filas, PosEncabezado))), Text.From),
+		    TextosPrevios = if TextosXml <> null and List.Count(TextosXml) > 0 then TextosXml else TextosExcel,
 		    Reporte = Text.Trim(TextosPrevios{0}),
 		    // "Requested 114402242: (MX)  2026 09 30, 16:42"
 		    TextoSolicitud = List.First(List.Select(TextosPrevios, each Text.Contains(_, "Requested")), null),
