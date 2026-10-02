@@ -19,6 +19,11 @@ Compáralo en **piezas**: el reporte actual muestra el monto en dólares con tip
 
 En pesos: noviembre 2025 de Walmart, $825,629 contra $629,395; diciembre 2025 de Amazon, $56,792 contra $69,879.
 
+**El filtro de fechas del reporte actual:** viene en «Último 9 Meses», contados por día desde hoy. Por eso enero empieza el día 3 y aparece una barra de «octubre» con solo 3 días del año anterior. Las tarjetas «Total Anterior» y «Total Actual» comparan periodos de distinto largo y arrastran los días faltantes:
+- **Reporte actual:** 10,258 contra 10,270, es decir, Walmart va **igual que el año pasado** (+0.1 %).
+- **Reporte nuevo:** con los datos completos y los mismos días (del 1 de enero al 29 de septiembre), son 10,467 contra 11,046, es decir, **+5.5 %**. Para verlo: Mes = de Ene 2026 a «Mes actual» (con Ctrl) y Cadena = Walmart; la tarjeta «Piezas vs año anterior» da ▲ 5.5 %.
+- **Para ver 2025 en el reporte actual:** cambia el filtro a «Último 13 Meses (calendario)». Muestra de septiembre 2025 a septiembre 2026, con meses completos.
+
 Las cifras del reporte actual salen del respaldo del 21/09/2026.
 
 ## 1. Errores en las cifras
