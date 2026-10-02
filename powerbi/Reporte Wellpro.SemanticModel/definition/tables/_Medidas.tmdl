@@ -374,6 +374,11 @@ table _Medidas
 			    )
 		displayFolder: 9. Control
 
+	/// Filas de sell out de Walmart cuyo monto no se pudo leer exacto y quedó redondeado al peso. Debe ser 0.
+	measure 'Ventas de Walmart con monto redondeado' = CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), fSellOut[Monto_redondeado] = TRUE () ) + 0
+		formatString: #,0
+		displayFolder: 9. Control
+
 	/// Filas cuyo código de cadena no está en la hoja Equivalencias del maestro.
 	measure 'Filas sin homologar' =
 			CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), ISBLANK ( fSellOut[Codigo_ERP] ) ) + 0
@@ -414,7 +419,7 @@ table _Medidas
 	measure 'Texto datos abasto' = "Walmart · órdenes hasta el " & IF ( ISBLANK ( [Datos al - fill rate Walmart] ), "sin datos", FORMAT ( [Datos al - fill rate Walmart], "dd/mm/yyyy" ) ) & "  ·  Recship del " & IF ( ISBLANK ( [Fecha del Recship] ), "sin datos", FORMAT ( [Fecha del Recship], "dd/mm/yyyy" ) )
 		displayFolder: 9. Control
 
-	/// Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan o están incompletos meses de Amazon, o hay códigos sin homologar. Amarillo: el sell out o el inventario de Walmart o de Amazon tiene más de 3 días.
+	/// Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan o están incompletos meses de Amazon, o hay códigos sin homologar. Amarillo: el sell out o el inventario de Walmart o de Amazon tiene más de 3 días, o hay montos de Walmart que no se pudieron leer con decimales.
 	measure 'Estado del reporte' =
 			VAR _hoy = TODAY ()
 			VAR _atrasoWM = IF ( ISBLANK ( [Datos al - sell out Walmart] ), 999, DATEDIFF ( [Datos al - sell out Walmart], _hoy, DAY ) )
@@ -432,6 +437,7 @@ table _Medidas
 			        _atrasoAMZ > 3, "🟡 Ventas de Amazon atrasadas",
 			        _atrasoInvWM > 3, "🟡 Inventario de Walmart atrasado",
 			        _atrasoInvAMZ > 3, "🟡 Inventario de Amazon atrasado",
+			        [Ventas de Walmart con monto redondeado] > 0, "🟡 Montos de Walmart sin decimales",
 			        "🟢 Listo para enviar"
 			    )
 		displayFolder: 9. Control

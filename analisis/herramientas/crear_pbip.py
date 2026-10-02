@@ -153,6 +153,69 @@ in
     [Desde = Desde, Hasta = Hasta, Actualizado = Actualizado, Datos = Datos]
 '''
 
+M['fnZipArchivo'] = '''
+// Devuelve, descomprimido, un archivo de dentro de un .xlsx (un .xlsx es un ZIP).
+// Lee el directorio central del ZIP, así que sirve aunque el archivo use descriptores de datos.
+(zip as binary, nombre as text) as binary =>
+let
+    Z = Binary.Buffer(zip),
+    Bytes = (pos as number, n as number) as list => Binary.ToList(Binary.Range(Z, pos, n)),
+    U16 = (pos as number) as number => let b = Bytes(pos, 2) in b{0} + b{1} * 256,
+    U32 = (pos as number) as number => let b = Bytes(pos, 4) in b{0} + b{1} * 256 + b{2} * 65536 + b{3} * 16777216,
+    // Fin del directorio central: los últimos 22 bytes (los archivos de Retail Link no traen comentario)
+    Fin = Binary.Length(Z) - 22,
+    Firma = Bytes(Fin, 4) = {80, 75, 5, 6},
+    Total = U16(Fin + 10),
+    Inicio = U32(Fin + 16),
+    Entradas = List.Generate(
+        () => [pos = Inicio, i = 0],
+        each [i] < Total,
+        each [pos = [pos] + 46 + U16([pos] + 28) + U16([pos] + 30) + U16([pos] + 32), i = [i] + 1],
+        each [
+            Nombre = Text.FromBinary(Binary.Range(Z, [pos] + 46, U16([pos] + 28)), TextEncoding.Utf8),
+            Metodo = U16([pos] + 10),
+            Comprimido = U32([pos] + 20),
+            Local = U32([pos] + 42)]),
+    Entrada = List.First(List.Select(Entradas, each [Nombre] = nombre)),
+    L = Entrada[Local],
+    Datos = Binary.Range(Z, L + 30 + U16(L + 26) + U16(L + 28), Entrada[Comprimido])
+in
+    if not Firma then error "No se encontró el directorio del archivo"
+    else if Entrada[Metodo] = 0 then Datos
+    else Binary.Decompress(Datos, Compression.Deflate)
+'''
+
+M['fnColumnaExacta'] = '''
+// Lee directo del archivo los valores exactos de una columna numérica de Retail Link.
+// Hace falta porque Excel.Workbook entrega el texto con formato: POS Sales viene como "$109" en lugar de 108.62.
+// Devuelve un valor por cada fila debajo del encabezado, en el mismo orden del archivo.
+(contenido as binary, encabezado as text) as list =>
+let
+    Xml = Text.FromBinary(fnZipArchivo(contenido, "xl/worksheets/sheet1.xml"), TextEncoding.Utf8),
+    PosEncabezado = Text.PositionOf(Xml, "<t>" & encabezado & "</t>", Occurrence.Last),
+    // Celda del encabezado, por ejemplo T24: columna T, fila 24
+    Previo = Text.Middle(Xml, PosEncabezado - 120, 120),
+    Referencia = Text.BeforeDelimiter(Text.AfterDelimiter(Previo, "<c r=""", {0, RelativePosition.FromEnd}), """"),
+    Letra = Text.Select(Referencia, {"A".."Z"}),
+    FilaEncabezado = Number.From(Text.Select(Referencia, {"0".."9"})),
+    Marca = "<c r=""" & Letra,
+    Posiciones = Text.PositionOf(Xml, Marca, Occurrence.All),
+    Celdas = List.Transform(Posiciones, (p) =>
+        let
+            s = Text.Middle(Xml, p + Text.Length(Marca), 90),
+            FilaTxt = Text.BeforeDelimiter(s, """"),
+            Cabecera = Text.BeforeDelimiter(s, ">"),
+            Contenido = Text.BeforeDelimiter(Text.AfterDelimiter(s, ">"), "</c>")
+        in
+            [Fila = if FilaTxt <> "" and Text.Select(FilaTxt, {"0".."9"}) = FilaTxt then Number.From(FilaTxt) else -1,
+             Valor = if Text.EndsWith(Cabecera, "/") or not Text.Contains(Contenido, "<v>") then null
+                 else Number.FromText(Text.BetweenDelimiters(Contenido, "<v>", "</v>"), "en-US")]),
+    Datos = List.Select(Celdas, each [Fila] > FilaEncabezado)
+in
+    if PosEncabezado < 0 then error "No se encontró el encabezado " & encabezado
+    else List.Transform(Datos, each [Valor])
+'''
+
 M['Maestro'] = '''
 let
     // Maestro_Wellpro.xlsx, dentro de la carpeta Maestros de RutaDatos
@@ -241,9 +304,15 @@ let
     Filas = Table.Combine(List.Transform(Table.ToRecords(Usados), (a) =>
         let
             Dias = List.Buffer(a[Dias_usados]),
-            Columnas = Table.SelectColumns(a[R][Datos], {"Daily", "Item Nbr", "Store Nbr", "Vendor Stk Nbr", "Signing Desc",
-                "Sales Description", "POS Qty", "POS Sales", "POS Cost"}, MissingField.UseNull),
-            Datos = Table.TransformColumns(Columnas, {{"Daily", fnFechaAMD, type nullable date}})
+            Columnas = Table.Buffer(Table.SelectColumns(a[R][Datos], {"Daily", "Item Nbr", "Store Nbr", "Vendor Stk Nbr", "Signing Desc",
+                "Sales Description", "POS Qty", "POS Sales", "POS Cost"}, MissingField.UseNull)),
+            // Montos exactos leídos directo del archivo (Excel.Workbook los entrega redondeados, por ejemplo "$109").
+            // Si no se pueden leer, o no hay el mismo número de filas, se usan los redondeados y la página Control avisa.
+            Exactos = try List.Buffer(fnColumnaExacta(a[Content], "POS Sales")) otherwise null,
+            ConExacto = if Exactos <> null and List.Count(Exactos) = Table.RowCount(Columnas)
+                then Table.FromColumns(Table.ToColumns(Columnas) & {Exactos}, Table.ColumnNames(Columnas) & {"POS Sales exacto"})
+                else Table.AddColumn(Columnas, "POS Sales exacto", each null),
+            Datos = Table.TransformColumns(ConExacto, {{"Daily", fnFechaAMD, type nullable date}})
         in
             Table.SelectRows(Datos, each List.Contains(Dias, [Daily])))),
     Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Daily] <> null),
@@ -255,15 +324,20 @@ let
         {"Sales Description", each Text.From(_), type text},
         {"POS Qty", fnNumero, type number},
         {"POS Sales", fnNumero, type number},
-        {"POS Cost", fnNumero, type number}})
+        {"POS Cost", fnNumero, type number}}),
+    // El monto exacto se usa solo si, redondeado al peso, da lo mismo que el valor de Excel.Workbook: así se comprueba fila por fila
+    Comprobado = Table.AddColumn(Tipado, "Monto_redondeado", each
+        let e = [POS Sales exacto], r = [POS Sales] in
+            not (e <> null and r <> null and (e = r or Number.Round(e, 0, RoundingMode.AwayFromZero) = r)), type logical),
+    Final = Table.AddColumn(Comprobado, "Monto_final", each if [Monto_redondeado] then [POS Sales] else [POS Sales exacto], type number)
 in
-    Tipado
+    Final
 '''
 
 M['WM_SellOut'] = '''
 let
     // Cada día ya viene de un solo archivo (ver WM_SellOut_Archivos)
-    ConMovimiento = Table.SelectRows(WM_SellOut_Filas, each [POS Qty] <> 0 or [POS Sales] <> 0),
+    ConMovimiento = Table.SelectRows(WM_SellOut_Filas, each [POS Qty] <> 0 or [Monto_final] <> 0),
     // Homologación: número de artículo de Walmart -> código del ERP (hoja Equivalencias del maestro).
     // Si no está, se usa Vendor Stk Nbr cuando coincide con un código del ERP.
     Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
@@ -272,13 +346,14 @@ let
     ConCodigo = Table.AddColumn(Unido, "Codigo_ERP",
         each if [Codigo_eq] <> null then [Codigo_eq] else if List.Contains(Codigos, [Vendor Stk Nbr]) then [Vendor Stk Nbr] else null, type nullable text),
     // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
-    B = Table.Buffer(Table.SelectColumns(ConCodigo, {"Daily", "Codigo_ERP", "Item Nbr", "Signing Desc", "Store Nbr", "Sales Description", "POS Qty", "POS Sales", "POS Cost"})),
+    B = Table.Buffer(Table.SelectColumns(ConCodigo, {"Daily", "Codigo_ERP", "Item Nbr", "Signing Desc", "Store Nbr", "Sales Description", "POS Qty", "Monto_final", "POS Cost", "Monto_redondeado"})),
     Salida = Table.FromColumns({
         B[Daily], B[Daily], List.Repeat({"Walmart"}, Table.RowCount(B)), B[Codigo_ERP],
         B[Item Nbr], B[Signing Desc], B[Store Nbr], B[Sales Description],
-        B[POS Qty], B[POS Sales], B[POS Cost]},
+        B[POS Qty], B[Monto_final], B[POS Cost], B[Monto_redondeado]},
         type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
-            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
+            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number,
+            Monto_redondeado = logical])
 in
     Salida
 '''
@@ -321,9 +396,10 @@ let
     Salida = Table.FromColumns({
         UnidoB[Mes], UnidoB[Datos_hasta], List.Repeat({"Amazon"}, N), UnidoB[Codigo_ERP],
         UnidoB[ASIN], UnidoB[#"Título del Producto"], List.Repeat({null}, N), List.Repeat({"Regular"}, N),
-        UnidoB[Unidades pedidas], UnidoB[Ganancia por pedidos], List.Repeat({null}, N)},
+        UnidoB[Unidades pedidas], UnidoB[Ganancia por pedidos], List.Repeat({null}, N), List.Repeat({false}, N)},
         type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
-            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
+            Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number,
+            Monto_redondeado = logical])
 in
     Salida
 '''
@@ -654,7 +730,7 @@ COLS = {
  'sMetrica': [('Metrica', S, 'sortOrden'), ('Orden', I, 'hidden')],
  'dimProducto': [('Codigo_ERP', S, None), ('Producto', S, None), ('Familia', S, None), ('Marca', S, None), ('EAN', S, None), ('ASIN', S, None), ('Item_Walmart', S, None), ('Lead_time_meses', D, 'nosum'), ('Stock_seguridad', D, 'nosum'), ('Activo', S, None), ('Estado', S, None)],
  'dimTienda': [('Tienda_Nbr', I, 'nosum'), ('Tienda', S, None), ('Ciudad', S, None), ('Tienda_etiqueta', S, None)],
- 'fSellOut': [('Fecha', DT, None), ('Datos_hasta', DT, None), ('Cadena', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('Descripcion_cadena', S, None), ('Tienda_Nbr', I, 'nosum'), ('Tipo_venta', S, None), ('Piezas', D, 'sum'), ('Monto', D, 'sum'), ('Costo', D, 'sum')],
+ 'fSellOut': [('Fecha', DT, None), ('Datos_hasta', DT, None), ('Cadena', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('Descripcion_cadena', S, None), ('Tienda_Nbr', I, 'nosum'), ('Tipo_venta', S, None), ('Piezas', D, 'sum'), ('Monto', D, 'sum'), ('Costo', D, 'sum'), ('Monto_redondeado', B, 'hidden')],
  'fInventarioCadena': [('Fecha', DT, None), ('Cadena', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('Tienda_Nbr', I, 'nosum'), ('Piezas_disponibles', D, 'nosum'), ('Piezas_transito', D, 'nosum'), ('Piezas_CEDIS', D, 'nosum'), ('Piezas_en_pedido', D, 'nosum'), ('Piezas_no_aptas', D, 'nosum'), ('Monto_disponible', D, 'nosum')],
  'fFillRate': [('Cadena', S, None), ('Orden', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('Fecha_orden', DT, None), ('Fecha_envio', DT, None), ('Fecha_cancelacion', DT, None), ('Piezas_ordenadas', D, 'sum'), ('Piezas_recibidas', D, 'sum'), ('Costo_unitario', D, 'nosum')],
  'fRecship': [('Cadena', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('CEDIS', S, None), ('Fecha_creacion', DT, None), ('Fecha_pedido', DT, None), ('Fecha_recepcion', DT, None), ('Piezas', D, 'sum'), ('Costo_pieza', D, 'nosum'), ('Monto', D, 'sum')],
@@ -913,6 +989,8 @@ RETURN
         )
     )''', None, '9. Control',
     'Meses de Amazon por descargar: los que faltan y los cerrados que quedaron incompletos.')
+med('Ventas de Walmart con monto redondeado', 'CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), fSellOut[Monto_redondeado] = TRUE () ) + 0', '#,0', '9. Control',
+    'Filas de sell out de Walmart cuyo monto no se pudo leer exacto y quedó redondeado al peso. Debe ser 0.')
 med('Filas sin homologar', '''
 CALCULATE ( COUNTROWS ( fSellOut ), REMOVEFILTERS (), ISBLANK ( fSellOut[Codigo_ERP] ) ) + 0
     + CALCULATE ( COUNTROWS ( fInventarioCadena ), REMOVEFILTERS (), ISBLANK ( fInventarioCadena[Codigo_ERP] ) ) + 0
@@ -955,9 +1033,10 @@ RETURN
         _atrasoAMZ > 3, "🟡 Ventas de Amazon atrasadas",
         _atrasoInvWM > 3, "🟡 Inventario de Walmart atrasado",
         _atrasoInvAMZ > 3, "🟡 Inventario de Amazon atrasado",
+        [Ventas de Walmart con monto redondeado] > 0, "🟡 Montos de Walmart sin decimales",
         "🟢 Listo para enviar"
     )''', None, '9. Control',
-    'Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan o están incompletos meses de Amazon, o hay códigos sin homologar. Amarillo: el sell out o el inventario de Walmart o de Amazon tiene más de 3 días.')
+    'Semáforo general con el motivo. Rojo: faltan días de Walmart, faltan o están incompletos meses de Amazon, o hay códigos sin homologar. Amarillo: el sell out o el inventario de Walmart o de Amazon tiene más de 3 días, o hay montos de Walmart que no se pudieron leer con decimales.')
 
 # ---------------------------------------------------------------- escribir TMDL
 def tabla_tmdl(nombre):
@@ -1017,6 +1096,8 @@ DESC_EXP = {
  'fnNumero': 'Función: número en texto con punto decimal a número.',
  'fnRetailLink': 'Función: lee un archivo de Retail Link tal como se descarga.',
  'fnAmazon': 'Función: lee un archivo de Amazon Vendor Central tal como se descarga.',
+ 'fnZipArchivo': 'Función: saca y descomprime un archivo de dentro de un .xlsx.',
+ 'fnColumnaExacta': 'Función: lee directo del .xlsx los valores exactos de una columna de Retail Link (POS Sales viene con formato sin decimales).',
  'Maestro': 'Libro Maestro_Wellpro.xlsx.',
  'fnTablaMaestro': 'Función: devuelve una tabla del maestro por su nombre.',
  'Productos': 'Hoja Productos del maestro.',

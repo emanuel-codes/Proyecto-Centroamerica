@@ -59,6 +59,7 @@ Si un mes no haces el paso 3, no pasa nada grave: el reporte sigue correcto, sol
 | 🔴 Hay meses de Amazon incompletos | Un mes cerrado no llega a su último día. Pasa cuando Amazon todavía no tenía el último día al descargar. | Baja ese mes completo otra vez |
 | 🔴 Hay códigos sin homologar | Llegó un artículo o ASIN que no está en el maestro, casi siempre un **producto nuevo** | Sigue «Producto nuevo», abajo |
 | 🟡 … atrasado | Una fuente tiene más de 3 días sin datos | Baja lo que falta de esa fuente |
+| 🟡 Montos de Walmart sin decimales | El reporte no pudo leer el monto exacto de algún archivo de Walmart y usó el redondeado. Pasa si Retail Link cambia el formato del archivo. | Las cifras siguen siendo correctas al peso. Avisa para revisar el archivo. |
 
 ---
 

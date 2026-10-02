@@ -146,4 +146,4 @@ Con eso, el reporte queda listo para la fase de paralelo: comparar contra el rep
    - quitar el indicador;
    - que alguien con acceso deje cada mes el export `POItemExport` en una carpeta `Amazon/Ordenes`.
 3. **Semana 202618 del fill rate de Walmart:** agregarla a la consulta, o cambiarla a un rango relativo.
-4. **Montos de Walmart redondeados:** Power BI lee POS Sales redondeado al peso por el formato de moneda sin decimales de Retail Link (0.02 % de diferencia). Hay que probar otra forma de leer el archivo o, si no funciona, descargar el sell out en CSV.
+4. ~~Montos de Walmart redondeados~~ **Resuelto:** el reporte lee POS Sales exacto directo del archivo, porque Retail Link lo guarda con formato sin decimales.

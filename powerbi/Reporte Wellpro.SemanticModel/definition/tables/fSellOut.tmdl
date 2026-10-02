@@ -65,6 +65,12 @@ table fSellOut
 		summarizeBy: sum
 		sourceColumn: Costo
 
+	column Monto_redondeado
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: Monto_redondeado
+
 	partition fSellOut = m
 		mode: import
 		source =
