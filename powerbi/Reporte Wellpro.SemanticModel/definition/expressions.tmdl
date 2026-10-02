@@ -78,7 +78,8 @@ expression fnRetailLink =
 		    // Primera hoja del libro (algunos archivos no traen la columna Kind en la lista de hojas)
 		    Hojas = if Table.HasColumns(Libro, "Kind") then Table.SelectRows(Libro, each [Kind] = "Sheet") else Libro,
 		    Hoja = Hojas{0}[Data],
-		    Filas = Table.ToRows(Hoja),
+		    // Solo las primeras filas: ahí están las opciones y los encabezados (no se recorre todo el archivo)
+		    Filas = Table.ToRows(Table.FirstN(Hoja, 200)),
 		    // La fila de encabezados es la primera con 5 o más celdas llenas; antes vienen las opciones del reporte
 		    PosEncabezado = List.PositionOf(List.Transform(Filas, each List.Count(List.RemoveNulls(_)) >= 5), true),
 		    TextosPrevios = List.Transform(List.RemoveNulls(List.Combine(List.FirstN(Filas, PosEncabezado))), Text.From),
@@ -196,11 +197,14 @@ expression WM_SellOut_Archivos =
 		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\sell out"),
 		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
 		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
-		    // Días que trae cada archivo (columna Daily)
+		    // Días que cubre cada archivo: el rango de Pos Date del encabezado (no hace falta leer los datos).
+		    // Solo si el archivo no trae el rango, se toman de la columna Daily.
 		    ConDias = Table.AddColumn(ConSolicitud, "Dias", each
-		        if Table.HasColumns([R][Datos], "Daily")
-		        then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
-		        else {}, type list),
+		        let d = [R][Desde], h = [R][Hasta] in
+		            if d <> null and h <> null and h >= d then List.Dates(d, Duration.Days(h - d) + 1, #duration(1, 0, 0, 0))
+		            else if Table.HasColumns([R][Datos], "Daily")
+		            then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
+		            else {}, type list),
 		    // Cada día se toma de UN solo archivo: el de la solicitud más reciente (si empatan, el último por nombre).
 		    // Así, bajar dos veces el mismo día, o el mes completo encima de los diarios, nunca duplica.
 		    Pares = Table.SelectRows(Table.ExpandListColumn(Table.SelectColumns(ConDias, {"Name", "Solicitado", "Dias"}), "Dias"), each [Dias] <> null),
@@ -228,7 +232,9 @@ expression WM_SellOut_Filas =
 		    Filas = Table.Combine(List.Transform(Table.ToRecords(Usados), (a) =>
 		        let
 		            Dias = List.Buffer(a[Dias_usados]),
-		            Datos = Table.TransformColumns(a[R][Datos], {{"Daily", fnFechaAMD, type nullable date}})
+		            Columnas = Table.SelectColumns(a[R][Datos], {"Daily", "Item Nbr", "Store Nbr", "Vendor Stk Nbr", "Signing Desc",
+		                "Sales Description", "POS Qty", "POS Sales", "POS Cost"}, MissingField.UseNull),
+		            Datos = Table.TransformColumns(Columnas, {{"Daily", fnFechaAMD, type nullable date}})
 		        in
 		            Table.SelectRows(Datos, each List.Contains(Dias, [Daily])))),
 		    Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Daily] <> null),
@@ -237,8 +243,6 @@ expression WM_SellOut_Filas =
 		        {"Store Nbr", each Int64.From(_), Int64.Type},
 		        {"Vendor Stk Nbr", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
 		        {"Signing Desc", each Text.From(_), type text},
-		        {"Store Name", each Text.From(_), type text},
-		        {"City", each Text.From(_), type text},
 		        {"Sales Description", each Text.From(_), type text},
 		        {"POS Qty", fnNumero, type number},
 		        {"POS Sales", fnNumero, type number},

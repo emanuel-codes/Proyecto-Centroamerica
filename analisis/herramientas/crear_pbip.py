@@ -101,7 +101,8 @@ let
     // Primera hoja del libro (algunos archivos no traen la columna Kind en la lista de hojas)
     Hojas = if Table.HasColumns(Libro, "Kind") then Table.SelectRows(Libro, each [Kind] = "Sheet") else Libro,
     Hoja = Hojas{0}[Data],
-    Filas = Table.ToRows(Hoja),
+    // Solo las primeras filas: ahí están las opciones y los encabezados (no se recorre todo el archivo)
+    Filas = Table.ToRows(Table.FirstN(Hoja, 200)),
     // La fila de encabezados es la primera con 5 o más celdas llenas; antes vienen las opciones del reporte
     PosEncabezado = List.PositionOf(List.Transform(Filas, each List.Count(List.RemoveNulls(_)) >= 5), true),
     TextosPrevios = List.Transform(List.RemoveNulls(List.Combine(List.FirstN(Filas, PosEncabezado))), Text.From),
@@ -207,11 +208,14 @@ let
     Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\\sell out"),
     Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
     ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
-    // Días que trae cada archivo (columna Daily)
+    // Días que cubre cada archivo: el rango de Pos Date del encabezado (no hace falta leer los datos).
+    // Solo si el archivo no trae el rango, se toman de la columna Daily.
     ConDias = Table.AddColumn(ConSolicitud, "Dias", each
-        if Table.HasColumns([R][Datos], "Daily")
-        then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
-        else {}, type list),
+        let d = [R][Desde], h = [R][Hasta] in
+            if d <> null and h <> null and h >= d then List.Dates(d, Duration.Days(h - d) + 1, #duration(1, 0, 0, 0))
+            else if Table.HasColumns([R][Datos], "Daily")
+            then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
+            else {}, type list),
     // Cada día se toma de UN solo archivo: el de la solicitud más reciente (si empatan, el último por nombre).
     // Así, bajar dos veces el mismo día, o el mes completo encima de los diarios, nunca duplica.
     Pares = Table.SelectRows(Table.ExpandListColumn(Table.SelectColumns(ConDias, {"Name", "Solicitado", "Dias"}), "Dias"), each [Dias] <> null),
@@ -237,7 +241,9 @@ let
     Filas = Table.Combine(List.Transform(Table.ToRecords(Usados), (a) =>
         let
             Dias = List.Buffer(a[Dias_usados]),
-            Datos = Table.TransformColumns(a[R][Datos], {{"Daily", fnFechaAMD, type nullable date}})
+            Columnas = Table.SelectColumns(a[R][Datos], {"Daily", "Item Nbr", "Store Nbr", "Vendor Stk Nbr", "Signing Desc",
+                "Sales Description", "POS Qty", "POS Sales", "POS Cost"}, MissingField.UseNull),
+            Datos = Table.TransformColumns(Columnas, {{"Daily", fnFechaAMD, type nullable date}})
         in
             Table.SelectRows(Datos, each List.Contains(Dias, [Daily])))),
     Validas = Table.SelectRows(Filas, each [Item Nbr] <> null and [Daily] <> null),
@@ -246,8 +252,6 @@ let
         {"Store Nbr", each Int64.From(_), Int64.Type},
         {"Vendor Stk Nbr", each if _ = null then null else Text.Trim(Text.From(_)), type nullable text},
         {"Signing Desc", each Text.From(_), type text},
-        {"Store Name", each Text.From(_), type text},
-        {"City", each Text.From(_), type text},
         {"Sales Description", each Text.From(_), type text},
         {"POS Qty", fnNumero, type number},
         {"POS Sales", fnNumero, type number},
@@ -558,9 +562,8 @@ Productos
 '''
 P['dimTienda'] = '''
 let
-    Filas = Table.Combine({
-        Table.SelectColumns(WM_Inventario_Filas, {"Store Nbr", "Store Name", "City"}),
-        Table.SelectColumns(WM_SellOut_Filas, {"Store Nbr", "Store Name", "City"})}),
+    // Las tiendas salen de las fotos de inventario, que son pocas y pequeñas. Así no se vuelve a leer todo el sell out.
+    Filas = Table.SelectColumns(WM_Inventario_Filas, {"Store Nbr", "Store Name", "City"}),
     Unicas = Table.Distinct(Table.SelectRows(Filas, each [Store Nbr] <> null), {"Store Nbr"}),
     Renombrado = Table.RenameColumns(Unicas, {{"Store Nbr", "Tienda_Nbr"}, {"Store Name", "Tienda"}, {"City", "Ciudad"}}),
     Etiqueta = Table.AddColumn(Renombrado, "Tienda_etiqueta", each Text.From([Tienda_Nbr]) & " - " & [Tienda], type text)
@@ -602,12 +605,12 @@ let
             Fuente = fuente, Archivo = a[Name], Reporte = a[R][Reporte],
             Desde = if Record.HasFields(a, "Desde") then a[Desde] else if Record.HasFields(a, "Fecha") then a[Fecha] else a[R][Desde],
             Hasta = if Record.HasFields(a, "Hasta") then a[Hasta] else if Record.HasFields(a, "Fecha") then a[Fecha] else a[R][Hasta],
-            Generado = a[Solicitado], Filas = Table.RowCount(a[R][Datos]), Usado = a[Usado]])),
+            Generado = a[Solicitado], Usado = a[Usado]])),
     DeAMZ = (fuente as text, t as table) as table =>
         Table.FromRecords(List.Transform(Table.ToRecords(t), (a) => [
             Fuente = fuente, Archivo = a[Name], Reporte = fuente, Desde = a[Desde], Hasta = a[Hasta],
             Generado = if a[Actualizado] = null then null else DateTime.From(a[Actualizado]),
-            Filas = Table.RowCount(a[R][Datos]), Usado = a[Usado]])),
+            Usado = a[Usado]])),
     UsadosFR = List.Buffer(List.Distinct(WM_FillRate_Lineas[Archivo])),
     FillRate = Table.AddColumn(WM_FillRate_Archivos, "Usado", each
         if List.Contains(UsadosFR, [Name]) then "Sí" else "No: todas sus órdenes están en un archivo más reciente", type text),
@@ -619,7 +622,7 @@ let
         DeAMZ("Amazon - Sell out", AMZ_SellOut_Archivos),
         DeAMZ("Amazon - Inventario", AMZ_Inventario_Archivos)}),
     Tipado = Table.TransformColumnTypes(Todas, {{"Fuente", type text}, {"Archivo", type text}, {"Reporte", type text},
-        {"Desde", type date}, {"Hasta", type date}, {"Generado", type datetime}, {"Filas", Int64.Type}, {"Usado", type text}})
+        {"Desde", type date}, {"Hasta", type date}, {"Generado", type datetime}, {"Usado", type text}})
 in
     Tipado
 '''
@@ -644,14 +647,14 @@ COLS = {
  'fFillRate': [('Cadena', S, None), ('Orden', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('Fecha_orden', DT, None), ('Fecha_envio', DT, None), ('Fecha_cancelacion', DT, None), ('Piezas_ordenadas', D, 'sum'), ('Piezas_recibidas', D, 'sum'), ('Costo_unitario', D, 'nosum')],
  'fRecship': [('Cadena', S, None), ('Codigo_ERP', S, None), ('Codigo_cadena', S, None), ('CEDIS', S, None), ('Fecha_creacion', DT, None), ('Fecha_pedido', DT, None), ('Fecha_recepcion', DT, None), ('Piezas', D, 'sum'), ('Costo_pieza', D, 'nosum'), ('Monto', D, 'sum')],
  'Metas': [('Mes', DT, None), ('Codigo_ERP', S, None), ('Producto', S, None), ('Cliente_reporte', S, None), ('Cantidad', D, 'sum'), ('Precio', D, 'nosum'), ('Monto', D, 'sum')],
- 'ctlArchivos': [('Fuente', S, None), ('Archivo', S, None), ('Reporte', S, None), ('Desde', DT, None), ('Hasta', DT, None), ('Generado', DT, 'fechahora'), ('Filas', I, 'nosum'), ('Usado', S, None)],
+ 'ctlArchivos': [('Fuente', S, None), ('Archivo', S, None), ('Reporte', S, None), ('Desde', DT, None), ('Hasta', DT, None), ('Generado', DT, 'fechahora'), ('Usado', S, None)],
  '_Medidas': [('Columna', S, 'hidden')],
 }
 DESC_TABLA = {
  'Calendario': 'Calendario del reporte (desde enero de 2024).',
  'dimCadena': 'Cadenas con sell out: Walmart y Amazon.',
  'dimProducto': 'Productos del maestro (hoja Productos). La llave es el código del ERP.',
- 'dimTienda': 'Tiendas de Walmart que aparecen en el sell out o en el inventario.',
+ 'dimTienda': 'Tiendas de Walmart que aparecen en las fotos de inventario.',
  'fSellOut': 'Venta de las cadenas al consumidor. Walmart por día, tienda y artículo; Amazon por mes y ASIN (Fecha = primer día del mes; Datos_hasta = último día que cubre el archivo).',
  'fInventarioCadena': 'Fotos del inventario en las cadenas. Walmart por día, tienda y artículo; Amazon por día y ASIN.',
  'fFillRate': 'Órdenes de compra de Walmart: piezas ordenadas y recibidas (tienda + centro de distribución).',
@@ -1448,7 +1451,7 @@ v_control = encabezado('Texto datos sell out') + [
     tabla('tblArchivos', (16, 272, 1248, 432),
           [campo_col('ctlArchivos', 'Fuente'), campo_col('ctlArchivos', 'Archivo'), campo_col('ctlArchivos', 'Reporte'),
            campo_col('ctlArchivos', 'Desde'), campo_col('ctlArchivos', 'Hasta'), campo_col('ctlArchivos', 'Generado'),
-           campo_col('ctlArchivos', 'Filas'), campo_col('ctlArchivos', 'Usado')],
+           campo_col('ctlArchivos', 'Usado')],
           'Archivos leídos', 'Cada día se toma del archivo más reciente · los que dicen «No» pueden pasar a la subcarpeta Respaldo'),
 ]
 paginas['control'] = ('Control', v_control, [], None)

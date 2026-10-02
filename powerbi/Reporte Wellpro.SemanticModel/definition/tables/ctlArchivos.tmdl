@@ -38,11 +38,6 @@ table ctlArchivos
 		summarizeBy: none
 		sourceColumn: Generado
 
-	column Filas
-		dataType: int64
-		summarizeBy: none
-		sourceColumn: Filas
-
 	column Usado
 		dataType: string
 		summarizeBy: none
@@ -58,12 +53,12 @@ table ctlArchivos
 				            Fuente = fuente, Archivo = a[Name], Reporte = a[R][Reporte],
 				            Desde = if Record.HasFields(a, "Desde") then a[Desde] else if Record.HasFields(a, "Fecha") then a[Fecha] else a[R][Desde],
 				            Hasta = if Record.HasFields(a, "Hasta") then a[Hasta] else if Record.HasFields(a, "Fecha") then a[Fecha] else a[R][Hasta],
-				            Generado = a[Solicitado], Filas = Table.RowCount(a[R][Datos]), Usado = a[Usado]])),
+				            Generado = a[Solicitado], Usado = a[Usado]])),
 				    DeAMZ = (fuente as text, t as table) as table =>
 				        Table.FromRecords(List.Transform(Table.ToRecords(t), (a) => [
 				            Fuente = fuente, Archivo = a[Name], Reporte = fuente, Desde = a[Desde], Hasta = a[Hasta],
 				            Generado = if a[Actualizado] = null then null else DateTime.From(a[Actualizado]),
-				            Filas = Table.RowCount(a[R][Datos]), Usado = a[Usado]])),
+				            Usado = a[Usado]])),
 				    UsadosFR = List.Buffer(List.Distinct(WM_FillRate_Lineas[Archivo])),
 				    FillRate = Table.AddColumn(WM_FillRate_Archivos, "Usado", each
 				        if List.Contains(UsadosFR, [Name]) then "Sí" else "No: todas sus órdenes están en un archivo más reciente", type text),
@@ -75,7 +70,7 @@ table ctlArchivos
 				        DeAMZ("Amazon - Sell out", AMZ_SellOut_Archivos),
 				        DeAMZ("Amazon - Inventario", AMZ_Inventario_Archivos)}),
 				    Tipado = Table.TransformColumnTypes(Todas, {{"Fuente", type text}, {"Archivo", type text}, {"Reporte", type text},
-				        {"Desde", type date}, {"Hasta", type date}, {"Generado", type datetime}, {"Filas", Int64.Type}, {"Usado", type text}})
+				        {"Desde", type date}, {"Hasta", type date}, {"Generado", type datetime}, {"Usado", type text}})
 				in
 				    Tipado
 

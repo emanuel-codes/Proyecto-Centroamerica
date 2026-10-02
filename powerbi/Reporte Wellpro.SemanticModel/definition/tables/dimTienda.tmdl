@@ -1,4 +1,4 @@
-/// Tiendas de Walmart que aparecen en el sell out o en el inventario.
+/// Tiendas de Walmart que aparecen en las fotos de inventario.
 table dimTienda
 
 	column Tienda_Nbr
@@ -25,9 +25,8 @@ table dimTienda
 		mode: import
 		source =
 				let
-				    Filas = Table.Combine({
-				        Table.SelectColumns(WM_Inventario_Filas, {"Store Nbr", "Store Name", "City"}),
-				        Table.SelectColumns(WM_SellOut_Filas, {"Store Nbr", "Store Name", "City"})}),
+				    // Las tiendas salen de las fotos de inventario, que son pocas y pequeñas. Así no se vuelve a leer todo el sell out.
+				    Filas = Table.SelectColumns(WM_Inventario_Filas, {"Store Nbr", "Store Name", "City"}),
 				    Unicas = Table.Distinct(Table.SelectRows(Filas, each [Store Nbr] <> null), {"Store Nbr"}),
 				    Renombrado = Table.RenameColumns(Unicas, {{"Store Nbr", "Tienda_Nbr"}, {"Store Name", "Tienda"}, {"City", "Ciudad"}}),
 				    Etiqueta = Table.AddColumn(Renombrado, "Tienda_etiqueta", each Text.From([Tienda_Nbr]) & " - " & [Tienda], type text)

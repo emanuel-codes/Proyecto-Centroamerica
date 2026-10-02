@@ -107,20 +107,6 @@
                       "Entity": "ctlArchivos"
                     }
                   },
-                  "Property": "Filas"
-                }
-              },
-              "queryRef": "ctlArchivos.Filas",
-              "nativeQueryRef": "Filas"
-            },
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "ctlArchivos"
-                    }
-                  },
                   "Property": "Usado"
                 }
               },
