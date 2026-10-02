@@ -73,6 +73,8 @@ Datos del repositorio: el historial completo de Walmart (del 01/10/2024 al 29/09
 | Abasto (sin elegir mes) | Fill rate | 93.6 % (15,126 de 16,163 piezas; 1,037 no surtidas) |
 | Abasto | Pedidos planeados | 552 piezas · $70,174 |
 
+**Diferencia conocida, pendiente de corregir:** Retail Link guarda la columna POS Sales con formato de moneda sin decimales, y Power BI lee cada venta de Walmart redondeada al peso ($108.62 entra como $109). Por eso el reporte muestra Walmart en **$275,252** en lugar de $275,034 (+$218, 0.08 %) y Sell out (MXN) en **$335,364**. En toda la historia la diferencia es de +$2,270 (0.02 %). No afecta las piezas, Amazon ni los porcentajes contra el año anterior.
+
 **De dónde sale la comparación con el año anterior:**
 - Walmart: del 1 al 29 de septiembre de 2025 fueron 1,629 piezas y $482,042.
 - Amazon: septiembre de 2025 en proporción a 28 de 30 días, 561.9 piezas y $66,628.
