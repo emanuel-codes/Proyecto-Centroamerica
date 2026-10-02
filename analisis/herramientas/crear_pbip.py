@@ -271,10 +271,12 @@ let
     Unido = Table.ExpandTableColumn(Table.NestedJoin(ConMovimiento, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}, {"Codigo_eq"}),
     ConCodigo = Table.AddColumn(Unido, "Codigo_ERP",
         each if [Codigo_eq] <> null then [Codigo_eq] else if List.Contains(Codigos, [Vendor Stk Nbr]) then [Vendor Stk Nbr] else null, type nullable text),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    B = Table.Buffer(Table.SelectColumns(ConCodigo, {"Daily", "Codigo_ERP", "Item Nbr", "Signing Desc", "Store Nbr", "Sales Description", "POS Qty", "POS Sales", "POS Cost"})),
     Salida = Table.FromColumns({
-        ConCodigo[Daily], ConCodigo[Daily], List.Repeat({"Walmart"}, Table.RowCount(ConCodigo)), ConCodigo[Codigo_ERP],
-        ConCodigo[Item Nbr], ConCodigo[Signing Desc], ConCodigo[Store Nbr], ConCodigo[Sales Description],
-        ConCodigo[POS Qty], ConCodigo[POS Sales], ConCodigo[POS Cost]},
+        B[Daily], B[Daily], List.Repeat({"Walmart"}, Table.RowCount(B)), B[Codigo_ERP],
+        B[Item Nbr], B[Signing Desc], B[Store Nbr], B[Sales Description],
+        B[POS Qty], B[POS Sales], B[POS Cost]},
         type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
             Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
 in
@@ -313,11 +315,13 @@ let
     // Homologación: ASIN -> código del ERP (hoja Equivalencias del maestro)
     Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Amazon"), {"Codigo_en_cadena"}),
     Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"ASIN"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
-    N = Table.RowCount(Unido),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    UnidoB = Table.Buffer(Unido),
+    N = Table.RowCount(UnidoB),
     Salida = Table.FromColumns({
-        Unido[Mes], Unido[Datos_hasta], List.Repeat({"Amazon"}, N), Unido[Codigo_ERP],
-        Unido[ASIN], Unido[#"Título del Producto"], List.Repeat({null}, N), List.Repeat({"Regular"}, N),
-        Unido[Unidades pedidas], Unido[Ganancia por pedidos], List.Repeat({null}, N)},
+        UnidoB[Mes], UnidoB[Datos_hasta], List.Repeat({"Amazon"}, N), UnidoB[Codigo_ERP],
+        UnidoB[ASIN], UnidoB[#"Título del Producto"], List.Repeat({null}, N), List.Repeat({"Regular"}, N),
+        UnidoB[Unidades pedidas], UnidoB[Ganancia por pedidos], List.Repeat({null}, N)},
         type table [Fecha = date, Datos_hasta = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text,
             Descripcion_cadena = text, Tienda_Nbr = nullable Int64.Type, Tipo_venta = text, Piezas = number, Monto = number, Costo = nullable number])
 in
@@ -375,10 +379,12 @@ let
     // Cada día ya viene de un solo archivo (ver WM_Inventario_Archivos)
     Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Walmart" and [Tipo_codigo] = "Item Nbr"), {"Codigo_en_cadena"}),
     Unido = Table.ExpandTableColumn(Table.NestedJoin(WM_Inventario_Filas, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
-    N = Table.RowCount(Unido),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    UnidoB = Table.Buffer(Unido),
+    N = Table.RowCount(UnidoB),
     Salida = Table.FromColumns({
-        Unido[Fecha], List.Repeat({"Walmart"}, N), Unido[Codigo_ERP], Unido[Item Nbr], Unido[Store Nbr],
-        Unido[Curr Str On Hand Qty], Unido[Curr Str In Transit Qty], Unido[Curr Str In Whse Qty], Unido[Curr Str On Order Qty],
+        UnidoB[Fecha], List.Repeat({"Walmart"}, N), UnidoB[Codigo_ERP], UnidoB[Item Nbr], UnidoB[Store Nbr],
+        UnidoB[Curr Str On Hand Qty], UnidoB[Curr Str In Transit Qty], UnidoB[Curr Str In Whse Qty], UnidoB[Curr Str On Order Qty],
         List.Repeat({null}, N), List.Repeat({null}, N)},
         type table [Fecha = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, Tienda_Nbr = nullable Int64.Type,
             Piezas_disponibles = nullable number, Piezas_transito = nullable number, Piezas_CEDIS = nullable number,
@@ -425,12 +431,14 @@ let
         {"Cantidad de órdenes de compra abiertas", fnNumero, type number}}),
     Eq = Table.Distinct(Table.SelectRows(Equivalencias, each [Cadena] = "Amazon"), {"Codigo_en_cadena"}),
     Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"ASIN"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
-    N = Table.RowCount(Unido),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    UnidoB = Table.Buffer(Unido),
+    N = Table.RowCount(UnidoB),
     Salida = Table.FromColumns({
-        Unido[Fecha], List.Repeat({"Amazon"}, N), Unido[Codigo_ERP], Unido[ASIN], List.Repeat({null}, N),
-        Unido[Unidades aptas para la venta disponibles], List.Repeat({null}, N), List.Repeat({null}, N),
-        Unido[#"Cantidad de órdenes de compra abiertas"], Unido[Unidades no aptas para la venta disponibles],
-        Unido[Inventario apto para la venta disponible]},
+        UnidoB[Fecha], List.Repeat({"Amazon"}, N), UnidoB[Codigo_ERP], UnidoB[ASIN], List.Repeat({null}, N),
+        UnidoB[Unidades aptas para la venta disponibles], List.Repeat({null}, N), List.Repeat({null}, N),
+        UnidoB[#"Cantidad de órdenes de compra abiertas"], UnidoB[Unidades no aptas para la venta disponibles],
+        UnidoB[Inventario apto para la venta disponible]},
         type table [Fecha = date, Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, Tienda_Nbr = nullable Int64.Type,
             Piezas_disponibles = nullable number, Piezas_transito = nullable number, Piezas_CEDIS = nullable number,
             Piezas_en_pedido = nullable number, Piezas_no_aptas = nullable number, Monto_disponible = nullable number])
@@ -477,11 +485,13 @@ let
     ConPiezas = Table.AddColumn(Table.AddColumn(Unido,
         "Ordenadas", each List.Sum({[Hist Eaches Str Ordered], [Hist Eaches Whse Ordered]}), type number),
         "Recibidas", each List.Sum({[Hist Eaches Str Received], [Hist Eaches Whse Received]}), type number),
-    N = Table.RowCount(ConPiezas),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    ConPiezasB = Table.Buffer(ConPiezas),
+    N = Table.RowCount(ConPiezasB),
     Salida = Table.FromColumns({
-        List.Repeat({"Walmart"}, N), ConPiezas[PO Number], ConPiezas[Codigo_ERP], ConPiezas[Item Nbr],
-        ConPiezas[PO Order Date], ConPiezas[PO Ship Date], ConPiezas[PO Cancel Date],
-        ConPiezas[Ordenadas], ConPiezas[Recibidas], ConPiezas[Unit Cost]},
+        List.Repeat({"Walmart"}, N), ConPiezasB[PO Number], ConPiezasB[Codigo_ERP], ConPiezasB[Item Nbr],
+        ConPiezasB[PO Order Date], ConPiezasB[PO Ship Date], ConPiezasB[PO Cancel Date],
+        ConPiezasB[Ordenadas], ConPiezasB[Recibidas], ConPiezasB[Unit Cost]},
         type table [Cadena = text, Orden = text, Codigo_ERP = nullable text, Codigo_cadena = text,
             Fecha_orden = date, Fecha_envio = nullable date, Fecha_cancelacion = nullable date,
             Piezas_ordenadas = number, Piezas_recibidas = number, Costo_unitario = nullable number])
@@ -519,11 +529,13 @@ let
     Unido = Table.ExpandTableColumn(Table.NestedJoin(Tipado, {"Item Nbr"}, Eq, {"Codigo_en_cadena"}, "Eq", JoinKind.LeftOuter), "Eq", {"Codigo_ERP"}),
     // Costo por pieza = costo de la caja / piezas por caja (Retail Link lo da en pesos)
     ConCosto = Table.AddColumn(Unido, "Costo_pieza", each if [VNPK Qty] = null or [VNPK Qty] = 0 then null else [VNPK Cost] / [VNPK Qty], type nullable number),
-    N = Table.RowCount(ConCosto),
+    // Se guarda en memoria: armar la tabla columna por columna volvería a leer todos los archivos por cada columna
+    ConCostoB = Table.Buffer(ConCosto),
+    N = Table.RowCount(ConCostoB),
     Salida = Table.FromColumns({
-        List.Repeat({"Walmart"}, N), ConCosto[Codigo_ERP], ConCosto[Item Nbr], ConCosto[Whse Name],
-        ConCosto[Plan Create Date], ConCosto[Plan Order Date], ConCosto[Plan Recieve Date],
-        ConCosto[Units], ConCosto[Costo_pieza], List.Transform(List.Zip({ConCosto[Units], ConCosto[Costo_pieza]}), each if _{1} = null then null else _{0} * _{1})},
+        List.Repeat({"Walmart"}, N), ConCostoB[Codigo_ERP], ConCostoB[Item Nbr], ConCostoB[Whse Name],
+        ConCostoB[Plan Create Date], ConCostoB[Plan Order Date], ConCostoB[Plan Recieve Date],
+        ConCostoB[Units], ConCostoB[Costo_pieza], List.Transform(List.Zip({ConCostoB[Units], ConCostoB[Costo_pieza]}), each if _{1} = null then null else _{0} * _{1})},
         type table [Cadena = text, Codigo_ERP = nullable text, Codigo_cadena = text, CEDIS = text,
             Fecha_creacion = nullable date, Fecha_pedido = date, Fecha_recepcion = nullable date,
             Piezas = number, Costo_pieza = nullable number, Monto = nullable number])
