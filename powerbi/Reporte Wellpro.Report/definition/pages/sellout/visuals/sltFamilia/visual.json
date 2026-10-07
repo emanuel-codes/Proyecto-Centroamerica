@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "sltFamilia",
   "position": {
-    "x": 376,
-    "y": 74,
+    "x": 920,
+    "y": 70,
     "z": 800,
-    "height": 50,
-    "width": 220,
+    "height": 58,
+    "width": 150,
     "tabOrder": 800
   },
   "visual": {

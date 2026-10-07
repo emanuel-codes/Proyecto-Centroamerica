@@ -1,9 +1,11 @@
 /// Fotos del inventario en las cadenas. Walmart por día, tienda y artículo; Amazon por día y ASIN.
 table fInventarioCadena
+	lineageTag: 8824ea05-e20c-457d-bf63-12f782a8dd39
 
 	column Fecha
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: d4e2483c-1e26-4b40-a8a9-c1fb58f0f5b2
 		summarizeBy: none
 		sourceColumn: Fecha
 
@@ -11,63 +13,73 @@ table fInventarioCadena
 
 	column Cadena
 		dataType: string
+		lineageTag: 3fa03c46-5536-408b-ae77-c9e69d0af239
 		summarizeBy: none
 		sourceColumn: Cadena
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: 25af4631-3b3f-47ed-99ac-c21c35565d87
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Codigo_cadena
 		dataType: string
+		lineageTag: c9312486-1eae-44d3-a66e-ae8e83fd07ad
 		summarizeBy: none
 		sourceColumn: Codigo_cadena
 
 	column Tienda_Nbr
 		dataType: int64
+		lineageTag: e18d905b-777c-4af4-b1e5-4fa6d4236592
 		summarizeBy: none
 		sourceColumn: Tienda_Nbr
 
 	column Piezas_disponibles
 		dataType: double
 		formatString: #,0.##
+		lineageTag: dd0f580a-a24a-4f73-82cb-f6c07665ded9
 		summarizeBy: none
 		sourceColumn: Piezas_disponibles
 
 	column Piezas_transito
 		dataType: double
 		formatString: #,0.##
+		lineageTag: aef60cbf-635a-43fe-8c58-219156454497
 		summarizeBy: none
 		sourceColumn: Piezas_transito
 
 	column Piezas_CEDIS
 		dataType: double
 		formatString: #,0.##
+		lineageTag: c0a3634a-cefe-444e-840c-9bcc191a9b42
 		summarizeBy: none
 		sourceColumn: Piezas_CEDIS
 
 	column Piezas_en_pedido
 		dataType: double
 		formatString: #,0.##
+		lineageTag: 7f19cf84-bba6-478f-80ca-b7557110a465
 		summarizeBy: none
 		sourceColumn: Piezas_en_pedido
 
 	column Piezas_no_aptas
 		dataType: double
 		formatString: #,0.##
+		lineageTag: 6a1a6967-7d4d-477c-b239-b510c99e158e
 		summarizeBy: none
 		sourceColumn: Piezas_no_aptas
 
 	column Monto_disponible
 		dataType: double
 		formatString: #,0.##
+		lineageTag: 5de5f31a-d4ee-4c54-ae01-72dedf500248
 		summarizeBy: none
 		sourceColumn: Monto_disponible
 
 	partition fInventarioCadena = m
 		mode: import
-		source =
-				Table.Combine({WM_Inventario, AMZ_Inventario})
+		source = Table.Combine({WM_Inventario, AMZ_Inventario})
 
 	annotation PBI_ResultType = Table
+

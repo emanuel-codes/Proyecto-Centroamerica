@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "chrRecship",
   "position": {
     "x": 648,
@@ -28,6 +28,7 @@
               },
               "queryRef": "Calendario.Fecha",
               "nativeQueryRef": "Fecha",
+              "active": true,
               "displayName": "Fecha de pedido"
             }
           ]

@@ -1,23 +1,28 @@
 /// Tiendas de Walmart que aparecen en las fotos de inventario.
 table dimTienda
+	lineageTag: 5f92e534-0b5a-4505-a306-4d5c259587c2
 
 	column Tienda_Nbr
 		dataType: int64
+		lineageTag: 64df8368-cd82-4421-b51f-c54a737fed12
 		summarizeBy: none
 		sourceColumn: Tienda_Nbr
 
 	column Tienda
 		dataType: string
+		lineageTag: 04417fa1-0464-4b65-84ef-7a85a7559248
 		summarizeBy: none
 		sourceColumn: Tienda
 
 	column Ciudad
 		dataType: string
+		lineageTag: f1e95c1d-cca7-46b5-9667-2bc252588ee5
 		summarizeBy: none
 		sourceColumn: Ciudad
 
 	column Tienda_etiqueta
 		dataType: string
+		lineageTag: 176226db-02eb-4635-aa17-33e43df0d43e
 		summarizeBy: none
 		sourceColumn: Tienda_etiqueta
 
@@ -34,3 +39,4 @@ table dimTienda
 				    Etiqueta
 
 	annotation PBI_ResultType = Table
+

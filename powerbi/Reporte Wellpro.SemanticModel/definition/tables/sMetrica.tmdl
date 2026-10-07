@@ -1,8 +1,10 @@
 /// Selector de la página Sell out: ver los gráficos en monto o en piezas. No se relaciona con otras tablas.
 table sMetrica
+	lineageTag: 0e0a6631-6bd9-4e80-b98b-87f9f99a856a
 
 	column Metrica
 		dataType: string
+		lineageTag: 4468a403-132c-428c-b003-1fff65fe6859
 		summarizeBy: none
 		sourceColumn: Metrica
 		sortByColumn: Orden
@@ -10,12 +12,13 @@ table sMetrica
 	column Orden
 		dataType: int64
 		isHidden
+		lineageTag: a6ac5b36-d460-4b09-b419-b78200631311
 		summarizeBy: none
 		sourceColumn: Orden
 
 	partition sMetrica = m
 		mode: import
-		source =
-				#table(type table [Metrica = text, Orden = Int64.Type], {{"Monto", 1}, {"Piezas", 2}})
+		source = #table(type table [Metrica = text, Orden = Int64.Type], {{"Monto", 1}, {"Piezas", 2}})
 
 	annotation PBI_ResultType = Table
+

@@ -1,66 +1,78 @@
 /// Productos del maestro (hoja Productos). La llave es el código del ERP.
 table dimProducto
+	lineageTag: 3c8b9fc3-58d2-4e9c-b3a1-c401ac155ba1
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: 161f9eee-8032-4d94-b98e-24c1c79dbd9d
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Producto
 		dataType: string
+		lineageTag: cda69c99-4018-4c50-82ce-4e6c64edc965
 		summarizeBy: none
 		sourceColumn: Producto
 
 	column Familia
 		dataType: string
+		lineageTag: 9454d7ed-f0dc-4038-a867-a8716b4c73f1
 		summarizeBy: none
 		sourceColumn: Familia
 
 	column Marca
 		dataType: string
+		lineageTag: 4663bfa8-7647-4420-950f-ce8dd7d4926e
 		summarizeBy: none
 		sourceColumn: Marca
 
 	column EAN
 		dataType: string
+		lineageTag: 3cf01933-df00-4c54-bae6-06d0678d0100
 		summarizeBy: none
 		sourceColumn: EAN
 
 	column ASIN
 		dataType: string
+		lineageTag: 50fc188b-684f-48ca-acfc-7c10a58bafec
 		summarizeBy: none
 		sourceColumn: ASIN
 
 	column Item_Walmart
 		dataType: string
+		lineageTag: c29a2a26-1848-49da-a63a-7025cf46813f
 		summarizeBy: none
 		sourceColumn: Item_Walmart
 
 	column Lead_time_meses
 		dataType: double
 		formatString: #,0.##
+		lineageTag: a3e6924a-878d-4891-a992-02faf28c344a
 		summarizeBy: none
 		sourceColumn: Lead_time_meses
 
 	column Stock_seguridad
 		dataType: double
 		formatString: #,0.##
+		lineageTag: 113f7fcf-4122-4d20-8038-2bc5b5e27b16
 		summarizeBy: none
 		sourceColumn: Stock_seguridad
 
 	column Activo
 		dataType: string
+		lineageTag: 8e5d38cc-2491-429c-8bd1-d532e28e1fb9
 		summarizeBy: none
 		sourceColumn: Activo
 
 	column Estado
 		dataType: string
+		lineageTag: 99f527ab-d2f2-4d4a-b9c6-a78c8ea47089
 		summarizeBy: none
 		sourceColumn: Estado
 
 	partition dimProducto = m
 		mode: import
-		source =
-				Productos
+		source = Productos
 
 	annotation PBI_ResultType = Table
+

@@ -1,0 +1,178 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1432.0024410919209,
+            "y": 479.37165320776455
+          },
+          "nodeIndex": "_Medidas",
+          "nodeLineageTag": "0633f96e-be28-46f0-9449-f0c64b5d7021",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 398.30073016376355,
+            "y": 307.23775929255294
+          },
+          "nodeIndex": "Calendario",
+          "nodeLineageTag": "c5908837-c8cc-4bdc-a5fd-abea358b7e3f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1716.0024410919209,
+            "y": 493.37165320776455
+          },
+          "nodeIndex": "ctlArchivos",
+          "nodeLineageTag": "58f351db-c607-4e0d-a44a-bd8ae6c3811d",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 643.01012911586577,
+            "y": 126.74423241609793
+          },
+          "nodeIndex": "dimCadena",
+          "nodeLineageTag": "52117b99-086e-4c02-8e28-fbf07b225880",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 339.85095139691191,
+            "y": 664.34549229917116
+          },
+          "nodeIndex": "dimProducto",
+          "nodeLineageTag": "26caa3d7-76de-48c1-8709-fec408583508",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1198.0024410919209,
+            "y": 550.90008344237708
+          },
+          "nodeIndex": "dimTienda",
+          "nodeLineageTag": "0d84b0fe-8be9-46a1-8f9e-0264e5398ff3",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 340.33532757819927,
+            "y": -50
+          },
+          "nodeIndex": "fFillRate",
+          "nodeLineageTag": "394e7eba-677d-49f9-aee0-dd71c49cf425",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 794.8425873050553,
+            "y": 667.33299363650588
+          },
+          "nodeIndex": "fInventarioCadena",
+          "nodeLineageTag": "0762e464-37d4-47c4-8551-0b5b4234156b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 54.838741810242823,
+            "y": 307.15153163073114
+          },
+          "nodeIndex": "fRecship",
+          "nodeLineageTag": "abcab9b7-9606-439a-9bb7-4dc798254846",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 908.09464249345137,
+            "y": 310.17511755288331
+          },
+          "nodeIndex": "fSellOut",
+          "nodeLineageTag": "d1886ac3-9ce4-4050-ba9f-df28a938a325",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 960.7433064155291
+          },
+          "nodeIndex": "Metas",
+          "nodeLineageTag": "151e86a1-ed8a-415c-8172-8635aa9d7cb2",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2000.0024410919209,
+            "y": 565.37165320776455
+          },
+          "nodeIndex": "sMetrica",
+          "nodeLineageTag": "77685564-c269-453a-8bb3-ce45321cf712",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 39.177812232952633,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

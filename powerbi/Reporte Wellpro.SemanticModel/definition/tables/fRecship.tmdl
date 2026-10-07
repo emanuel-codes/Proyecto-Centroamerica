@@ -1,29 +1,35 @@
 /// Pronóstico de pedidos de Walmart (Recship); solo el archivo más reciente.
 table fRecship
+	lineageTag: 71203e3c-644f-484a-9171-3efaaca756c6
 
 	column Cadena
 		dataType: string
+		lineageTag: 4f708524-e587-490f-9ec5-d7d7aa31f4e5
 		summarizeBy: none
 		sourceColumn: Cadena
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: ce59beab-0fb4-4aa9-9465-631773af0a41
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Codigo_cadena
 		dataType: string
+		lineageTag: bfd58322-0741-427d-9a56-2c1d4fbc700b
 		summarizeBy: none
 		sourceColumn: Codigo_cadena
 
 	column CEDIS
 		dataType: string
+		lineageTag: 2e4282d7-8c42-4cf9-ae5a-2de084163511
 		summarizeBy: none
 		sourceColumn: CEDIS
 
 	column Fecha_creacion
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 65336c06-9757-4ca9-a2c6-3fc654b0b543
 		summarizeBy: none
 		sourceColumn: Fecha_creacion
 
@@ -32,6 +38,7 @@ table fRecship
 	column Fecha_pedido
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 67046550-f923-4956-a946-eb06edfdd73f
 		summarizeBy: none
 		sourceColumn: Fecha_pedido
 
@@ -40,6 +47,7 @@ table fRecship
 	column Fecha_recepcion
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: bea9c9aa-1620-4e6c-a1c7-4c9d03aaf1c3
 		summarizeBy: none
 		sourceColumn: Fecha_recepcion
 
@@ -48,24 +56,27 @@ table fRecship
 	column Piezas
 		dataType: double
 		formatString: #,0
+		lineageTag: 6b4b05af-39b5-4e0c-9780-59c66d0f0c99
 		summarizeBy: sum
 		sourceColumn: Piezas
 
 	column Costo_pieza
 		dataType: double
 		formatString: #,0.##
+		lineageTag: b2b83ac1-1151-443c-8f2f-cd054ae5bf14
 		summarizeBy: none
 		sourceColumn: Costo_pieza
 
 	column Monto
 		dataType: double
 		formatString: #,0
+		lineageTag: c01ad448-33f2-43ac-918a-6c26d9761f66
 		summarizeBy: sum
 		sourceColumn: Monto
 
 	partition fRecship = m
 		mode: import
-		source =
-				WM_Recship
+		source = WM_Recship
 
 	annotation PBI_ResultType = Table
+

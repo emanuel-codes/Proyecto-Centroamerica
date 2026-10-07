@@ -1,5 +1,6 @@
 /// Carpeta donde están los datos (Amazon, Walmart, ERP y Maestros). Debe terminar en \.
 expression RutaDatos = "C:\Users\mpalacios\OneDrive - VISION MEDICA S.A\Documentos\Proyecto-Centroamerica-claude-confident-dijkstra-apgh2d\Nueva versión\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: 1587882f-3976-4bd0-a257-3fe81c25ab6a
 
 	annotation PBI_ResultType = Text
 
@@ -17,6 +18,7 @@ expression Archivos =
 		    Columnas = Table.SelectColumns(ConCarpeta, {"Content", "Name", "Carpeta"})
 		in
 		    Columnas
+	lineageTag: ba69baa9-14dc-422e-b4b1-02a6833d7884
 
 	annotation PBI_ResultType = Table
 
@@ -34,6 +36,7 @@ expression fnFechaMDA =
 		        in
 		            if Texto = "" then null
 		            else #date(Number.From(Partes{2}), Number.From(Partes{0}), Number.From(Partes{1}))
+	lineageTag: daf63fb7-002e-4c50-a702-396446732cae
 
 	annotation PBI_ResultType = Function
 
@@ -51,6 +54,7 @@ expression fnFechaAMD =
 		        in
 		            if Texto = "" then null
 		            else #date(Number.From(Partes{0}), Number.From(Partes{1}), Number.From(Partes{2}))
+	lineageTag: d6a5946f-ba76-405c-882b-698bfe769282
 
 	annotation PBI_ResultType = Function
 
@@ -65,16 +69,7 @@ expression fnNumero =
 		            Texto = Text.Trim(Text.From(valor))
 		        in
 		            if Texto = "" then null else Number.FromText(Text.Remove(Texto, ","), "en-US")
-
-	annotation PBI_ResultType = Function
-
-/// Función: convierte el texto de una celda del XML de Excel en texto normal.
-expression fnXmlTexto =
-		// Convierte el texto de una celda del XML de Excel en texto normal (&amp; -> &, etc.)
-		(t as nullable text) as nullable text =>
-		    if t = null then null
-		    else Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(t,
-		        "&lt;", "<"), "&gt;", ">"), "&quot;", """"), "&apos;", "'"), "&amp;", "&")
+	lineageTag: 3e13723c-a0b4-408c-a6bd-c446281aaa4d
 
 	annotation PBI_ResultType = Function
 
@@ -129,6 +124,7 @@ expression fnRetailLink =
 		    Datos = Table.PromoteHeaders(Table.Skip(Hoja, PosEncabezado), [PromoteAllScalars = true])
 		in
 		    [Reporte = Reporte, Solicitado = Solicitado, Desde = Desde, Hasta = Hasta, Datos = Datos]
+	lineageTag: 761aaa58-5132-4722-bc29-103564ad362b
 
 	annotation PBI_ResultType = Function
 
@@ -156,73 +152,7 @@ expression fnAmazon =
 		    Datos = Table.PromoteHeaders(Table.Skip(Hoja, 1), [PromoteAllScalars = true])
 		in
 		    [Desde = Desde, Hasta = Hasta, Actualizado = Actualizado, Datos = Datos]
-
-	annotation PBI_ResultType = Function
-
-/// Función: saca y descomprime un archivo de dentro de un .xlsx.
-expression fnZipArchivo =
-		// Devuelve, descomprimido, un archivo de dentro de un .xlsx (un .xlsx es un ZIP).
-		// Lee el directorio central del ZIP, así que sirve aunque el archivo use descriptores de datos.
-		(zip as binary, nombre as text) as binary =>
-		let
-		    Z = Binary.Buffer(zip),
-		    Bytes = (pos as number, n as number) as list => Binary.ToList(Binary.Range(Z, pos, n)),
-		    U16 = (pos as number) as number => let b = Bytes(pos, 2) in b{0} + b{1} * 256,
-		    U32 = (pos as number) as number => let b = Bytes(pos, 4) in b{0} + b{1} * 256 + b{2} * 65536 + b{3} * 16777216,
-		    // Fin del directorio central: los últimos 22 bytes (los archivos de Retail Link no traen comentario)
-		    Fin = Binary.Length(Z) - 22,
-		    Firma = Bytes(Fin, 4) = {80, 75, 5, 6},
-		    Total = U16(Fin + 10),
-		    Inicio = U32(Fin + 16),
-		    Entradas = List.Generate(
-		        () => [pos = Inicio, i = 0],
-		        each [i] < Total,
-		        each [pos = [pos] + 46 + U16([pos] + 28) + U16([pos] + 30) + U16([pos] + 32), i = [i] + 1],
-		        each [
-		            Nombre = Text.FromBinary(Binary.Range(Z, [pos] + 46, U16([pos] + 28)), TextEncoding.Utf8),
-		            Metodo = U16([pos] + 10),
-		            Comprimido = U32([pos] + 20),
-		            Local = U32([pos] + 42)]),
-		    Entrada = List.First(List.Select(Entradas, each [Nombre] = nombre)),
-		    L = Entrada[Local],
-		    Datos = Binary.Range(Z, L + 30 + U16(L + 26) + U16(L + 28), Entrada[Comprimido])
-		in
-		    if not Firma then error "No se encontró el directorio del archivo"
-		    else if Entrada[Metodo] = 0 then Datos
-		    else Binary.Decompress(Datos, Compression.Deflate)
-
-	annotation PBI_ResultType = Function
-
-/// Función: lee directo del .xlsx los valores exactos de una columna de Retail Link (POS Sales viene con formato sin decimales).
-expression fnColumnaExacta =
-		// Lee directo del archivo los valores exactos de una columna numérica de Retail Link.
-		// Hace falta porque Excel.Workbook entrega el texto con formato: POS Sales viene como "$109" en lugar de 108.62.
-		// Devuelve un valor por cada fila debajo del encabezado, en el mismo orden del archivo.
-		(contenido as binary, encabezado as text) as list =>
-		let
-		    Xml = Text.FromBinary(fnZipArchivo(contenido, "xl/worksheets/sheet1.xml"), TextEncoding.Utf8),
-		    PosEncabezado = Text.PositionOf(Xml, "<t>" & encabezado & "</t>", Occurrence.Last),
-		    // Celda del encabezado, por ejemplo T24: columna T, fila 24
-		    Previo = Text.Middle(Xml, PosEncabezado - 120, 120),
-		    Referencia = Text.BeforeDelimiter(Text.AfterDelimiter(Previo, "<c r=""", {0, RelativePosition.FromEnd}), """"),
-		    Letra = Text.Select(Referencia, {"A".."Z"}),
-		    FilaEncabezado = Number.From(Text.Select(Referencia, {"0".."9"})),
-		    Marca = "<c r=""" & Letra,
-		    Posiciones = Text.PositionOf(Xml, Marca, Occurrence.All),
-		    Celdas = List.Transform(Posiciones, (p) =>
-		        let
-		            s = Text.Middle(Xml, p + Text.Length(Marca), 90),
-		            FilaTxt = Text.BeforeDelimiter(s, """"),
-		            Cabecera = Text.BeforeDelimiter(s, ">"),
-		            Contenido = Text.BeforeDelimiter(Text.AfterDelimiter(s, ">"), "</c>")
-		        in
-		            [Fila = if FilaTxt <> "" and Text.Select(FilaTxt, {"0".."9"}) = FilaTxt then Number.From(FilaTxt) else -1,
-		             Valor = if Text.EndsWith(Cabecera, "/") or not Text.Contains(Contenido, "<v>") then null
-		                 else Number.FromText(Text.BetweenDelimiters(Contenido, "<v>", "</v>"), "en-US")]),
-		    Datos = List.Select(Celdas, each [Fila] > FilaEncabezado)
-		in
-		    if PosEncabezado < 0 then error "No se encontró el encabezado " & encabezado
-		    else List.Transform(Datos, each [Valor])
+	lineageTag: 77e4e8f4-a0a8-4dff-b249-c495b9fb9570
 
 	annotation PBI_ResultType = Function
 
@@ -234,6 +164,7 @@ expression Maestro =
 		    Libro = Excel.Workbook(Archivo{0}[Content], null, true)
 		in
 		    Libro
+	lineageTag: c1c6f08d-6e47-4d49-883c-ea7d6ba20c5c
 
 	annotation PBI_ResultType = Table
 
@@ -248,6 +179,7 @@ expression fnTablaMaestro =
 		in
 		    if Table.RowCount(PorTabla) > 0 then PorTabla{0}[Data]
 		    else Table.PromoteHeaders(PorHoja{0}[Data], [PromoteAllScalars = true])
+	lineageTag: a1bbca44-8e75-4491-ad56-c2ae0b05a954
 
 	annotation PBI_ResultType = Function
 
@@ -267,6 +199,7 @@ expression Productos =
 		    Columnas = Table.SelectColumns(Unicos, {"Codigo_ERP", "Producto", "Familia", "Marca", "EAN", "ASIN", "Item_Walmart", "Lead_time_meses", "Stock_seguridad", "Activo", "Estado"})
 		in
 		    Columnas
+	lineageTag: 69183614-6184-430e-ae64-fb3c3e1c6fcb
 
 	annotation PBI_ResultType = Table
 
@@ -281,39 +214,7 @@ expression Equivalencias =
 		    Columnas = Table.SelectColumns(Texto, {"Cadena", "Codigo_en_cadena", "Tipo_codigo", "Codigo_ERP"})
 		in
 		    Columnas
-
-	annotation PBI_ResultType = Table
-
-/// Archivos de sell out de Walmart y qué días se toman de cada uno (cada día, del más reciente).
-expression WM_SellOut_Archivos =
-		let
-		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\sell out"),
-		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
-		    // Días que cubre cada archivo: el rango de Pos Date del encabezado (no hace falta leer los datos).
-		    // Solo si el archivo no trae el rango, se toman de la columna Daily.
-		    ConDias = Table.AddColumn(ConSolicitud, "Dias", each
-		        let d = [R][Desde], h = [R][Hasta] in
-		            if d <> null and h <> null and h >= d then List.Dates(d, Duration.Days(h - d) + 1, #duration(1, 0, 0, 0))
-		            else if Table.HasColumns([R][Datos], "Daily")
-		            then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
-		            else {}, type list),
-		    // Cada día se toma de UN solo archivo: el de la solicitud más reciente (si empatan, el último por nombre).
-		    // Así, bajar dos veces el mismo día, o el mes completo encima de los diarios, nunca duplica.
-		    Pares = Table.SelectRows(Table.ExpandListColumn(Table.SelectColumns(ConDias, {"Name", "Solicitado", "Dias"}), "Dias"), each [Dias] <> null),
-		    PorDia = Table.Buffer(Table.Group(Pares, {"Dias"}, {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
-		    ConUsados = Table.AddColumn(ConDias, "Dias_usados", (a) => Table.SelectRows(PorDia, each [Elegido] = a[Name])[Dias], type list),
-		    ConUso = Table.AddColumn(ConUsados, "Usado", each
-		        let n = List.Count([Dias]), u = List.Count([Dias_usados]) in
-		            if n = 0 then "No: no trae datos"
-		            else if u = n then "Sí"
-		            else if u = 0 then "No: sus días están en un archivo más reciente"
-		            else "Parcial: usa " & Text.From(u) & " de " & Text.From(n) & " días", type text),
-		    ConRango = Table.AddColumn(Table.AddColumn(ConUso,
-		        "Desde", each if List.IsEmpty([Dias]) then [R][Desde] else List.Min([Dias]), type nullable date),
-		        "Hasta", each if List.IsEmpty([Dias]) then [R][Hasta] else List.Max([Dias]), type nullable date)
-		in
-		    ConRango
+	lineageTag: fb246e6f-d628-47b8-bbb3-a62e4692a657
 
 	annotation PBI_ResultType = Table
 
@@ -353,6 +254,7 @@ expression WM_SellOut_Filas =
 		    Final = Table.AddColumn(Comprobado, "Monto_final", each if [Monto_redondeado] then [POS Sales] else [POS Sales exacto], type number)
 		in
 		    Final
+	lineageTag: f267e4ed-35ad-4138-ac82-c7d95769bb8e
 
 	annotation PBI_ResultType = Table
 
@@ -379,6 +281,7 @@ expression WM_SellOut =
 		            Monto_redondeado = logical])
 		in
 		    Salida
+	lineageTag: b0c9d5a5-80c4-4f2f-b153-0dd10d766809
 
 	annotation PBI_ResultType = Table
 
@@ -399,6 +302,7 @@ expression AMZ_SellOut_Archivos =
 		    ConUso = Table.AddColumn(ConMes, "Usado", each if List.Contains(Elegidos[Nombre], [Name]) then "Sí" else if Date.StartOfMonth([Hasta]) <> [Mes] then "No: abarca más de un mes" else "No: hay uno más reciente del mismo mes", type text)
 		in
 		    ConUso
+	lineageTag: ab001b06-e89e-4674-9917-88aaf99025a5
 
 	annotation PBI_ResultType = Table
 
@@ -429,34 +333,7 @@ expression AMZ_SellOut =
 		            Monto_redondeado = logical])
 		in
 		    Salida
-
-	annotation PBI_ResultType = Table
-
-/// Archivos de inventario de Walmart y cuáles se usan (una foto por día; de cada mes, la última).
-expression WM_Inventario_Archivos =
-		let
-		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\inventario"),
-		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
-		    // La foto corresponde al día consultado (Pos Date); si no viene, al día anterior a la solicitud
-		    ConFecha = Table.AddColumn(ConSolicitud, "Fecha", each
-		        if [R][Hasta] <> null then [R][Hasta]
-		        else if [Solicitado] = null then null
-		        else Date.AddDays(Date.From([Solicitado]), -1), type nullable date),
-		    // Una foto por día: la de la solicitud más reciente (si empatan, la última por nombre)
-		    PorDia = Table.Buffer(Table.Group(Table.SelectRows(ConFecha, each [Fecha] <> null), {"Fecha"},
-		        {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
-		    Elegidos = List.Buffer(PorDia[Elegido]),
-		    // De cada mes solo cuenta la última foto: la más reciente es el inventario actual y las de cierre de mes, el historial
-		    UltimasDelMes = List.Buffer(Table.Group(Table.AddColumn(PorDia, "Mes", each Date.StartOfMonth([Fecha])), {"Mes"},
-		        {{"Ultima", each List.Max([Fecha]), type date}})[Ultima]),
-		    ConUso = Table.AddColumn(ConFecha, "Usado", each
-		        if [Fecha] = null then "No: no se pudo leer la fecha"
-		        else if not List.Contains(Elegidos, [Name]) then "No: hay uno más reciente del mismo día"
-		        else if not List.Contains(UltimasDelMes, [Fecha]) then "No: no es la última foto del mes"
-		        else "Sí", type text)
-		in
-		    ConUso
+	lineageTag: 0a4122e0-99f1-42d4-ae27-d74e148d25da
 
 	annotation PBI_ResultType = Table
 
@@ -479,6 +356,7 @@ expression WM_Inventario_Filas =
 		        {"Curr Str On Order Qty", fnNumero, type number}})
 		in
 		    Tipado
+	lineageTag: e55b34a1-a9a6-4acb-a23a-35ba6a57b40c
 
 	annotation PBI_ResultType = Table
 
@@ -500,6 +378,7 @@ expression WM_Inventario =
 		            Piezas_en_pedido = nullable number, Piezas_no_aptas = nullable number, Monto_disponible = nullable number])
 		in
 		    Salida
+	lineageTag: 5b5f4fbc-6de0-4766-8873-82489a71cbe7
 
 	annotation PBI_ResultType = Table
 
@@ -526,6 +405,7 @@ expression AMZ_Inventario_Archivos =
 		        else "Sí", type text)
 		in
 		    ConUso
+	lineageTag: 0d4858de-b9a7-4a42-a689-a2d99c633c76
 
 	annotation PBI_ResultType = Table
 
@@ -557,42 +437,7 @@ expression AMZ_Inventario =
 		            Piezas_en_pedido = nullable number, Piezas_no_aptas = nullable number, Monto_disponible = nullable number])
 		in
 		    Salida
-
-	annotation PBI_ResultType = Table
-
-/// Archivos de fill rate de Walmart.
-expression WM_FillRate_Archivos =
-		let
-		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\fill rate"),
-		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime)
-		in
-		    ConSolicitud
-
-	annotation PBI_ResultType = Table
-
-/// Líneas de órdenes de Walmart: cada orden y artículo, de la descarga más reciente.
-expression WM_FillRate_Lineas =
-		let
-		    Filas = Table.Combine(List.Transform(Table.ToRecords(WM_FillRate_Archivos),
-		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos], "Solicitado", each a[Solicitado], type nullable datetime), "Archivo", each a[Name], type text))),
-		    Validas = Table.SelectRows(Filas, each [PO Number] <> null and [Item Nbr] <> null),
-		    Tipado = Table.TransformColumns(Validas, {
-		        {"PO Number", each Text.From(Int64.From(_)), type text},
-		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
-		        {"PO Order Date", fnFechaMDA, type date},
-		        {"PO Ship Date", fnFechaMDA, type nullable date},
-		        {"PO Cancel Date", fnFechaMDA, type nullable date},
-		        {"Unit Cost", fnNumero, type nullable number},
-		        {"Hist Eaches Str Ordered", fnNumero, type number},
-		        {"Hist Eaches Str Received", fnNumero, type number},
-		        {"Hist Eaches Whse Ordered", fnNumero, type number},
-		        {"Hist Eaches Whse Received", fnNumero, type number}}),
-		    // Una orden se actualiza cuando llega la mercancía: cada línea (orden + artículo) se toma de la descarga más reciente
-		    Ordenado = Table.Buffer(Table.Sort(Tipado, {{"Solicitado", Order.Descending}, {"Archivo", Order.Descending}})),
-		    SinRepetidos = Table.Distinct(Ordenado, {"PO Number", "Item Nbr"})
-		in
-		    SinRepetidos
+	lineageTag: e3570cac-3bd2-4a47-bab5-341793fc3635
 
 	annotation PBI_ResultType = Table
 
@@ -616,19 +461,7 @@ expression WM_FillRate =
 		            Piezas_ordenadas = number, Piezas_recibidas = number, Costo_unitario = nullable number])
 		in
 		    Salida
-
-	annotation PBI_ResultType = Table
-
-/// Archivos de Recship de Walmart y cuál es el más reciente.
-expression WM_Recship_Archivos =
-		let
-		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\forecast"),
-		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
-		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
-		    Elegido = Table.First(Table.Sort(ConSolicitud, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name],
-		    ConUso = Table.AddColumn(ConSolicitud, "Usado", each if [Name] = Elegido then "Sí" else "No: hay uno más reciente", type text)
-		in
-		    ConUso
+	lineageTag: d51d65b9-0d6a-4185-aaf7-6a547bb0d3a6
 
 	annotation PBI_ResultType = Table
 
@@ -664,5 +497,202 @@ expression WM_Recship =
 		            Piezas = number, Costo_pieza = nullable number, Monto = nullable number])
 		in
 		    Salida
+	lineageTag: 7043ac3f-c4d5-4e87-aac4-d5f83e7fbc81
 
 	annotation PBI_ResultType = Table
+
+/// Archivos de sell out de Walmart y qué días se toman de cada uno (cada día, del más reciente).
+expression WM_SellOut_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\sell out"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    // Días que cubre cada archivo: el rango de Pos Date del encabezado (no hace falta leer los datos).
+		    // Solo si el archivo no trae el rango, se toman de la columna Daily.
+		    ConDias = Table.AddColumn(ConSolicitud, "Dias", each
+		        let d = [R][Desde], h = [R][Hasta] in
+		            if d <> null and h <> null and h >= d then List.Dates(d, Duration.Days(h - d) + 1, #duration(1, 0, 0, 0))
+		            else if Table.HasColumns([R][Datos], "Daily")
+		            then List.Distinct(List.RemoveNulls(List.Transform([R][Datos][Daily], fnFechaAMD)))
+		            else {}, type list),
+		    // Cada día se toma de UN solo archivo: el de la solicitud más reciente (si empatan, el último por nombre).
+		    // Así, bajar dos veces el mismo día, o el mes completo encima de los diarios, nunca duplica.
+		    Pares = Table.SelectRows(Table.ExpandListColumn(Table.SelectColumns(ConDias, {"Name", "Solicitado", "Dias"}), "Dias"), each [Dias] <> null),
+		    PorDia = Table.Buffer(Table.Group(Pares, {"Dias"}, {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
+		    ConUsados = Table.AddColumn(ConDias, "Dias_usados", (a) => Table.SelectRows(PorDia, each [Elegido] = a[Name])[Dias], type list),
+		    ConUso = Table.AddColumn(ConUsados, "Usado", each
+		        let n = List.Count([Dias]), u = List.Count([Dias_usados]) in
+		            if n = 0 then "No: no trae datos"
+		            else if u = n then "Sí"
+		            else if u = 0 then "No: sus días están en un archivo más reciente"
+		            else "Parcial: usa " & Text.From(u) & " de " & Text.From(n) & " días", type text),
+		    ConRango = Table.AddColumn(Table.AddColumn(ConUso,
+		        "Desde", each if List.IsEmpty([Dias]) then [R][Desde] else List.Min([Dias]), type nullable date),
+		        "Hasta", each if List.IsEmpty([Dias]) then [R][Hasta] else List.Max([Dias]), type nullable date)
+		in
+		    ConRango
+	lineageTag: a64d931b-6d9d-42c0-a2ac-7c7d46f56ad2
+
+	annotation PBI_ResultType = Table
+
+/// Archivos de inventario de Walmart y cuáles se usan (una foto por día; de cada mes, la última).
+expression WM_Inventario_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\inventario"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    // La foto corresponde al día consultado (Pos Date); si no viene, al día anterior a la solicitud
+		    ConFecha = Table.AddColumn(ConSolicitud, "Fecha", each
+		        if [R][Hasta] <> null then [R][Hasta]
+		        else if [Solicitado] = null then null
+		        else Date.AddDays(Date.From([Solicitado]), -1), type nullable date),
+		    // Una foto por día: la de la solicitud más reciente (si empatan, la última por nombre)
+		    PorDia = Table.Buffer(Table.Group(Table.SelectRows(ConFecha, each [Fecha] <> null), {"Fecha"},
+		        {{"Elegido", each Table.First(Table.Sort(_, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name], type text}})),
+		    Elegidos = List.Buffer(PorDia[Elegido]),
+		    // De cada mes solo cuenta la última foto: la más reciente es el inventario actual y las de cierre de mes, el historial
+		    UltimasDelMes = List.Buffer(Table.Group(Table.AddColumn(PorDia, "Mes", each Date.StartOfMonth([Fecha])), {"Mes"},
+		        {{"Ultima", each List.Max([Fecha]), type date}})[Ultima]),
+		    ConUso = Table.AddColumn(ConFecha, "Usado", each
+		        if [Fecha] = null then "No: no se pudo leer la fecha"
+		        else if not List.Contains(Elegidos, [Name]) then "No: hay uno más reciente del mismo día"
+		        else if not List.Contains(UltimasDelMes, [Fecha]) then "No: no es la última foto del mes"
+		        else "Sí", type text)
+		in
+		    ConUso
+	lineageTag: 7f34a3a2-2ab1-41a9-9b46-c76bda188cc3
+
+	annotation PBI_ResultType = Table
+
+/// Archivos de fill rate de Walmart.
+expression WM_FillRate_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\fill rate"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime)
+		in
+		    ConSolicitud
+	lineageTag: 6603f4b4-ba32-49f6-9874-9e576b0593ee
+
+	annotation PBI_ResultType = Table
+
+/// Líneas de órdenes de Walmart: cada orden y artículo, de la descarga más reciente.
+expression WM_FillRate_Lineas =
+		let
+		    Filas = Table.Combine(List.Transform(Table.ToRecords(WM_FillRate_Archivos),
+		        (a) => Table.AddColumn(Table.AddColumn(a[R][Datos], "Solicitado", each a[Solicitado], type nullable datetime), "Archivo", each a[Name], type text))),
+		    Validas = Table.SelectRows(Filas, each [PO Number] <> null and [Item Nbr] <> null),
+		    Tipado = Table.TransformColumns(Validas, {
+		        {"PO Number", each Text.From(Int64.From(_)), type text},
+		        {"Item Nbr", each Text.From(Int64.From(_)), type text},
+		        {"PO Order Date", fnFechaMDA, type date},
+		        {"PO Ship Date", fnFechaMDA, type nullable date},
+		        {"PO Cancel Date", fnFechaMDA, type nullable date},
+		        {"Unit Cost", fnNumero, type nullable number},
+		        {"Hist Eaches Str Ordered", fnNumero, type number},
+		        {"Hist Eaches Str Received", fnNumero, type number},
+		        {"Hist Eaches Whse Ordered", fnNumero, type number},
+		        {"Hist Eaches Whse Received", fnNumero, type number}}),
+		    // Una orden se actualiza cuando llega la mercancía: cada línea (orden + artículo) se toma de la descarga más reciente
+		    Ordenado = Table.Buffer(Table.Sort(Tipado, {{"Solicitado", Order.Descending}, {"Archivo", Order.Descending}})),
+		    SinRepetidos = Table.Distinct(Ordenado, {"PO Number", "Item Nbr"})
+		in
+		    SinRepetidos
+	lineageTag: be1f2152-c5b2-4bae-8867-28318b6ba805
+
+	annotation PBI_ResultType = Table
+
+/// Archivos de Recship de Walmart y cuál es el más reciente.
+expression WM_Recship_Archivos =
+		let
+		    Lista = Table.SelectRows(Archivos, each [Carpeta] = "walmart\forecast"),
+		    Leidos = Table.AddColumn(Lista, "R", each fnRetailLink([Content])),
+		    ConSolicitud = Table.AddColumn(Leidos, "Solicitado", each [R][Solicitado], type nullable datetime),
+		    Elegido = Table.First(Table.Sort(ConSolicitud, {{"Solicitado", Order.Descending}, {"Name", Order.Descending}}))[Name],
+		    ConUso = Table.AddColumn(ConSolicitud, "Usado", each if [Name] = Elegido then "Sí" else "No: hay uno más reciente", type text)
+		in
+		    ConUso
+	lineageTag: 19e0991f-8413-42b2-a7bd-5761c83e58b1
+
+	annotation PBI_ResultType = Table
+
+/// Función: saca y descomprime un archivo de dentro de un .xlsx.
+expression fnZipArchivo =
+		// Devuelve, descomprimido, un archivo de dentro de un .xlsx (un .xlsx es un ZIP).
+		// Lee el directorio central del ZIP, así que sirve aunque el archivo use descriptores de datos.
+		(zip as binary, nombre as text) as binary =>
+		let
+		    Z = Binary.Buffer(zip),
+		    Bytes = (pos as number, n as number) as list => Binary.ToList(Binary.Range(Z, pos, n)),
+		    U16 = (pos as number) as number => let b = Bytes(pos, 2) in b{0} + b{1} * 256,
+		    U32 = (pos as number) as number => let b = Bytes(pos, 4) in b{0} + b{1} * 256 + b{2} * 65536 + b{3} * 16777216,
+		    // Fin del directorio central: los últimos 22 bytes (los archivos de Retail Link no traen comentario)
+		    Fin = Binary.Length(Z) - 22,
+		    Firma = Bytes(Fin, 4) = {80, 75, 5, 6},
+		    Total = U16(Fin + 10),
+		    Inicio = U32(Fin + 16),
+		    Entradas = List.Generate(
+		        () => [pos = Inicio, i = 0],
+		        each [i] < Total,
+		        each [pos = [pos] + 46 + U16([pos] + 28) + U16([pos] + 30) + U16([pos] + 32), i = [i] + 1],
+		        each [
+		            Nombre = Text.FromBinary(Binary.Range(Z, [pos] + 46, U16([pos] + 28)), TextEncoding.Utf8),
+		            Metodo = U16([pos] + 10),
+		            Comprimido = U32([pos] + 20),
+		            Local = U32([pos] + 42)]),
+		    Entrada = List.First(List.Select(Entradas, each [Nombre] = nombre)),
+		    L = Entrada[Local],
+		    Datos = Binary.Range(Z, L + 30 + U16(L + 26) + U16(L + 28), Entrada[Comprimido])
+		in
+		    if not Firma then error "No se encontró el directorio del archivo"
+		    else if Entrada[Metodo] = 0 then Datos
+		    else Binary.Decompress(Datos, Compression.Deflate)
+	lineageTag: e7deb20c-8292-420e-a0ac-b35173264389
+
+	annotation PBI_ResultType = Function
+
+/// Función: lee directo del .xlsx los valores exactos de una columna de Retail Link (POS Sales viene con formato sin decimales).
+expression fnColumnaExacta =
+		// Lee directo del archivo los valores exactos de una columna numérica de Retail Link.
+		// Hace falta porque Excel.Workbook entrega el texto con formato: POS Sales viene como "$109" en lugar de 108.62.
+		// Devuelve un valor por cada fila debajo del encabezado, en el mismo orden del archivo.
+		(contenido as binary, encabezado as text) as list =>
+		let
+		    Xml = Text.FromBinary(fnZipArchivo(contenido, "xl/worksheets/sheet1.xml"), TextEncoding.Utf8),
+		    PosEncabezado = Text.PositionOf(Xml, "<t>" & encabezado & "</t>", Occurrence.Last),
+		    // Celda del encabezado, por ejemplo T24: columna T, fila 24
+		    Previo = Text.Middle(Xml, PosEncabezado - 120, 120),
+		    Referencia = Text.BeforeDelimiter(Text.AfterDelimiter(Previo, "<c r=""", {0, RelativePosition.FromEnd}), """"),
+		    Letra = Text.Select(Referencia, {"A".."Z"}),
+		    FilaEncabezado = Number.From(Text.Select(Referencia, {"0".."9"})),
+		    Marca = "<c r=""" & Letra,
+		    Posiciones = Text.PositionOf(Xml, Marca, Occurrence.All),
+		    Celdas = List.Transform(Posiciones, (p) =>
+		        let
+		            s = Text.Middle(Xml, p + Text.Length(Marca), 90),
+		            FilaTxt = Text.BeforeDelimiter(s, """"),
+		            Cabecera = Text.BeforeDelimiter(s, ">"),
+		            Contenido = Text.BeforeDelimiter(Text.AfterDelimiter(s, ">"), "</c>")
+		        in
+		            [Fila = if FilaTxt <> "" and Text.Select(FilaTxt, {"0".."9"}) = FilaTxt then Number.From(FilaTxt) else -1,
+		             Valor = if Text.EndsWith(Cabecera, "/") or not Text.Contains(Contenido, "<v>") then null
+		                 else Number.FromText(Text.BetweenDelimiters(Contenido, "<v>", "</v>"), "en-US")]),
+		    Datos = List.Select(Celdas, each [Fila] > FilaEncabezado)
+		in
+		    if PosEncabezado < 0 then error "No se encontró el encabezado " & encabezado
+		    else List.Transform(Datos, each [Valor])
+	lineageTag: dd3665d1-7519-4135-8cef-44abb0d76425
+
+	annotation PBI_ResultType = Function
+
+/// Función: convierte el texto de una celda del XML de Excel en texto normal.
+expression fnXmlTexto =
+		// Convierte el texto de una celda del XML de Excel en texto normal (&amp; -> &, etc.)
+		(t as nullable text) as nullable text =>
+		    if t = null then null
+		    else Text.Replace(Text.Replace(Text.Replace(Text.Replace(Text.Replace(t,
+		        "&lt;", "<"), "&gt;", ">"), "&quot;", """"), "&apos;", "'"), "&amp;", "&")
+	lineageTag: 1eed44c1-4eb1-4737-9d81-c54df1d716dd
+
+	annotation PBI_ResultType = Function
+

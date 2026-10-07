@@ -1,24 +1,29 @@
 /// Control: archivos leídos por el reporte, sus fechas y si se usaron.
 table ctlArchivos
+	lineageTag: 3cacb438-079e-4d36-98c8-18db32eb79bc
 
 	column Fuente
 		dataType: string
+		lineageTag: 58815bd6-1849-463f-ae0f-739f6d542ef0
 		summarizeBy: none
 		sourceColumn: Fuente
 
 	column Archivo
 		dataType: string
+		lineageTag: 4bb6d08a-ced6-4adc-b5a3-c59e1daf16c1
 		summarizeBy: none
 		sourceColumn: Archivo
 
 	column Reporte
 		dataType: string
+		lineageTag: f4d224cd-83fa-42da-9b63-1ffa7bd76ea8
 		summarizeBy: none
 		sourceColumn: Reporte
 
 	column Desde
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 92eac1be-dcc4-4e6b-9a16-39b10a36da59
 		summarizeBy: none
 		sourceColumn: Desde
 
@@ -27,6 +32,7 @@ table ctlArchivos
 	column Hasta
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 75796ba7-eb65-416d-88f5-6a80827c6227
 		summarizeBy: none
 		sourceColumn: Hasta
 
@@ -35,11 +41,13 @@ table ctlArchivos
 	column Generado
 		dataType: dateTime
 		formatString: dd/mm/yyyy hh:nn
+		lineageTag: 98508b0b-c604-47cc-bb6c-91b097b2fa2f
 		summarizeBy: none
 		sourceColumn: Generado
 
 	column Usado
 		dataType: string
+		lineageTag: 18e62591-b5e1-4292-bfea-d26c27a73ab4
 		summarizeBy: none
 		sourceColumn: Usado
 
@@ -75,3 +83,4 @@ table ctlArchivos
 				    Tipado
 
 	annotation PBI_ResultType = Table
+

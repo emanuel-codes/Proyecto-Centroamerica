@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "mtxProductos",
   "position": {
     "x": 16,
-    "y": 472,
+    "y": 486,
     "z": 1800,
-    "height": 232,
-    "width": 740,
+    "height": 226,
+    "width": 1248,
     "tabOrder": 1800
   },
   "visual": {
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "dimProducto.Producto",
-              "nativeQueryRef": "Producto"
+              "nativeQueryRef": "Producto",
+              "active": true
             }
           ]
         },
@@ -41,12 +42,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out piezas"
+                  "Property": "Sell out"
                 }
               },
-              "queryRef": "_Medidas.Sell out piezas",
-              "nativeQueryRef": "Sell out piezas",
-              "displayName": "Piezas"
+              "queryRef": "_Medidas.Sell out",
+              "nativeQueryRef": "Sell out",
+              "displayName": "Sell out"
             },
             {
               "field": {
@@ -56,12 +57,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out piezas año anterior"
+                  "Property": "Sell out año anterior"
                 }
               },
-              "queryRef": "_Medidas.Sell out piezas año anterior",
-              "nativeQueryRef": "Sell out piezas año anterior",
-              "displayName": "Piezas año ant."
+              "queryRef": "_Medidas.Sell out año anterior",
+              "nativeQueryRef": "Sell out año anterior",
+              "displayName": "Año anterior"
             },
             {
               "field": {
@@ -71,12 +72,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Crecimiento sell out piezas"
+                  "Property": "Var vs año anterior"
                 }
               },
-              "queryRef": "_Medidas.Crecimiento sell out piezas",
-              "nativeQueryRef": "Crecimiento sell out piezas",
-              "displayName": "Crec. piezas"
+              "queryRef": "_Medidas.Var vs año anterior",
+              "nativeQueryRef": "Var vs año anterior",
+              "displayName": "Variación"
             },
             {
               "field": {
@@ -86,12 +87,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out monto"
+                  "Property": "Var % vs año anterior"
                 }
               },
-              "queryRef": "_Medidas.Sell out monto",
-              "nativeQueryRef": "Sell out monto",
-              "displayName": "Monto"
+              "queryRef": "_Medidas.Var % vs año anterior",
+              "nativeQueryRef": "Var % vs año anterior",
+              "displayName": "Var. %"
             },
             {
               "field": {
@@ -101,27 +102,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Crecimiento sell out monto"
+                  "Property": "Participación sell out"
                 }
               },
-              "queryRef": "_Medidas.Crecimiento sell out monto",
-              "nativeQueryRef": "Crecimiento sell out monto",
-              "displayName": "Crec. monto"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Medidas"
-                    }
-                  },
-                  "Property": "Participación sell out monto"
-                }
-              },
-              "queryRef": "_Medidas.Participación sell out monto",
-              "nativeQueryRef": "Participación sell out monto",
-              "displayName": "Part. monto"
+              "queryRef": "_Medidas.Participación sell out",
+              "nativeQueryRef": "Participación sell out",
+              "displayName": "Participación"
             }
           ]
         }
@@ -136,7 +122,7 @@
                     "Entity": "_Medidas"
                   }
                 },
-                "Property": "Sell out monto"
+                "Property": "Sell out"
               }
             },
             "direction": "Descending"
@@ -156,6 +142,66 @@
               }
             }
           }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Medidas"
+                        }
+                      },
+                      "Property": "Color var %"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "_Medidas.Var vs año anterior"
+          }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Medidas"
+                        }
+                      },
+                      "Property": "Color var %"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "_Medidas.Var % vs año anterior"
+          }
         }
       ],
       "columnHeaders": [
@@ -174,6 +220,20 @@
                   "Value": "true"
                 }
               }
+            },
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "columnAdjustment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'growToFit'"
+                }
+              }
             }
           }
         }
@@ -190,92 +250,80 @@
             }
           }
         }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#F29A9E'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#F29A9E'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#E4E7EB'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Participación sell out"
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "rowPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
+                }
+              }
+            }
+          }
+        }
       ]
     },
     "visualContainerObjects": {
-      "title": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "text": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Sell out por producto'"
-                }
-              }
-            },
-            "fontColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#1F2933'"
-                    }
-                  }
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "11D"
-                }
-              }
-            },
-            "bold": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "subTitle": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "text": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Mes elegido · crecimiento contra los mismos días del año anterior'"
-                }
-              }
-            },
-            "fontColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "Literal": {
-                      "Value": "'#7B8794'"
-                    }
-                  }
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "9D"
-                }
-              }
-            }
-          }
-        }
-      ],
       "background": [
         {
           "properties": {
@@ -379,6 +427,64 @@
               "expr": {
                 "Literal": {
                   "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sell out por producto'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1F2933'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
                 }
               }
             }

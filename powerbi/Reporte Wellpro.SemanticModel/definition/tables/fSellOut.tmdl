@@ -1,9 +1,11 @@
 /// Venta de las cadenas al consumidor. Walmart por día, tienda y artículo; Amazon por mes y ASIN (Fecha = primer día del mes; Datos_hasta = último día que cubre el archivo).
 table fSellOut
+	lineageTag: 81c238af-1bf8-4750-9396-e5515f990b20
 
 	column Fecha
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 7ae4fa6d-bd78-4cb6-8b79-1ebbe9335f75
 		summarizeBy: none
 		sourceColumn: Fecha
 
@@ -12,6 +14,7 @@ table fSellOut
 	column Datos_hasta
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: f422c8ee-d048-45c9-8ae5-906831f13157
 		summarizeBy: none
 		sourceColumn: Datos_hasta
 
@@ -19,61 +22,71 @@ table fSellOut
 
 	column Cadena
 		dataType: string
+		lineageTag: 193d6c59-704a-4946-a88a-2edb5922b59e
 		summarizeBy: none
 		sourceColumn: Cadena
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: 7f3b64d9-438e-4fab-873e-49b3f5902a70
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Codigo_cadena
 		dataType: string
+		lineageTag: 03dc05cb-ae3d-4a18-810d-4174636c5fa6
 		summarizeBy: none
 		sourceColumn: Codigo_cadena
 
 	column Descripcion_cadena
 		dataType: string
+		lineageTag: a93b7c23-2165-4ad5-a068-789cdd9c6ad4
 		summarizeBy: none
 		sourceColumn: Descripcion_cadena
 
 	column Tienda_Nbr
 		dataType: int64
+		lineageTag: b8669f81-c2cb-47a4-a277-e6ce2bd113aa
 		summarizeBy: none
 		sourceColumn: Tienda_Nbr
 
 	column Tipo_venta
 		dataType: string
+		lineageTag: f286cd35-c87f-4335-a45e-819244eb373b
 		summarizeBy: none
 		sourceColumn: Tipo_venta
 
 	column Piezas
 		dataType: double
 		formatString: #,0
+		lineageTag: b138ea12-73fe-4ca3-8c15-cde91508b508
 		summarizeBy: sum
 		sourceColumn: Piezas
 
 	column Monto
 		dataType: double
 		formatString: #,0
+		lineageTag: b3853f50-8b26-443c-ab88-b964bb915839
 		summarizeBy: sum
 		sourceColumn: Monto
 
 	column Costo
 		dataType: double
 		formatString: #,0
+		lineageTag: 52d95899-39db-4bf7-8419-51636760e1f2
 		summarizeBy: sum
 		sourceColumn: Costo
 
 	column Monto_redondeado
 		dataType: boolean
 		isHidden
+		lineageTag: c44c09e3-f0fb-47bf-bce5-c45f2c3a0274
 		summarizeBy: none
 		sourceColumn: Monto_redondeado
 
 	partition fSellOut = m
 		mode: import
-		source =
-				Table.Combine({WM_SellOut, AMZ_SellOut})
+		source = Table.Combine({WM_SellOut, AMZ_SellOut})
 
 	annotation PBI_ResultType = Table
+

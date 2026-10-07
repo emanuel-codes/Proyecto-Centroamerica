@@ -1,9 +1,11 @@
 /// Metas mensuales de sell in por producto y cliente (hoja Metas del maestro).
 table Metas
+	lineageTag: 94ca3bee-3855-4c71-ac90-af59bfd6e649
 
 	column Mes
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: e206952f-7d72-45c1-bcda-f2ed83b7915b
 		summarizeBy: none
 		sourceColumn: Mes
 
@@ -11,34 +13,40 @@ table Metas
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: 37b4fd85-58eb-4cae-a401-86b34e8744a8
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Producto
 		dataType: string
+		lineageTag: 729fdc32-738b-4e6d-9d1c-f424d491ba6a
 		summarizeBy: none
 		sourceColumn: Producto
 
 	column Cliente_reporte
 		dataType: string
+		lineageTag: 5a28d6c1-8f2a-4fb3-9618-758a9fbaa4fd
 		summarizeBy: none
 		sourceColumn: Cliente_reporte
 
 	column Cantidad
 		dataType: double
 		formatString: #,0
+		lineageTag: 4fe0afa7-7646-4640-95d3-9be9e74cc468
 		summarizeBy: sum
 		sourceColumn: Cantidad
 
 	column Precio
 		dataType: double
 		formatString: #,0.##
+		lineageTag: 77528467-81f7-45f4-a57b-c35d6d035fd2
 		summarizeBy: none
 		sourceColumn: Precio
 
 	column Monto
 		dataType: double
 		formatString: #,0
+		lineageTag: bc09af74-fbf9-485d-b275-e1fd7e34e168
 		summarizeBy: sum
 		sourceColumn: Monto
 
@@ -60,3 +68,4 @@ table Metas
 				    Columnas
 
 	annotation PBI_ResultType = Table
+

@@ -60,6 +60,21 @@
       "source": "sltMes",
       "target": "chrMensual",
       "type": "NoFilter"
+    },
+    {
+      "source": "sltMes",
+      "target": "spkMonto",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sltMes",
+      "target": "spkPiezas",
+      "type": "NoFilter"
+    },
+    {
+      "source": "sltMes",
+      "target": "spkPrecio",
+      "type": "NoFilter"
     }
   ]
 }

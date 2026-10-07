@@ -1,8 +1,10 @@
 /// Cadenas con sell out: Walmart y Amazon.
 table dimCadena
+	lineageTag: 269c596f-d9cb-49af-ad66-c0f8703f33e5
 
 	column Cadena
 		dataType: string
+		lineageTag: 8d73ab74-4f59-4896-b051-8f71a78fae14
 		summarizeBy: none
 		sourceColumn: Cadena
 		sortByColumn: Orden
@@ -10,12 +12,13 @@ table dimCadena
 	column Orden
 		dataType: int64
 		isHidden
+		lineageTag: de029008-7f98-4b71-9f9f-91cb862d48a3
 		summarizeBy: none
 		sourceColumn: Orden
 
 	partition dimCadena = m
 		mode: import
-		source =
-				#table(type table [Cadena = text, Orden = Int64.Type], {{"Walmart", 1}, {"Amazon", 2}})
+		source = #table(type table [Cadena = text, Orden = Int64.Type], {{"Walmart", 1}, {"Amazon", 2}})
 
 	annotation PBI_ResultType = Table
+

@@ -1,40 +1,47 @@
 /// Calendario del reporte (desde enero de 2024).
 table Calendario
+	lineageTag: 70f4f9cd-7c79-4d14-a449-310184cde9e5
 	dataCategory: Time
 
 	column Fecha
 		dataType: dateTime
-		formatString: dd/mm/yyyy
 		isKey
+		formatString: dd/mm/yyyy
+		lineageTag: c178672d-e091-4991-9892-545131583833
 		summarizeBy: none
 		sourceColumn: Fecha
 
 		annotation UnderlyingDateTimeDataType = Date
 
-	column 'Año'
+	column Año
 		dataType: int64
+		lineageTag: e06b19c6-b207-445f-8c38-96e2055bd505
 		summarizeBy: none
 		sourceColumn: Año
 
 	column Num_mes
 		dataType: int64
+		lineageTag: 30b72a00-e9e3-4328-bfe5-3f4f5880262b
 		summarizeBy: none
 		sourceColumn: Num_mes
 
 	column Mes
 		dataType: string
+		lineageTag: aa33fae5-3bfe-4b49-8526-c99eb83b4878
 		summarizeBy: none
 		sourceColumn: Mes
 		sortByColumn: Num_mes
 
-	column 'Año_mes'
+	column Año_mes
 		dataType: string
+		lineageTag: b1f0b264-8978-4022-a5f3-2d100147af43
 		summarizeBy: none
 		sourceColumn: Año_mes
 
 	column Inicio_mes
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: b8e9e6fe-b4f1-4034-8e57-fdc79d073b0f
 		summarizeBy: none
 		sourceColumn: Inicio_mes
 
@@ -42,11 +49,13 @@ table Calendario
 
 	column Trimestre
 		dataType: string
+		lineageTag: ee62f70a-a299-4284-ad49-059b16ac70f4
 		summarizeBy: none
 		sourceColumn: Trimestre
 
-	column 'Mes_año'
+	column Mes_año
 		dataType: string
+		lineageTag: 29072ef0-21d4-44c7-a142-9e838fc9d0b8
 		summarizeBy: none
 		sourceColumn: Mes_año
 		sortByColumn: Inicio_mes
@@ -55,11 +64,13 @@ table Calendario
 	column Meses_atras = DATEDIFF ( Calendario[Inicio_mes], DATE ( YEAR ( MAX ( fSellOut[Datos_hasta] ) ), MONTH ( MAX ( fSellOut[Datos_hasta] ) ), 1 ), MONTH )
 		dataType: int64
 		formatString: 0
+		lineageTag: f1b42752-db49-4b8c-8d8b-829bcf9afcdc
 		summarizeBy: none
 
 	/// Mes para los filtros: el último mes con sell out se llama "Mes actual", así el filtro guardado no se desactualiza.
 	column Periodo = IF ( Calendario[Meses_atras] = 0, "Mes actual", Calendario[Mes_año] )
 		dataType: string
+		lineageTag: e41f0748-4abf-48a2-9307-bcd64b2739ea
 		summarizeBy: none
 		sortByColumn: Inicio_mes
 
@@ -85,3 +96,4 @@ table Calendario
 				    MesAnio
 
 	annotation PBI_ResultType = Table
+

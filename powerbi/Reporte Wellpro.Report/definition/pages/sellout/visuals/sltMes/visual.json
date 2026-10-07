@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "sltMes",
   "position": {
-    "x": 16,
-    "y": 74,
+    "x": 634,
+    "y": 70,
     "z": 600,
-    "height": 50,
-    "width": 180,
+    "height": 58,
+    "width": 140,
     "tabOrder": 600
   },
   "visual": {
@@ -149,7 +149,7 @@
                 "Version": 2,
                 "From": [
                   {
-                    "Name": "t",
+                    "Name": "c",
                     "Entity": "Calendario",
                     "Type": 0
                   }
@@ -163,7 +163,7 @@
                             "Column": {
                               "Expression": {
                                 "SourceRef": {
-                                  "Source": "t"
+                                  "Source": "c"
                                 }
                               },
                               "Property": "Periodo"

@@ -61,3 +61,4 @@ relationship Metas_Mes_Calendario
 relationship Metas_Codigo_ERP_dimProducto
 	fromColumn: Metas.Codigo_ERP
 	toColumn: dimProducto.Codigo_ERP
+

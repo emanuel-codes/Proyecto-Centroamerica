@@ -1,29 +1,35 @@
 /// Órdenes de compra de Walmart: piezas ordenadas y recibidas (tienda + centro de distribución).
 table fFillRate
+	lineageTag: 27c0e8a0-074f-407b-9657-ba212c472e7b
 
 	column Cadena
 		dataType: string
+		lineageTag: 48579b84-8dbe-46f8-83c1-449f6ed649c0
 		summarizeBy: none
 		sourceColumn: Cadena
 
 	column Orden
 		dataType: string
+		lineageTag: a70e9d8d-d159-462a-ac10-a3a9e6fc6a63
 		summarizeBy: none
 		sourceColumn: Orden
 
 	column Codigo_ERP
 		dataType: string
+		lineageTag: 3d61b080-a6f1-4e8e-b5db-37fd08f2bf1a
 		summarizeBy: none
 		sourceColumn: Codigo_ERP
 
 	column Codigo_cadena
 		dataType: string
+		lineageTag: 1bd70bee-ccb9-443d-93ab-08ccf1192083
 		summarizeBy: none
 		sourceColumn: Codigo_cadena
 
 	column Fecha_orden
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: d0f3dc61-a6d8-4c25-8872-beb0f8d805ec
 		summarizeBy: none
 		sourceColumn: Fecha_orden
 
@@ -32,6 +38,7 @@ table fFillRate
 	column Fecha_envio
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 93e78cbb-5018-4f8c-9037-2e3bbca14e07
 		summarizeBy: none
 		sourceColumn: Fecha_envio
 
@@ -40,6 +47,7 @@ table fFillRate
 	column Fecha_cancelacion
 		dataType: dateTime
 		formatString: dd/mm/yyyy
+		lineageTag: 87744300-f3be-4854-9b5a-901dfbe173e9
 		summarizeBy: none
 		sourceColumn: Fecha_cancelacion
 
@@ -48,24 +56,27 @@ table fFillRate
 	column Piezas_ordenadas
 		dataType: double
 		formatString: #,0
+		lineageTag: f7a2cf63-e02b-49c9-a683-cd364f4c4c84
 		summarizeBy: sum
 		sourceColumn: Piezas_ordenadas
 
 	column Piezas_recibidas
 		dataType: double
 		formatString: #,0
+		lineageTag: 1e2515d5-e70d-4522-a84c-63e2ca767537
 		summarizeBy: sum
 		sourceColumn: Piezas_recibidas
 
 	column Costo_unitario
 		dataType: double
 		formatString: #,0.##
+		lineageTag: af70ca96-7c61-4035-98c5-6f9ac34b7469
 		summarizeBy: none
 		sourceColumn: Costo_unitario
 
 	partition fFillRate = m
 		mode: import
-		source =
-				WM_FillRate
+		source = WM_FillRate
 
 	annotation PBI_ResultType = Table
+

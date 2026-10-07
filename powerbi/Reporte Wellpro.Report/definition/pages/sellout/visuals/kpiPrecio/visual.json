@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "kpiTiendas",
+  "name": "kpiPrecio",
   "position": {
-    "x": 958,
+    "x": 644,
     "y": 138,
-    "z": 1130,
+    "z": 1120,
     "height": 104,
     "width": 306,
-    "tabOrder": 1130
+    "tabOrder": 1120
   },
   "visual": {
     "visualType": "cardVisual",
@@ -23,11 +23,11 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Tiendas con venta"
+                  "Property": "Precio promedio por pieza"
                 }
               },
-              "queryRef": "_Medidas.Tiendas con venta",
-              "nativeQueryRef": "Tiendas con venta"
+              "queryRef": "_Medidas.Precio promedio por pieza",
+              "nativeQueryRef": "Precio promedio por pieza"
             }
           ]
         }
@@ -102,7 +102,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tiendas de Walmart con venta'"
+                  "Value": "'Precio promedio por pieza'"
                 }
               }
             },
@@ -194,7 +194,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Texto vs año anterior tiendas"
+                  "Property": "Texto vs año anterior precio"
                 }
               }
             },
@@ -221,8 +221,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Tiendas con venta",
-            "id": "64ad7d3a-af09-480b-8d36-d31cc4047346"
+            "metadata": "_Medidas.Precio promedio por pieza",
+            "id": "a7b5bcc1-529d-42c1-a1a5-ab27319120cd"
           }
         }
       ],
@@ -276,7 +276,7 @@
                           "Entity": "_Medidas"
                         }
                       },
-                      "Property": "Color var tiendas"
+                      "Property": "Color var precio"
                     }
                   }
                 }
@@ -342,7 +342,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Ref año anterior tiendas"
+                  "Property": "Ref año anterior precio"
                 }
               }
             }
@@ -355,8 +355,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Tiendas con venta",
-            "id": "64ad7d3a-af09-480b-8d36-d31cc4047346"
+            "metadata": "_Medidas.Precio promedio por pieza",
+            "id": "a7b5bcc1-529d-42c1-a1a5-ab27319120cd"
           }
         }
       ],
