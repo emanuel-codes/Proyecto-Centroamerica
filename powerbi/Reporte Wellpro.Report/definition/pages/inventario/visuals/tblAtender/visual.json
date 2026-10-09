@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "tblInventario",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "tblAtender",
   "position": {
     "x": 16,
-    "y": 224,
-    "z": 1500,
-    "height": 480,
-    "width": 700,
-    "tabOrder": 1500
+    "y": 486,
+    "z": 1600,
+    "height": 226,
+    "width": 800,
+    "tabOrder": 1600
   },
   "visual": {
     "visualType": "tableEx",
@@ -17,17 +17,18 @@
           "projections": [
             {
               "field": {
-                "Column": {
+                "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dimCadena"
+                      "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Cadena"
+                  "Property": "Estado por urgencia"
                 }
               },
-              "queryRef": "dimCadena.Cadena",
-              "nativeQueryRef": "Cadena"
+              "queryRef": "_Medidas.Estado por urgencia",
+              "nativeQueryRef": "Estado por urgencia",
+              "displayName": "Estado"
             },
             {
               "field": {
@@ -45,6 +46,20 @@
             },
             {
               "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dimCadena"
+                    }
+                  },
+                  "Property": "Cadena"
+                }
+              },
+              "queryRef": "dimCadena.Cadena",
+              "nativeQueryRef": "Cadena"
+            },
+            {
+              "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
@@ -56,7 +71,7 @@
               },
               "queryRef": "_Medidas.Inventario piezas",
               "nativeQueryRef": "Inventario piezas",
-              "displayName": "Inventario (piezas)"
+              "displayName": "Inventario"
             },
             {
               "field": {
@@ -71,7 +86,7 @@
               },
               "queryRef": "_Medidas.Venta promedio mensual piezas",
               "nativeQueryRef": "Venta promedio mensual piezas",
-              "displayName": "Venta prom. mensual"
+              "displayName": "Venta/mes"
             },
             {
               "field": {
@@ -86,22 +101,7 @@
               },
               "queryRef": "_Medidas.Cobertura meses",
               "nativeQueryRef": "Cobertura meses",
-              "displayName": "Cobertura (meses)"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Medidas"
-                    }
-                  },
-                  "Property": "Clasificación cobertura"
-                }
-              },
-              "queryRef": "_Medidas.Clasificación cobertura",
-              "nativeQueryRef": "Clasificación cobertura",
-              "displayName": "Estado"
+              "displayName": "Cobertura"
             }
           ]
         }
@@ -110,26 +110,13 @@
         "sort": [
           {
             "field": {
-              "Column": {
-                "Expression": {
-                  "SourceRef": {
-                    "Entity": "dimCadena"
-                  }
-                },
-                "Property": "Cadena"
-              }
-            },
-            "direction": "Ascending"
-          },
-          {
-            "field": {
               "Measure": {
                 "Expression": {
                   "SourceRef": {
                     "Entity": "_Medidas"
                   }
                 },
-                "Property": "Cobertura meses"
+                "Property": "Estado por urgencia"
               }
             },
             "direction": "Ascending"
@@ -147,7 +134,44 @@
                   "Value": "10D"
                 }
               }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
             }
+          }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Medidas"
+                        }
+                      },
+                      "Property": "Color cobertura"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "_Medidas.Cobertura meses"
           }
         }
       ],
@@ -164,7 +188,27 @@
             "wordWrap": {
               "expr": {
                 "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
                   "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "rowPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "2D"
                 }
               }
             }
@@ -174,13 +218,115 @@
       "total": [
         {
           "properties": {
-            "fontSize": {
+            "totals": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "false"
                 }
               }
             }
+          }
+        }
+      ],
+      "columnWidth": [
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "156D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Estado por urgencia"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "290D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dimProducto.Producto"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "66D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "dimCadena.Cadena"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "72D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Inventario piezas"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "72D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Venta promedio mensual piezas"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "74D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Cobertura meses"
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Left'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Estado por urgencia"
           }
         }
       ]
@@ -199,7 +345,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Inventario y cobertura por producto'"
+                  "Value": "'Atender primero'"
                 }
               }
             },
@@ -244,7 +390,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Cobertura = inventario ÷ venta promedio de los últimos 3 meses cerrados · 🔴 menos de 1 mes · 🟢 de 1 a 3 · 🟡 más de 3'"
+                  "Value": "'Por urgencia: riesgo de quiebre, sin inventario, sobre stock (mayor cobertura primero), sin rotación y saludable'"
                 }
               }
             },
@@ -372,6 +518,19 @@
               "expr": {
                 "Literal": {
                   "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "visualHeader": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

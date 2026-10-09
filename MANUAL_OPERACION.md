@@ -10,6 +10,8 @@ El detalle de cada descarga (ajustes de Amazon y consultas de Retail Link) está
 3. **No se borra nada.** Lo que sobra va a la subcarpeta `Respaldo` de su carpeta, porque el reporte no lee esa subcarpeta.
 4. **Si la página Control no está en 🟢, no se envía.** Primero se corrige con la tabla de abajo.
 
+**La página Control es solo para los analistas:** está oculta, así que el jefe no la ve en los botones ni en el reporte publicado. En Power BI Desktop sigue en las pestañas de abajo, con un ícono de ojo tachado; ahí se abre con un clic.
+
 ---
 
 ## Cada día (unos 10 minutos)

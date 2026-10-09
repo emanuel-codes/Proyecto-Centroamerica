@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "kpiMonto",
+  "name": "kTiendas",
   "position": {
-    "x": 16,
+    "x": 958,
     "y": 138,
-    "z": 1100,
+    "z": 1300,
     "height": 104,
     "width": 306,
-    "tabOrder": 1100
+    "tabOrder": 1300
   },
   "visual": {
     "visualType": "cardVisual",
@@ -23,11 +23,11 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out monto"
+                  "Property": "Tiendas Walmart con inventario"
                 }
               },
-              "queryRef": "_Medidas.Sell out monto",
-              "nativeQueryRef": "Sell out monto"
+              "queryRef": "_Medidas.Tiendas Walmart con inventario",
+              "nativeQueryRef": "Tiendas Walmart con inventario"
             }
           ]
         }
@@ -79,7 +79,7 @@
             "labelPrecision": {
               "expr": {
                 "Literal": {
-                  "Value": "2L"
+                  "Value": "0L"
                 }
               }
             }
@@ -102,7 +102,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Sell out (MXN)'"
+                  "Value": "'Tiendas Walmart con inventario'"
                 }
               }
             },
@@ -194,7 +194,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Texto vs año anterior monto"
+                  "Property": "Texto tiendas que venden"
                 }
               }
             },
@@ -221,8 +221,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Tiendas Walmart con inventario",
+            "id": "7d844024-2787-4522-8458-9a7980f3b151"
           }
         }
       ],
@@ -270,13 +270,8 @@
               "solid": {
                 "color": {
                   "expr": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "_Medidas"
-                        }
-                      },
-                      "Property": "Color var monto"
+                    "Literal": {
+                      "Value": "'#1B5FAE'"
                     }
                   }
                 }
@@ -342,7 +337,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Ref año anterior monto"
+                  "Property": "Nota tiendas que venden"
                 }
               }
             }
@@ -355,8 +350,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Tiendas Walmart con inventario",
+            "id": "7d844024-2787-4522-8458-9a7980f3b151"
           }
         }
       ],

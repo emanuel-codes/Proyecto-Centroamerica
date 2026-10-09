@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "sltProducto",
   "position": {
-    "x": 436,
-    "y": 74,
+    "x": 1096,
+    "y": 70,
     "z": 800,
-    "height": 50,
-    "width": 330,
+    "height": 58,
+    "width": 168,
     "tabOrder": 800
   },
   "visual": {

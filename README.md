@@ -15,7 +15,7 @@ Objetivo: una versión nueva que se actualice con menos pasos manuales y sin los
 | [`DEMO_VIERNES.md`](DEMO_VIERNES.md) | Qué preparar y guion de la presentación del primer vistazo. |
 | [`ERRORES_REPORTE_ACTUAL.md`](ERRORES_REPORTE_ACTUAL.md) | Resumen para presentar: errores del reporte actual, su impacto, su causa y cómo los evita la versión nueva. |
 | [`PLAN_ENTREGA.md`](PLAN_ENTREGA.md) | Cómo se entrega: carpeta compartida en OneDrive o SharePoint, actualización programada, alertas y cómo reparar si algo se daña. |
-| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.4): páginas Sell out, Inventario, Abasto y Control con el diseño Wellpro. Lee Walmart, Amazon (con historial desde febrero de 2024) y el maestro. La v0.3 ya se probó en Power BI Desktop. Cómo abrirlo: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
+| [`powerbi/`](powerbi/) | **Proyecto nuevo de Power BI** (v0.5): Sell out como panel ejecutivo, Inventario con semáforo y prioridades, Abasto, y Control (oculta, solo para analistas), con el diseño Wellpro. Lee Walmart, Amazon (con historial desde febrero de 2024) y el maestro. En uso en Power BI Desktop, con datos al 07/10/2026. Cómo abrirlo, novedades y cifras esperadas: [`powerbi/LEEME.md`](powerbi/LEEME.md). |
 | [`PLAN_VERSION_NUEVA.md`](PLAN_VERSION_NUEVA.md) | Plan de trabajo: reglas, fases con su estado, controles y decisiones pendientes. |
 | [`GUIA_DESCARGAS.md`](GUIA_DESCARGAS.md) | Qué se descarga de Amazon, Retail Link y el ERP, cada cuánto y en qué carpeta. |
 | [`GUIA_VALIDACION.md`](GUIA_VALIDACION.md) | Cómo comprobar por tu cuenta cada cifra del reporte contra los archivos descargados, y la rutina diaria antes de enviar. |

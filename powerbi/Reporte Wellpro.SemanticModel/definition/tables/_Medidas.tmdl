@@ -588,7 +588,7 @@ table _Medidas
 	measure 'Ref año anterior monto' =
 			VAR _aa = [Sell out monto año anterior]
 			RETURN
-			    IF ( ISBLANK ( _aa ), BLANK (), "vs " & IF ( _aa >= 1000000, FORMAT ( _aa / 1000000, "$#,0.00" ) & " M", FORMAT ( _aa / 1000, "$#,0.0" ) & " mil" ) & " año anterior" )
+			    IF ( ISBLANK ( _aa ), BLANK (), "vs " & FORMAT ( _aa, "$#,0.00" ) & " año anterior" )
 		displayFolder: 6. Panel ejecutivo
 		lineageTag: 6a542146-7c5c-4c3e-9208-b49fe0631a02
 
@@ -673,7 +673,7 @@ table _Medidas
 			VAR _fam = IF ( ISFILTERED ( dimProducto[Familia] ) && HASONEVALUE ( dimProducto[Familia] ), " · " & UPPER ( LEFT ( VALUES ( dimProducto[Familia] ), 1 ) ) & LOWER ( MID ( VALUES ( dimProducto[Familia] ), 2, 100 ) ), "" )
 			VAR _cad = IF ( ISFILTERED ( dimCadena[Cadena] ) && HASONEVALUE ( dimCadena[Cadena] ), " · " & VALUES ( dimCadena[Cadena] ), "" )
 			VAR _m = [Sell out monto]
-			VAR _mTxt = IF ( _m >= 1000000, FORMAT ( _m / 1000000, "$#,0.00" ) & " M", FORMAT ( _m / 1000, "$#,0.0" ) & " mil" )
+			VAR _mTxt = FORMAT ( _m, "$#,0.00" )
 			VAR _c = [Crecimiento sell out monto]
 			VAR _dir = IF ( ISBLANK ( _c ), "sin año anterior para comparar", IF ( _c < 0, "▼ ", "▲ " ) & FORMAT ( ABS ( _c ), "0%" ) & " vs año anterior" )
 			RETURN
@@ -736,6 +736,272 @@ table _Medidas
 		formatString: #,0
 		displayFolder: 6. Panel ejecutivo
 		lineageTag: c72f0f2f-a2e3-4330-a599-d82f2a4b1812
+
+	/// Tarjeta de inventario: meses de cobertura (inventario / venta promedio de los últimos 3 meses cerrados).
+	measure 'Texto cobertura' =
+			VAR _inv = [Inventario piezas]
+			VAR _cob = [Cobertura meses]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _inv ), "Sin foto de inventario en el periodo",
+			        ISBLANK ( _cob ), "Sin venta para calcular cobertura",
+			        FORMAT ( _cob, "#,0.0" ) & " meses de cobertura"
+			    )
+		displayFolder: 6. Panel ejecutivo
+		lineageTag: ff1d6af7-480a-46ee-b974-ae2dfe6cc0d8
+
+	/// Tarjeta de inventario: clasificación de la cobertura (umbrales provisionales: menos de 1 mes riesgo, de 1 a 3 saludable, más de 3 sobre stock).
+	measure 'Nota cobertura' =
+			VAR _inv = [Inventario piezas]
+			VAR _cob = [Cobertura meses]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _inv ) || ISBLANK ( _cob ), BLANK (),
+			        _inv <= 0, "· sin inventario",
+			        _cob < 1, "· riesgo de quiebre",
+			        _cob <= 3, "· saludable",
+			        "· sobre stock"
+			    )
+		displayFolder: 6. Panel ejecutivo
+		lineageTag: 33ae9d58-2f73-448f-9ba8-8cfffe79f935
+
+	/// Color de la cobertura: rojo si hay riesgo de quiebre, verde si es saludable, ámbar si hay sobre stock.
+	measure 'Color cobertura' =
+			VAR _inv = [Inventario piezas]
+			VAR _cob = [Cobertura meses]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _inv ) || ISBLANK ( _cob ), "#52606D",
+			        _inv <= 0 || _cob < 1, "#B42318",
+			        _cob <= 3, "#1E7B34",
+			        "#B54708"
+			    )
+		displayFolder: 6. Panel ejecutivo
+		lineageTag: 8e16ee72-e5b9-4f97-9ca6-e398268465b1
+
+	/// Título de la página Inventario: fecha de la foto, piezas y meses de cobertura, según los filtros.
+	measure 'Título inventario' =
+			VAR _f = [Fecha de inventario]
+			VAR _inv = [Inventario piezas]
+			VAR _cob = [Cobertura meses]
+			VAR _fam = IF ( ISFILTERED ( dimProducto[Familia] ) && HASONEVALUE ( dimProducto[Familia] ), " · " & UPPER ( LEFT ( VALUES ( dimProducto[Familia] ), 1 ) ) & LOWER ( MID ( VALUES ( dimProducto[Familia] ), 2, 100 ) ), "" )
+			VAR _cad = IF ( ISFILTERED ( dimCadena[Cadena] ) && HASONEVALUE ( dimCadena[Cadena] ), " · " & VALUES ( dimCadena[Cadena] ), "" )
+			RETURN
+			    IF (
+			        ISBLANK ( _inv ),
+			        "Sin foto de inventario para los filtros elegidos",
+			        "Inventario al " & FORMAT ( _f, "dd/mm" ) & _fam & _cad & ": " & FORMAT ( _inv, "#,0" ) & " piezas, "
+			            & IF ( ISBLANK ( _cob ), "sin venta para calcular cobertura", FORMAT ( _cob, "#,0.0" ) & " meses de cobertura" )
+			    )
+		displayFolder: 7. Panel inventario
+		lineageTag: dda40ce2-4999-461d-b7a5-bfe16383a0a6
+
+	/// Subtítulo de la página Inventario: el producto con menor cobertura en riesgo de quiebre y cuántos productos están sin inventario o con sobre stock.
+	measure 'Subtítulo inventario' =
+			VAR _t =
+			    ADDCOLUMNS (
+			        CROSSJOIN ( VALUES ( dimProducto[Producto] ), VALUES ( dimCadena[Cadena] ) ),
+			        "@inv", [Inventario piezas] + 0,
+			        "@vta", [Venta promedio mensual piezas] + 0
+			    )
+			VAR _riesgo = FILTER ( _t, [@inv] > 0 && [@vta] > 0 && DIVIDE ( [@inv], [@vta] ) < 1 )
+			VAR _nr = COUNTROWS ( _riesgo )
+			VAR _ns = COUNTROWS ( FILTER ( _t, [@inv] <= 0 && [@vta] > 0 ) )
+			VAR _no = COUNTROWS ( FILTER ( _t, [@inv] > 0 && [@vta] > 0 && DIVIDE ( [@inv], [@vta] ) > 3 ) )
+			VAR _peor = TOPN ( 1, _riesgo, DIVIDE ( [@inv], [@vta] ), ASC, dimProducto[Producto], ASC )
+			VAR _txtR =
+			    IF (
+			        _nr > 0,
+			        CONCATENATEX (
+			            _peor,
+			            "🔴 " & SUBSTITUTE ( dimProducto[Producto], "Pediatrico Cute Animals ", "" ) & " en " & dimCadena[Cadena] & ": " & FORMAT ( [@inv], "#,0" ) & " piezas"
+			                & IF ( dimCadena[Cadena] = "Walmart", " en " & FORMAT ( CALCULATE ( [Tiendas con inventario] ), "#,0" ) & " tiendas", "" )
+			                & ", vende " & FORMAT ( [@vta], "#,0" ) & " al mes"
+			        ) & IF ( _nr > 1, " (y " & ( _nr - 1 ) & " más)", "" ),
+			        "🟢 Ningún producto en riesgo de quiebre"
+			    )
+			VAR _txtS = IF ( _ns > 0, " · " & _ns & " sin inventario", "" )
+			VAR _txtO = IF ( _no > 0, " · " & _no & " con sobre stock", "" )
+			RETURN
+			    IF ( ISBLANK ( [Inventario piezas] ) && _ns = 0, BLANK (), _txtR & _txtS & _txtO )
+		displayFolder: 7. Panel inventario
+		lineageTag: 027798b1-c5bd-4309-afdb-03aaaa9693b7
+
+	/// Piezas en la última foto del mes anterior al de la foto más reciente, por cadena.
+	measure 'Inventario cierre mes anterior' =
+			SUMX (
+			    VALUES ( dimCadena[Cadena] ),
+			    VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
+			    VAR _fa = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ), fInventarioCadena[Fecha] < DATE ( YEAR ( _f ), MONTH ( _f ), 1 ) )
+			    RETURN
+			        IF ( NOT ISBLANK ( _fa ), CALCULATE ( SUM ( fInventarioCadena[Piezas_disponibles] ), fInventarioCadena[Fecha] = _fa ) )
+			)
+		formatString: #,0
+		displayFolder: 7. Panel inventario
+		lineageTag: 0ca7dac0-7659-46c4-b7eb-55c8254e5273
+
+	/// Tarjeta de inventario: cambio contra la última foto del mes anterior, con flecha.
+	measure 'Texto vs mes anterior inventario' =
+			VAR _a = [Inventario cierre mes anterior]
+			VAR _c = DIVIDE ( [Inventario piezas] - _a, _a )
+			RETURN
+			    IF ( ISBLANK ( _a ), "Sin foto del mes anterior", IF ( _c >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _c ), "0.0%" ) )
+		displayFolder: 7. Panel inventario
+		lineageTag: 8e39680a-c05a-4337-bae5-2bd0bf4aec3b
+
+	/// Tarjeta de inventario: piezas al cierre del mes anterior, como texto.
+	measure 'Ref mes anterior inventario' =
+			VAR _a = [Inventario cierre mes anterior]
+			VAR _f = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ) )
+			VAR _fa = CALCULATE ( MAX ( fInventarioCadena[Fecha] ), REMOVEFILTERS ( dimProducto ), REMOVEFILTERS ( dimTienda ), fInventarioCadena[Fecha] < DATE ( YEAR ( _f ), MONTH ( _f ), 1 ) )
+			RETURN
+			    IF ( ISBLANK ( _a ), BLANK (), "vs " & FORMAT ( _a, "#,0" ) & " al cierre de " & FORMAT ( _fa, "mmmm", "es-MX" ) )
+		displayFolder: 7. Panel inventario
+		lineageTag: 5bbddd9e-316e-4572-93d7-05f35116b560
+
+	/// Tarjeta de cobertura: estado según los umbrales provisionales (menos de 1 mes riesgo, de 1 a 3 saludable, más de 3 sobre stock).
+	measure 'Estado cobertura' =
+			VAR _inv = [Inventario piezas]
+			VAR _cob = [Cobertura meses]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _inv ), "Sin foto de inventario",
+			        ISBLANK ( _cob ), "Sin venta para calcular",
+			        _inv <= 0, "Sin inventario",
+			        _cob < 1, "Riesgo de quiebre",
+			        _cob <= 3, "Saludable",
+			        "Sobre stock"
+			    )
+		displayFolder: 7. Panel inventario
+		lineageTag: 704fcd9f-29d0-420c-b981-93015f98d3ba
+
+	/// Tarjeta de cobertura: meses de cada cadena; con una sola cadena, su venta promedio mensual.
+	measure 'Cobertura por cadena' =
+			VAR _cads = FILTER ( VALUES ( dimCadena[Cadena] ), NOT ISBLANK ( [Cobertura meses] ) )
+			RETURN
+			    IF (
+			        COUNTROWS ( _cads ) > 1,
+			        "· " & CONCATENATEX ( _cads, dimCadena[Cadena] & " " & FORMAT ( [Cobertura meses], "0.0" ), " · ", dimCadena[Cadena], DESC ),
+			        IF ( ISBLANK ( [Venta promedio mensual piezas] ), BLANK (), "· vende " & FORMAT ( [Venta promedio mensual piezas], "#,0" ) & " piezas al mes" )
+			    )
+		displayFolder: 7. Panel inventario
+		lineageTag: 5cec7fe6-13c5-481e-a248-37f5465ae1dc
+
+	/// Productos en riesgo de quiebre más productos sin inventario que sí venden. Cada producto se cuenta en cada cadena.
+	measure 'Productos por atender' = [Productos en riesgo de quiebre] + [Productos sin inventario]
+		formatString: #,0
+		displayFolder: 7. Panel inventario
+		lineageTag: 6166abd7-0869-447b-96a0-1814d356159c
+
+	/// Tarjeta de productos por atender: cuántos están en riesgo de quiebre.
+	measure 'Texto riesgo inventario' = [Productos en riesgo de quiebre] & " en riesgo"
+		displayFolder: 7. Panel inventario
+		lineageTag: bf486eff-aabb-4d16-85dd-4a750fadd1d0
+
+	/// Tarjeta de productos por atender: cuántos están sin inventario.
+	measure 'Nota sin inventario' = "· " & [Productos sin inventario] & " sin inventario"
+		displayFolder: 7. Panel inventario
+		lineageTag: 7a03f670-02d0-45d4-9173-90c6666ee897
+
+	/// Rojo si hay productos en riesgo de quiebre; verde si no.
+	measure 'Color riesgo inventario' = IF ( [Productos en riesgo de quiebre] > 0, "#B42318", "#1E7B34" )
+		displayFolder: 7. Panel inventario
+		lineageTag: 27aa491a-423c-4637-957b-429b2bc8aadb
+
+	/// Tiendas de Walmart con más de 0 piezas en la última foto. En blanco si el filtro Cadena no incluye Walmart.
+	measure 'Tiendas Walmart con inventario' = IF ( "Walmart" IN VALUES ( dimCadena[Cadena] ), [Tiendas con inventario] )
+		formatString: #,0
+		displayFolder: 7. Panel inventario
+		lineageTag: 69f105eb-c04b-4ae9-bdec-8d10db7b04bb
+
+	/// Tiendas de Walmart que vendieron al menos una pieza en los últimos 28 días con datos.
+	measure 'Tiendas con venta 28 días' =
+			VAR _n = COUNTROWS ( FILTER ( VALUES ( dimTienda[Tienda_Nbr] ), [Venta 28 días Walmart] > 0 ) )
+			RETURN
+			    IF ( "Walmart" IN VALUES ( dimCadena[Cadena] ), _n )
+		formatString: #,0
+		displayFolder: 7. Panel inventario
+		lineageTag: 49d3b79b-c36a-4ca9-a0ea-15a3b71b1504
+
+	/// Tarjeta de tiendas: porcentaje de las tiendas con inventario que vendieron en los últimos 28 días.
+	measure 'Texto tiendas que venden' =
+			VAR _i = [Tiendas Walmart con inventario]
+			RETURN
+			    IF ( ISBLANK ( _i ), "Solo aplica a Walmart", FORMAT ( DIVIDE ( [Tiendas con venta 28 días], _i ), "0%" ) & " vende" )
+		displayFolder: 7. Panel inventario
+		lineageTag: 1aead347-cdbd-4d8d-9e74-d9584d404535
+
+	/// Tarjeta de tiendas: cuántas tiendas vendieron en los últimos 28 días.
+	measure 'Nota tiendas que venden' = IF ( ISBLANK ( [Tiendas Walmart con inventario] ), " ", "· " & FORMAT ( [Tiendas con venta 28 días] + 0, "#,0" ) & " vendieron en 28 días" )
+		displayFolder: 7. Panel inventario
+		lineageTag: 2c9dddd3-7589-4767-96af-3becf5fbf0d6
+
+	/// Subtítulo del gráfico de tiendas de Walmart con inventario contra tiendas que venden.
+	measure 'Subtítulo tiendas' =
+			VAR _i = [Tiendas Walmart con inventario]
+			VAR _v = [Tiendas con venta 28 días] + 0
+			RETURN
+			    IF ( ISBLANK ( _i ), "Solo aplica a Walmart", "De " & FORMAT ( _i, "#,0" ) & " tiendas con inventario, " & FORMAT ( _v, "#,0" ) & " vendieron en los últimos 28 días (" & FORMAT ( DIVIDE ( _v, _i ), "0%" ) & ")" )
+		displayFolder: 7. Panel inventario
+		lineageTag: 0f4137c5-c933-4c64-b895-d905391c5664
+
+	/// Subtítulo de la tabla de tiendas de Walmart que venden y hoy tienen 0 piezas: cuántos casos hay.
+	measure 'Subtítulo tiendas sin inventario' =
+			VAR _n = SUMX ( CROSSJOIN ( VALUES ( dimTienda[Tienda_Nbr] ), VALUES ( dimProducto[Codigo_ERP] ) ), [Alerta tienda sin inventario] ) + 0
+			RETURN
+			    IF ( NOT ( "Walmart" IN VALUES ( dimCadena[Cadena] ) ), "Solo aplica a Walmart", FORMAT ( _n, "#,0" ) & IF ( _n = 1, " caso", " casos" ) & ": vendieron en los últimos 28 días y hoy tienen 0 piezas" )
+		displayFolder: 7. Panel inventario
+		lineageTag: ccea269e-2045-4cb2-abd5-439fd6fd7946
+
+	/// Cobertura en meses con tope de 12, para dibujar la barra (la cifra real está en Cobertura meses).
+	measure 'Cobertura barra' =
+			VAR _c = [Cobertura meses]
+			RETURN
+			    IF ( ISBLANK ( _c ), BLANK (), MIN ( _c, 12 ) )
+		formatString: 0.0
+		displayFolder: 7. Panel inventario
+		lineageTag: db628493-2f23-4892-b7fc-2745e43e6b0e
+
+	/// Ordena los productos por urgencia: riesgo de quiebre, sin inventario, sobre stock (mayor cobertura primero), sin rotación y saludable.
+	measure 'Puntaje atención' =
+			VAR _inv = [Inventario piezas] + 0
+			VAR _vta = [Venta promedio mensual piezas] + 0
+			VAR _cob = DIVIDE ( _inv, _vta )
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        _inv <= 0 && _vta <= 0, BLANK (),
+			        _inv > 0 && _vta > 0 && _cob < 1, 1000 + _cob,
+			        _inv <= 0, 2000 - MIN ( _vta, 999 ) / 1000,
+			        _vta > 0 && _cob > 3, 3000 + ( 999 - MIN ( _cob, 999 ) ) / 1000,
+			        _vta <= 0, 4000 - MIN ( _inv, 99999 ) / 100000,
+			        5000 + _cob
+			    )
+		formatString: 0.000
+		isHidden
+		displayFolder: 7. Panel inventario
+		lineageTag: e9c22392-b537-43ce-83f2-4ebce89cc91c
+
+	/// Estado del producto en la cadena, con un valor que ordena por urgencia: riesgo de quiebre, sin inventario, sobre stock (mayor cobertura primero), sin rotación y saludable. El formato muestra solo el texto del estado.
+	measure 'Estado por urgencia' = [Puntaje atención]
+		displayFolder: 7. Panel inventario
+		lineageTag: de8a1c9a-adde-4915-868d-934d11a2447c
+
+		formatStringDefinition =
+				VAR _p = SELECTEDMEASURE ()
+				RETURN
+				    SWITCH (
+				        TRUE (),
+				        _p < 1500, """🔴 Riesgo de quiebre""",
+				        _p < 2500, """⚫ Sin inventario""",
+				        _p < 3500, """🟡 Sobre stock""",
+				        _p < 4500, """⚪ Sin rotación""",
+				        """🟢 Saludable"""
+				    )
 
 	column Columna
 		dataType: string

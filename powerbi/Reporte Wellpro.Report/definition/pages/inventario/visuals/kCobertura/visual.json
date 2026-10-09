@@ -1,8 +1,8 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "kpiMonto",
+  "name": "kCobertura",
   "position": {
-    "x": 16,
+    "x": 330,
     "y": 138,
     "z": 1100,
     "height": 104,
@@ -23,11 +23,11 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out monto"
+                  "Property": "Cobertura meses"
                 }
               },
-              "queryRef": "_Medidas.Sell out monto",
-              "nativeQueryRef": "Sell out monto"
+              "queryRef": "_Medidas.Cobertura meses",
+              "nativeQueryRef": "Cobertura meses"
             }
           ]
         }
@@ -79,7 +79,7 @@
             "labelPrecision": {
               "expr": {
                 "Literal": {
-                  "Value": "2L"
+                  "Value": "1L"
                 }
               }
             }
@@ -102,7 +102,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Sell out (MXN)'"
+                  "Value": "'Cobertura (meses)'"
                 }
               }
             },
@@ -194,7 +194,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Texto vs año anterior monto"
+                  "Property": "Estado cobertura"
                 }
               }
             },
@@ -221,8 +221,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Cobertura meses",
+            "id": "18965de9-edea-493a-8488-8f34fb110c42"
           }
         }
       ],
@@ -276,7 +276,7 @@
                           "Entity": "_Medidas"
                         }
                       },
-                      "Property": "Color var monto"
+                      "Property": "Color cobertura"
                     }
                   }
                 }
@@ -342,7 +342,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Ref año anterior monto"
+                  "Property": "Cobertura por cadena"
                 }
               }
             }
@@ -355,8 +355,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Cobertura meses",
+            "id": "18965de9-edea-493a-8488-8f34fb110c42"
           }
         }
       ],

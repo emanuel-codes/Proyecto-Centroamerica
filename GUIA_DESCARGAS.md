@@ -89,7 +89,7 @@ Lo que se vio en las muestras:
   - 540 líneas de órdenes, todas de reabastecimiento a tienda (*POS REPLEN*);
   - 16,163 piezas ordenadas y 15,126 recibidas, un **93.6 %**.
 - **Cuidado con las semanas escritas a mano:** las consultas de fill rate y Recship tienen las semanas de Walmart escritas una por una.
-  - En la de fill rate **falta la semana 202618** (principios de mayo de 2026), así que esas órdenes nunca se descargan.
+  - En la de fill rate faltaba la semana 202618 (principios de mayo de 2026); la descarga del 09/10/2026 ya la incluye.
   - Si Retail Link lo permite, conviene cambiarlas a un rango relativo, por ejemplo "últimas 13 semanas" o "próximas 5 semanas", para no editarlas en cada descarga.
 - **`Vendor Stk Nbr`:** trae el código del ERP en 4 artículos (14660, 13471, 13595, 13594). El Osito trae otro código, «MTB132FA». Por eso la llave para Walmart es el **número de artículo** (*Item Nbr*), que ya está en la hoja Equivalencias del maestro.
 
@@ -145,5 +145,5 @@ Con eso, el reporte queda listo para la fase de paralelo: comparar contra el rep
 2. **Fill rate de Amazon:** no tienes acceso a las órdenes de compra. Hay que decidir con el jefe entre:
    - quitar el indicador;
    - que alguien con acceso deje cada mes el export `POItemExport` en una carpeta `Amazon/Ordenes`.
-3. **Semana 202618 del fill rate de Walmart:** agregarla a la consulta, o cambiarla a un rango relativo.
+3. ~~Semana 202618 del fill rate de Walmart~~ **Resuelto:** la descarga del 09/10/2026 trae de la semana 202549 a la 202635, sin huecos. Las semanas siguen escritas una por una: en cada descarga, revisa que la lista llegue a la semana más reciente.
 4. ~~Montos de Walmart redondeados~~ **Resuelto:** el reporte lee POS Sales exacto directo del archivo, porque Retail Link lo guarda con formato sin decimales.

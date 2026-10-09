@@ -70,11 +70,6 @@
       "source": "sltMes",
       "target": "spkPiezas",
       "type": "NoFilter"
-    },
-    {
-      "source": "sltMes",
-      "target": "spkPrecio",
-      "type": "NoFilter"
     }
   ]
 }

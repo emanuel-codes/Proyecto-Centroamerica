@@ -1,35 +1,20 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
-  "name": "tblSinInventario",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "chrTiendas",
   "position": {
-    "x": 828,
-    "y": 486,
-    "z": 1700,
-    "height": 226,
-    "width": 436,
-    "tabOrder": 1700
+    "x": 628,
+    "y": 250,
+    "z": 1500,
+    "height": 228,
+    "width": 636,
+    "tabOrder": 1500
   },
   "visual": {
-    "visualType": "tableEx",
+    "visualType": "clusteredBarChart",
     "query": {
       "queryState": {
-        "Values": {
+        "Category": {
           "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "dimTienda"
-                    }
-                  },
-                  "Property": "Tienda_etiqueta"
-                }
-              },
-              "queryRef": "dimTienda.Tienda_etiqueta",
-              "nativeQueryRef": "Tienda_etiqueta",
-              "displayName": "Tienda"
-            },
             {
               "field": {
                 "Column": {
@@ -42,7 +27,27 @@
                 }
               },
               "queryRef": "dimProducto.Producto",
-              "nativeQueryRef": "Producto"
+              "nativeQueryRef": "Producto",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Tiendas Walmart con inventario"
+                }
+              },
+              "queryRef": "_Medidas.Tiendas Walmart con inventario",
+              "nativeQueryRef": "Tiendas Walmart con inventario",
+              "displayName": "Tiendas con inventario"
             },
             {
               "field": {
@@ -52,12 +57,12 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Venta 28 días Walmart"
+                  "Property": "Tiendas con venta 28 días"
                 }
               },
-              "queryRef": "_Medidas.Venta 28 días Walmart",
-              "nativeQueryRef": "Venta 28 días Walmart",
-              "displayName": "28 días"
+              "queryRef": "_Medidas.Tiendas con venta 28 días",
+              "nativeQueryRef": "Tiendas con venta 28 días",
+              "displayName": "Vendieron en 28 días"
             }
           ]
         }
@@ -72,7 +77,7 @@
                     "Entity": "_Medidas"
                   }
                 },
-                "Property": "Venta 28 días Walmart"
+                "Property": "Tiendas Walmart con inventario"
               }
             },
             "direction": "Descending"
@@ -81,126 +86,45 @@
       }
     },
     "objects": {
-      "values": [
+      "dataPoint": [
         {
           "properties": {
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "10D"
-                }
-              }
-            },
-            "wordWrap": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "columnHeaders": [
-        {
-          "properties": {
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "10D"
-                }
-              }
-            },
-            "wordWrap": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "autoSizeColumnWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "total": [
-        {
-          "properties": {
-            "totals": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "grid": [
-        {
-          "properties": {
-            "rowPadding": {
-              "expr": {
-                "Literal": {
-                  "Value": "2D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "columnWidth": [
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "186D"
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#C3CAD3'"
+                    }
+                  }
                 }
               }
             }
           },
           "selector": {
-            "metadata": "dimTienda.Tienda_etiqueta"
+            "metadata": "_Medidas.Tiendas Walmart con inventario"
           }
         },
         {
           "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "136D"
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#2A78D6'"
+                    }
+                  }
                 }
               }
             }
           },
           "selector": {
-            "metadata": "dimProducto.Producto"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "64D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "_Medidas.Venta 28 días Walmart"
+            "metadata": "_Medidas.Tiendas con venta 28 días"
           }
         }
-      ]
-    },
-    "visualContainerObjects": {
-      "title": [
+      ],
+      "labels": [
         {
           "properties": {
             "show": {
@@ -210,14 +134,14 @@
                 }
               }
             },
-            "text": {
+            "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tiendas Walmart que venden sin inventario'"
+                  "Value": "9D"
                 }
               }
             },
-            "fontColor": {
+            "color": {
               "solid": {
                 "color": {
                   "expr": {
@@ -228,24 +152,31 @@
                 }
               }
             },
-            "fontSize": {
+            "labelDisplayUnits": {
               "expr": {
                 "Literal": {
-                  "Value": "11D"
+                  "Value": "1D"
                 }
               }
             },
-            "bold": {
+            "labelPrecision": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "0L"
+                }
+              }
+            },
+            "labelPosition": {
+              "expr": {
+                "Literal": {
+                  "Value": "'OutsideEnd'"
                 }
               }
             }
           }
         }
       ],
-      "subTitle": [
+      "categoryAxis": [
         {
           "properties": {
             "show": {
@@ -255,26 +186,75 @@
                 }
               }
             },
-            "text": {
+            "fontSize": {
               "expr": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Medidas"
-                    }
-                  },
-                  "Property": "Subtítulo tiendas sin inventario"
+                "Literal": {
+                  "Value": "9D"
                 }
               }
             },
-            "fontColor": {
+            "labelColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "Literal": {
-                      "Value": "'#7B8794'"
+                      "Value": "'#1F2933'"
                     }
                   }
+                }
+              }
+            },
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "innerPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "25L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "gridlineShow": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Top'"
                 }
               }
             },
@@ -287,7 +267,9 @@
             }
           }
         }
-      ],
+      ]
+    },
+    "visualContainerObjects": {
       "background": [
         {
           "properties": {
@@ -376,7 +358,7 @@
             "bottom": {
               "expr": {
                 "Literal": {
-                  "Value": "10D"
+                  "Value": "6D"
                 }
               }
             },
@@ -409,61 +391,95 @@
             }
           }
         }
-      ]
-    },
-    "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "fAlertaSinInv",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "_Medidas"
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
               }
             },
-            "Property": "Alerta tienda sin inventario"
-          }
-        },
-        "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "t",
-              "Entity": "_Medidas",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 0,
-                  "Left": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "t"
-                        }
-                      },
-                      "Property": "Alerta tienda sin inventario"
-                    }
-                  },
-                  "Right": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Walmart: tiendas con inventario vs tiendas que venden'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
                     "Literal": {
-                      "Value": "1L"
+                      "Value": "'#1F2933'"
                     }
                   }
                 }
               }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
             }
-          ]
-        },
-        "howCreated": "User"
-      }
-    ]
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Subtítulo tiendas"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#7B8794'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
   }
 }

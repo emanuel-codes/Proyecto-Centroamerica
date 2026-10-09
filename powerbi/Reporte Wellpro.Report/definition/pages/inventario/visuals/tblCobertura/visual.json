@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
-  "name": "tblSinInventario",
+  "name": "tblCobertura",
   "position": {
-    "x": 828,
-    "y": 486,
-    "z": 1700,
-    "height": 226,
-    "width": 436,
-    "tabOrder": 1700
+    "x": 16,
+    "y": 250,
+    "z": 1400,
+    "height": 228,
+    "width": 600,
+    "tabOrder": 1400
   },
   "visual": {
     "visualType": "tableEx",
@@ -15,21 +15,6 @@
       "queryState": {
         "Values": {
           "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "dimTienda"
-                    }
-                  },
-                  "Property": "Tienda_etiqueta"
-                }
-              },
-              "queryRef": "dimTienda.Tienda_etiqueta",
-              "nativeQueryRef": "Tienda_etiqueta",
-              "displayName": "Tienda"
-            },
             {
               "field": {
                 "Column": {
@@ -46,18 +31,47 @@
             },
             {
               "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dimCadena"
+                    }
+                  },
+                  "Property": "Cadena"
+                }
+              },
+              "queryRef": "dimCadena.Cadena",
+              "nativeQueryRef": "Cadena"
+            },
+            {
+              "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Venta 28 días Walmart"
+                  "Property": "Cobertura barra"
                 }
               },
-              "queryRef": "_Medidas.Venta 28 días Walmart",
-              "nativeQueryRef": "Venta 28 días Walmart",
-              "displayName": "28 días"
+              "queryRef": "_Medidas.Cobertura barra",
+              "nativeQueryRef": "Cobertura barra",
+              "displayName": "Cobertura"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas"
+                    }
+                  },
+                  "Property": "Cobertura meses"
+                }
+              },
+              "queryRef": "_Medidas.Cobertura meses",
+              "nativeQueryRef": "Cobertura meses",
+              "displayName": "Meses"
             }
           ]
         }
@@ -72,10 +86,10 @@
                     "Entity": "_Medidas"
                   }
                 },
-                "Property": "Venta 28 días Walmart"
+                "Property": "Cobertura meses"
               }
             },
-            "direction": "Descending"
+            "direction": "Ascending"
           }
         ]
       }
@@ -98,6 +112,36 @@
                 }
               }
             }
+          }
+        },
+        {
+          "properties": {
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "_Medidas"
+                        }
+                      },
+                      "Property": "Color cobertura"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "dataViewWildcard": {
+                  "matchingOption": 1
+                }
+              }
+            ],
+            "metadata": "_Medidas.Cobertura meses"
           }
         }
       ],
@@ -128,19 +172,6 @@
           }
         }
       ],
-      "total": [
-        {
-          "properties": {
-            "totals": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
       "grid": [
         {
           "properties": {
@@ -154,27 +185,84 @@
           }
         }
       ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {
+            "dataBars": {
+              "positiveColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#F0A43A'"
+                      }
+                    }
+                  }
+                }
+              },
+              "negativeColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#F0A43A'"
+                      }
+                    }
+                  }
+                }
+              },
+              "axisColor": {
+                "solid": {
+                  "color": {
+                    "expr": {
+                      "Literal": {
+                        "Value": "'#E4E7EB'"
+                      }
+                    }
+                  }
+                }
+              },
+              "reverseDirection": {
+                "expr": {
+                  "Literal": {
+                    "Value": "false"
+                  }
+                }
+              },
+              "hideText": {
+                "expr": {
+                  "Literal": {
+                    "Value": "true"
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Cobertura barra"
+          }
+        }
+      ],
       "columnWidth": [
         {
           "properties": {
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "186D"
-                }
-              }
-            }
-          },
-          "selector": {
-            "metadata": "dimTienda.Tienda_etiqueta"
-          }
-        },
-        {
-          "properties": {
-            "value": {
-              "expr": {
-                "Literal": {
-                  "Value": "136D"
+                  "Value": "250D"
                 }
               }
             }
@@ -188,13 +276,41 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "64D"
+                  "Value": "66D"
                 }
               }
             }
           },
           "selector": {
-            "metadata": "_Medidas.Venta 28 días Walmart"
+            "metadata": "dimCadena.Cadena"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "150D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Cobertura barra"
+          }
+        },
+        {
+          "properties": {
+            "value": {
+              "expr": {
+                "Literal": {
+                  "Value": "56D"
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "_Medidas.Cobertura meses"
           }
         }
       ]
@@ -213,7 +329,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Tiendas Walmart que venden sin inventario'"
+                  "Value": "'Cobertura por producto · meses de inventario'"
                 }
               }
             },
@@ -257,13 +373,8 @@
             },
             "text": {
               "expr": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "_Medidas"
-                    }
-                  },
-                  "Property": "Subtítulo tiendas sin inventario"
+                "Literal": {
+                  "Value": "'Inventario ÷ venta promedio de los últimos 3 meses cerrados · 🔴 menos de 1 · 🟢 de 1 a 3 · 🟡 más de 3'"
                 }
               }
             },
@@ -412,58 +523,5 @@
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "fAlertaSinInv",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "_Medidas"
-              }
-            },
-            "Property": "Alerta tienda sin inventario"
-          }
-        },
-        "type": "Advanced",
-        "filter": {
-          "Version": 2,
-          "From": [
-            {
-              "Name": "t",
-              "Entity": "_Medidas",
-              "Type": 0
-            }
-          ],
-          "Where": [
-            {
-              "Condition": {
-                "Comparison": {
-                  "ComparisonKind": 0,
-                  "Left": {
-                    "Measure": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Source": "t"
-                        }
-                      },
-                      "Property": "Alerta tienda sin inventario"
-                    }
-                  },
-                  "Right": {
-                    "Literal": {
-                      "Value": "1L"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        },
-        "howCreated": "User"
-      }
-    ]
   }
 }

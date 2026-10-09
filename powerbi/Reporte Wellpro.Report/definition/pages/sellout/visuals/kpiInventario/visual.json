@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
-  "name": "kpiMonto",
+  "name": "kpiInventario",
   "position": {
-    "x": 16,
+    "x": 644,
     "y": 138,
-    "z": 1100,
+    "z": 1120,
     "height": 104,
     "width": 306,
-    "tabOrder": 1100
+    "tabOrder": 1120
   },
   "visual": {
     "visualType": "cardVisual",
@@ -23,11 +23,11 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Sell out monto"
+                  "Property": "Inventario piezas"
                 }
               },
-              "queryRef": "_Medidas.Sell out monto",
-              "nativeQueryRef": "Sell out monto"
+              "queryRef": "_Medidas.Inventario piezas",
+              "nativeQueryRef": "Inventario piezas"
             }
           ]
         }
@@ -79,7 +79,7 @@
             "labelPrecision": {
               "expr": {
                 "Literal": {
-                  "Value": "2L"
+                  "Value": "0L"
                 }
               }
             }
@@ -102,7 +102,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Sell out (MXN)'"
+                  "Value": "'Inventario en cadenas (piezas)'"
                 }
               }
             },
@@ -194,7 +194,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Texto vs año anterior monto"
+                  "Property": "Texto cobertura"
                 }
               }
             },
@@ -221,8 +221,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Inventario piezas",
+            "id": "c3d1f2a4-6b7e-4c8d-9e0f-1a2b3c4d5e6f"
           }
         }
       ],
@@ -276,7 +276,7 @@
                           "Entity": "_Medidas"
                         }
                       },
-                      "Property": "Color var monto"
+                      "Property": "Color cobertura"
                     }
                   }
                 }
@@ -342,7 +342,7 @@
                       "Entity": "_Medidas"
                     }
                   },
-                  "Property": "Ref año anterior monto"
+                  "Property": "Nota cobertura"
                 }
               }
             }
@@ -355,8 +355,8 @@
                 }
               }
             ],
-            "metadata": "_Medidas.Sell out monto",
-            "id": "2b972b37-cba6-4b90-9961-455f1ba79527"
+            "metadata": "_Medidas.Inventario piezas",
+            "id": "c3d1f2a4-6b7e-4c8d-9e0f-1a2b3c4d5e6f"
           }
         }
       ],

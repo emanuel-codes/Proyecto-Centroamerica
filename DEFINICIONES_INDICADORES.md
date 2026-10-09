@@ -92,6 +92,10 @@ Cada indicador trae tres cosas: la **definición propuesta**, **cómo lo calcula
 - **Propuesta:** tienda y producto con venta en los **últimos 28 días** y **0 piezas** en la última foto de inventario. Es la lista de venta que se está perdiendo.
 - **Por decidir:** ¿28 días está bien, o se prefiere otra ventana?
 
+### Precio promedio por pieza (no se usa)
+- **Qué es:** sell out en monto ÷ sell out en piezas.
+- **Por qué salió del reporte:** se mueve por la **mezcla de productos**, no por el precio. En octubre de 2026 bajaba 39 % contra el año anterior porque se vendieron menos nebulizadores (unos $650) y más termómetros (unos $110), aunque los productos principales se vendieron más caros que hace un año. Quien lo lea pensaría que se bajaron los precios. Las medidas siguen en el modelo por si se quieren usar en un análisis interno.
+
 ---
 
 ## 3. Inventario en las cadenas y cobertura
@@ -136,9 +140,33 @@ Propuesta de umbrales, a confirmar:
 
 **Por decidir:** los umbrales, y si son iguales para las dos cadenas.
 
-**Productos nuevos:** un producto que empezó a venderse hace menos de 3 meses sale «⚪ Sin rotación», porque no tiene venta en los 3 meses cerrados. Le pasa al Termómetro Osito en Walmart, que empezó a venderse en septiembre de 2026. **Por decidir:** si para los productos nuevos se usa el promedio de los meses que sí tienen venta.
+**Productos nuevos:** un producto que empezó a venderse hace menos de 3 meses tiene un promedio engañoso, porque los meses sin venta cuentan como 0:
+- antes de su primer mes cerrado con venta, sale «⚪ Sin rotación»;
+- después, su cobertura sale **inflada**. Le pasa al Termómetro Osito en Walmart, que empezó a venderse en septiembre de 2026: el promedio de julio a septiembre es 93 ÷ 3 = 31 piezas, y la cobertura da 69 meses. Con solo el mes que sí tuvo venta serían 2,141 ÷ 93 = 23 meses (sigue siendo sobre stock).
+
+**Por decidir:** si para los productos nuevos se usa el promedio de los meses que sí tienen venta.
 
 **Conteos de la página Inventario** (productos en riesgo, sin inventario y con sobre stock): se cuenta cada producto **en cada cadena**. Un producto en riesgo en Walmart y en Amazon cuenta 2, igual que en la tabla, donde aparece una vez por cadena.
+
+### Inventario contra el mes anterior
+- **Propuesta:** inventario de la última foto ÷ inventario de la **última foto del mes anterior**, por cadena, − 1. Ejemplo: 31,550 piezas al 07/10/2026 contra 30,449 al cierre de septiembre (Walmart al 29/09, Amazon al 30/09) = ▲ 3.6 %.
+- Si no hay foto del mes anterior, la tarjeta dice «Sin foto del mes anterior».
+
+### Productos por atender
+- **Propuesta:** productos en **riesgo de quiebre** más productos **sin inventario que sí venden**, contados por cadena. Son los que pueden perder venta ya.
+- El sobre stock no entra aquí: no pierde venta, aunque inmoviliza inventario. Se ve en la cobertura y en la tabla «Atender primero».
+
+### Tiendas con inventario que venden (Walmart)
+- **Propuesta:** de las tiendas con inventario en la última foto, cuántas vendieron al menos una pieza en los **últimos 28 días**. Ejemplo al 07/10/2026: 596 de 1,451, el 41 %.
+- Sirve para ver si el inventario está repartido en tiendas que no lo venden. Por ejemplo, el Nebulizador Adulto está en 1,435 tiendas y vendió en 150.
+- **Por decidir:** la misma ventana de 28 días que «Tiendas sin inventario que sí venden».
+
+### Orden de «Atender primero»
+1. 🔴 Riesgo de quiebre, de menor a mayor cobertura.
+2. ⚫ Sin inventario, de mayor a menor venta.
+3. 🟡 Sobre stock, de mayor a menor cobertura.
+4. ⚪ Sin rotación, de mayor a menor inventario.
+5. 🟢 Saludable.
 
 ---
 

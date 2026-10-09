@@ -236,16 +236,6 @@ cultureInfo es-MX
 			            },
 			            "Weight": 0.9
 			          }
-			        },
-			        {
-			          "Inventario (piezas)": {
-			            "State": "Suggested",
-			            "Source": {
-			              "Type": "External",
-			              "Agent": "PowerBI.VisualColumnRename"
-			            },
-			            "Weight": 0.9
-			          }
 			        }
 			      ]
 			    },
@@ -259,7 +249,7 @@ cultureInfo es-MX
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Venta prom. mensual": {
+			          "Venta/mes": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -280,7 +270,7 @@ cultureInfo es-MX
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Cobertura (meses)": {
+			          "Cobertura": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -290,7 +280,7 @@ cultureInfo es-MX
 			          }
 			        },
 			        {
-			          "Cobertura": {
+			          "Meses": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -332,7 +322,7 @@ cultureInfo es-MX
 			      "State": "Generated",
 			      "Terms": [
 			        {
-			          "Venta 28 días": {
+			          "28 días": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",
@@ -658,6 +648,99 @@ cultureInfo es-MX
 			      "Terms": [
 			        {
 			          "Participación": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.tiendas_walmart_con_inventario": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Tiendas Walmart con inventario"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Tiendas con inventario": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.tiendas_con_venta_28_días": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Tiendas con venta 28 días"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Vendieron en 28 días": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.orden_de_atención": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Orden de atención"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table_medidas.cobertura_barra": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Cobertura barra"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Cobertura": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table_medidas.estado_por_urgencia": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Medidas",
+			          "ConceptualProperty": "Estado por urgencia"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Estado": {
 			            "State": "Suggested",
 			            "Source": {
 			              "Type": "External",

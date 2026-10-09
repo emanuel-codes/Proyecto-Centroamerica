@@ -6,7 +6,9 @@
 
 Si las dos se cumplen, la cifra es correcta, aunque no coincida con el reporte anterior. Las diferencias con el reporte anterior se explican en el paso 6.
 
-Los valores de ejemplo de esta guía son los de las muestras de `Nueva versión/` (30/09/2026). Desde la v0.4 también está cargado el historial de Amazon de 2024 y 2025; donde eso cambia el resultado, se indica.
+Los valores de ejemplo de esta guía son los de las primeras muestras de `Nueva versión/` (30/09/2026) y sirven para practicar el método. **Las cifras vigentes, con datos al 07/10/2026 de Walmart y al 06/10/2026 de Amazon, están en [`powerbi/LEEME.md`](powerbi/LEEME.md)** («Cifras esperadas con los datos actuales»).
+
+**La página Control está oculta para el jefe.** En Power BI Desktop sigue en las pestañas de abajo, con un ícono de ojo tachado; ahí se abre con un clic.
 
 > **Regla de oro: valida sobre una copia, fuera de `Nueva versión`.**
 > Copia el archivo a otra carpeta, por ejemplo `Documentos\Validaciones\`, y trabaja ahí.
@@ -19,7 +21,7 @@ Los valores de ejemplo de esta guía son los de las muestras de `Nueva versión/
 | Fuente | Dónde mirar | Qué debe decir |
 |---|---|---|
 | **Retail Link** (cualquier archivo) | Las primeras filas, antes de los encabezados de columna | El nombre del reporte («Sell Out Act.», «Inventario en Tiendas MX Act.», etc.). El proveedor: `Vendor Nbr ... Is One Of 164242`. El rango: `Pos Date ... Is Between 09-22-2026 and 09-29-2026`. **Ojo: Retail Link escribe las fechas como mes-día-año.** |
-| **Retail Link, fill rate y Recship** | La lista de semanas (`Time Range 1 202549, ...`) | Que no falte ninguna semana. Hoy falta la **202618** en el fill rate (ver `GUIA_DESCARGAS.md`). |
+| **Retail Link, fill rate y Recship** | La lista de semanas (`Time Range 1 202549, ...`) | Que no falte ninguna semana. La descarga de fill rate del 09/10/2026 ya trae la **202618**, que faltaba en las anteriores, y llega a la 202635. |
 | **Amazon** | La fila 1 | `Programa=[Retail]`, `Vista del distribuidor=[Fabricación]`, `Visto por=[ASIN]`, `Moneda=[MXN]` y el rango: `Rango de visualización=[01/09/26 - 28/09/26]`. **Amazon escribe las fechas como día/mes/año.** |
 | **Power BI, página Control** | La tabla «Archivos leídos» | Cada archivo con su rango (Desde, Hasta). La columna **Usado** dice «Sí» en los archivos que cuentan. Si dice «No: hay uno más reciente», el reporte usa otro archivo: valida contra el que dice «Sí». |
 
@@ -46,11 +48,11 @@ Los valores de ejemplo de esta guía son los de las muestras de `Nueva versión/
 En la muestra, `Store Nbr` está en la columna O, `POS Qty` en la S y los datos van de la fila 25 a la 1732. En otro archivo, cambia las letras y las filas por las que veas. Según la configuración de tu Excel, el separador puede ser `;` o `,`.
 
 **Dónde ver la cifra en el reporte:**
-- **Sell out:** tarjetas de la página Sell out. «Mes actual» suma las dos cadenas; para ver una sola, elígela en el filtro Cadena.
-- **Inventario:** tarjeta de la página Inventario, con el filtro Cadena.
+- **Sell out:** tarjetas de la página Sell out. La de monto muestra la cifra completa, con centavos, y debajo el año anterior también completo. «Mes actual» suma las dos cadenas; para ver una sola, elígela en el filtro Cadena. La tabla por producto muestra pesos enteros.
+- **Inventario:** tarjeta «Inventario en cadenas» de la página Inventario, con el filtro Cadena.
 - **Fill rate y Recship:** tarjetas de la página Abasto, sin elegir mes.
 
-**Cuánta diferencia se acepta:** ninguna. La única diferencia válida es el redondeo, porque las tarjetas no muestran centavos. Cualquier otra diferencia es un error: ve a «Si algo no cuadra».
+**Cuánta diferencia se acepta:** ninguna. El monto de sell out debe cuadrar al centavo. En las cifras que se muestran sin decimales (tabla por producto, Recship), la única diferencia válida es el redondeo. Cualquier otra diferencia es un error: ve a «Si algo no cuadra».
 
 **Si hay varios archivos del mismo periodo:**
 - Walmart sell out: si dos archivos cubren el mismo día, el reporte usa el más reciente. Sumar los dos archivos contaría ese día dos veces. Compara **día por día** con la consulta 2 del paso 5.
